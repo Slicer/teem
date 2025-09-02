@@ -1,0 +1,525 @@
+#
+# Teem: Tools to process and visualize scientific data and images
+# Copyright (C) 2009--2025  University of Chicago
+# Copyright (C) 2005--2008  Gordon Kindlmann
+# Copyright (C) 1998--2004  University of Utah
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License
+# (LGPL) as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# The terms of redistributing and/or modifying this software also
+# include exceptions to the LGPL that facilitate static linking.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library; if not, see <https://www.gnu.org/licenses/>.
+#
+
+# Teem/CMakeLists.txt Version 10.8
+# Re-written entirely for TeemV2
+
+#-----------------------------------------------------------------------------
+# Project setup: version, metadata, and language
+
+# CMake Version 3.25 came out November 16, 2022
+# https://www.kitware.com/cmake-3-25-0-available-for-download/
+# why use 3.25: has nicer syntax for try_compile
+cmake_minimum_required(VERSION 3.25)
+
+# Teem version number (must match values in src/air/air.h)
+set(Teem_VERSION_MAJOR 1)
+set(Teem_VERSION_MINOR 12)
+set(Teem_VERSION_PATCH 0)
+set(Teem_VERSION_STRING ${Teem_VERSION_MAJOR}.${Teem_VERSION_MINOR}.${Teem_VERSION_PATCH})
+
+project(Teem VERSION ${Teem_VERSION_STRING}
+        DESCRIPTION "Teem libraries developed by Gordon Kindlmann et al."
+        LANGUAGES C)
+
+message(STATUS "
+
+
+********************************************************************
+** Please join the Teem-users discord https://discord.gg/xBBqZGXkF7
+** to share how Teem works or does not work for you!
+** For example, are these re-written CMakeLists.txt files working?
+********************************************************************
+
+
+")
+
+#-----------------------------------------------------------------------------
+# Module paths and helper includes
+
+include(GNUInstallDirs)
+include(CMakeParseArguments) # for cmake_parse_arguments
+# include(CMakePrintHelpers)  # for debugging via cmake_print_variables(varname)
+
+# CMake modules path (for e.g. FindLEVMAR.cmake)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+
+#-----------------------------------------------------------------------------
+# Dependency list and project options
+#  - canonical list of optional dependencies
+#  - option() flags for enabling/disabling them
+
+# Do we make a shared library?  BUILD_SHARED_LIBS has particular meaning to CMake
+#   https://cmake.org/cmake/help/latest/variable/BUILD_SHARED_LIBS.html
+#   https://gitlab.kitware.com/cmake/cmake/-/issues/25699
+option(BUILD_SHARED_LIBS "Build a libteem shared library" ON)
+
+# The canonical list of libraries that Teem can (optionally) depend on. Within this
+# CMakeLists.txt file, each one is a "DEP" or dependency However, FYI, within the
+# GNUmakefiles, each is called an EXT or external.  Note: inter-dependency dependencies
+# are known in the INTERFACE_LINK_LIBRARIES of each target.
+set(_Teem_DEPS PNG ZLIB BZIP2 LEVMAR FFTW3 PTHREAD)
+
+# docstrings of all dependencies, to avoid redundancy between
+# option(Teem_DEP "${_doc}" ON) and set(Teem_DEP OFF CACHE BOOL "${_doc}" FORCE)
+set(_doc_ZLIB "Enable nrrd support for zlib (\"gzip\") data encoding")
+set(_doc_PNG "Enable nrrd support for PNG format images")
+set(_doc_BZIP2 "Enable nrrd support for bzip2 data encoding")
+set(_doc_PTHREAD "Enable hoover support for multi-threaded rendering")
+set(_doc_LEVMAR "Build with levmar for better elf and ten")
+set(_doc_FFTW3 "Build with fftw3 to enable nrrdFFT() and `unu fft`")
+
+# Whether to default to DEP being ON or OFF
+set(_dflt_ZLIB ON)
+set(_dflt_PNG ON)
+set(_dflt_BZIP2 OFF)
+set(_dflt_PTHREAD ON)
+set(_dflt_LEVMAR OFF)
+set(_dflt_FFTW3 OFF)
+
+# Add an option() for Teem_USE_DEP for each dependency DEP
+foreach(_tdep IN LISTS _Teem_DEPS)
+  #     option name         docstring           default value
+  option(Teem_USE_${_tdep}  "${_doc_${_tdep}}"  ${_dflt_${_tdep}})
+endforeach()
+
+# Other options
+option(Teem_BUILD_HEX "Build stand-alone raw<-->hex decoder/encoder" OFF)
+option(BUILD_TESTING "Build with (incomplete) Teem tests" OFF)
+option(Teem_INSTALL_VERSIONED_SUBDIRS "Install in Teem-X.Y subdir of install/{bin,lib,include}" OFF)
+
+#-----------------------------------------------------------------------------
+# RPATH settings for macOS
+#
+# By default CMake patches installed binaries with `install_name_tool` to replace
+# build-tree RPATHs with install-tree RPATHs. On macOS this causes errors if `make
+# install` is run more than once, because the RPATH has already been modified.
+#
+# The solution used here is to build the executables *already* using the same install
+# RPATH, so no fixup is needed at install time.
+#
+# - Shared build: executables/dylibs use ${CMAKE_INSTALL_PREFIX}/lib
+# - Static build: no RPATHs needed at all
+
+if(APPLE)
+  set(CMAKE_MACOSX_RPATH ON)
+
+  if(BUILD_SHARED_LIBS)
+    # Use install RPATH even in the build tree
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+    set(CMAKE_SKIP_BUILD_RPATH FALSE)
+    set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+  else()
+    # Static build: disable RPATHs entirely
+    set(CMAKE_SKIP_BUILD_RPATH TRUE)
+    set(CMAKE_SKIP_INSTALL_RPATH TRUE)
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# Dependency discovery
+#  - normalize names/targets/FOUND vars
+#  - run find_package() for requested DEPs
+
+# can't do PNG without ZLIB
+if(Teem_USE_PNG AND NOT Teem_USE_ZLIB)
+  message(WARNING "PNG requires ZLIB; enabling Teem_USE_ZLIB.")
+  set(Teem_USE_ZLIB ON)
+endif()
+
+# Special cases of CMake package names (not "DEP")
+set(_cpname_BZIP2    "BZip2")
+set(_cpname_PTHREAD  "Threads")
+# Special cases of namespace::targetname (not "DEP::DEP")
+set(_target_BZIP2   "BZip2::BZip2")
+set(_target_PTHREAD "Threads::Threads")
+set(_target_FFTW3   "FFTW3::fftw3")
+# Special cases of variable name to test for DEP availability (not "DEP_FOUND")
+# (yes PTHREAD is special; there isn't  a "Threads_FOUND"; but this enables uniformity)
+set(_found_PTHREAD  "CMAKE_USE_PTHREADS_INIT")
+
+# Make sure _{cpack,target,found}_DEP are defined for all DEPS
+foreach(_tdep IN LISTS _Teem_DEPS)
+  if(NOT DEFINED _cpname_${_tdep})
+    set(_cpname_${_tdep} "${_tdep}")
+  endif()
+  if(NOT DEFINED _target_${_tdep})
+    set(_target_${_tdep} "${_tdep}::${_tdep}")
+  endif()
+  if(NOT DEFINED _found_${_tdep})
+    set(_found_${_tdep} "${_tdep}_FOUND")
+  endif()
+endforeach()
+# CMake (still) doesn't have anything like a dictionary,
+# so we don't have (for example): _cpname[_tdep]
+# but now, after the foreach above, we have: ${_cpname_${_tdep}}
+
+# With all that uniformity set up: try to find_package() for all DEPs requested
+foreach(_tdep IN LISTS _Teem_DEPS)
+  if(Teem_USE_${_tdep})
+    # this DEP is requested
+    find_package(${_cpname_${_tdep}} QUIET)
+    if(${_found_${_tdep}})
+      set(Teem_HAVE_${_tdep} TRUE)
+    else()
+      set(Teem_USE_${_tdep} OFF CACHE BOOL "${_doc_${_tdep}}" FORCE)
+    endif()
+  endif()
+endforeach()
+
+## to confirm that PNG::PNG links to ZLIB::ZLIB
+#get_target_property(_png_libs PNG::PNG INTERFACE_LINK_LIBRARIES)
+#message(STATUS "PNG::PNG links to: ${_png_libs}")
+
+#-----------------------------------------------------------------------------
+# Install directory layout
+
+# Will not include patch number, since (as of Teem V2.0)
+# API+ABI really are preserved if only patch number is changing
+if(Teem_INSTALL_VERSIONED_SUBDIRS)
+  set(_verpath "teem-${Teem_VERSION_MAJOR}.${Teem_VERSION_MINOR}")
+  set(HEADERS_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/${_verpath}")
+  set(LIB_INSTALL_DIR     "${CMAKE_INSTALL_LIBDIR}/${_verpath}")
+  set(BIN_INSTALL_DIR     "${CMAKE_INSTALL_BINDIR}/${_verpath}")
+  # We do want package name "Teem" here, not teem
+  set(CONFIG_INSTALL_DIR  "${CMAKE_INSTALL_LIBDIR}/${_verpath}/cmake/Teem")
+else()
+  set(HEADERS_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
+  set(LIB_INSTALL_DIR     "${CMAKE_INSTALL_LIBDIR}")
+  set(BIN_INSTALL_DIR     "${CMAKE_INSTALL_BINDIR}")
+  set(CONFIG_INSTALL_DIR  "${CMAKE_INSTALL_LIBDIR}/cmake/Teem")
+endif()
+# so that BIN_INSTALL_DIR can be seen by src/bin/CMakeLists.txt
+set(BIN_INSTALL_DIR "${BIN_INSTALL_DIR}" CACHE INTERNAL "Install dir for binaries")
+
+#-----------------------------------------------------------------------------
+# Configure-time feature test: does AIR_EXISTS() work like isfinite()?
+
+# So much hassle for one dumb macro (which GLK started using before the functionally
+# equivalent isfinite() became widely available).  The little CMake/TestAIR_EXISTS.c
+# program tests the equivalent of AIR_EXISTS (but without directly using air.h's
+# AIR_EXISTS because this has to be stand-alone), to see if it can correctly detect
+# IEEE754 special values (NaNs and infinities). For this to be a useful test that informs
+# how the rest of Teem code will work, TestAIR_EXISTS.c needs to be compiled the same as
+# Teem itself will be compiled later.  Sadly, it was not until Teem V2 that this
+# consistency was actually enforced (!)  To futher help debugging, we also print out (via
+# message()) exactly how TestAIR_EXISTS.c is compiled.
+#
+# (rejected but interesting debugging strategies:
+#  message(STATUS "Pausing CMake so you can inspect temporary files...")
+#  execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 30)
+#  or
+#  execute_process(COMMAND /bin/sh -c "read -p 'Press ENTER to continue...'")
+# )
+
+# "taex" = Test Air_EXists
+set(_taex_src "${CMAKE_CURRENT_LIST_DIR}/CMake/TestAIR_EXISTS.c")
+
+# Combine base flags with build-type-specific flags
+string(TOUPPER "${CMAKE_BUILD_TYPE}" _taex_BTUC) # Build Type Upper Case
+set(_taex_flags "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${_taex_BTUC}}")
+set(_taex_me "AIR_EXISTS macro (compiled with \"${_taex_flags}\")")
+message(STATUS "Test whether ${_taex_me} detects IEEE754 special values")
+message(STATUS "  (compiling ${_taex_src} with CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} and CMAKE_C_FLAGS_${_taex_BTUC}=${CMAKE_C_FLAGS_${_taex_BTUC}})")
+
+# Where we want a durable copy of the compiled probe
+if(WIN32)
+  set(_taex_copy "${CMAKE_BINARY_DIR}/TestAIR_EXISTS.exe")
+else()
+  set(_taex_copy "${CMAKE_BINARY_DIR}/TestAIR_EXISTS")
+endif()
+# Remove any stale copy from previous runs
+if(EXISTS "${_taex_copy}")
+  file(REMOVE "${_taex_copy}")
+endif()
+
+# We would use try_run except that try_run deletes everything it created before try_run
+# finishes, which robs us of the chance to later re-run the test program. So we first
+# try_compile and then execute_process.
+# https://cmake.org/cmake/help/v3.25/command/try_compile.html#try-compiling-source-files
+try_compile(
+  _taex_compiles         # boolean result: TRUE if compile succeeded
+  SOURCES "${_taex_src}" # one or more source files for the test
+  CMAKE_FLAGS
+    "-DCMAKE_VERBOSE_MAKEFILE=ON"
+    "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+    "-DCMAKE_C_FLAGS_${_taex_BTUC}=${_taex_flags}"
+    "-DCMAKE_DEPENDS_USE_COMPILER=FALSE"  # no -MD/-MT/-MF crap
+  OUTPUT_VARIABLE _taex_compile_out
+  COPY_FILE "${_taex_copy}"     # copy the built executable to a stable path
+  COPY_FILE_ERROR _taex_copy_error
+)
+if(NOT _taex_compiles)
+  message(FATAL_ERROR "Failed to compile ${_taex_src} so could not test AIR_EXISTS macro")
+endif()
+# Show the captured output
+message(STATUS "v.v.v.v.v.v.v.v.v.v Compile output for AIR_EXISTS macro test v.v.v.v.v.v.v.v.v.v\n${_taex_compile_out}\n^'^'^'^'^'^'^'^'^'^ End compile output ^'^'^'^'^'^'^'^'^'^")
+
+if(_taex_copy_error)
+  message(FATAL_ERROR "Test program compiled but copy failed: ${_taex_copy_error}")
+elseif(NOT EXISTS "${_taex_copy}")
+  message(FATAL_ERROR "Test program compiled but resulting file not found at ${_taex_copy}")
+endif()
+
+# Run the compiled test program
+# https://cmake.org/cmake/help/latest/command/execute_process.html
+message(STATUS "Running test program ${_taex_copy}")
+execute_process(
+  COMMAND "${_taex_copy}"
+  RESULT_VARIABLE _taex_run_status
+  OUTPUT_VARIABLE _taex_run_out
+  ERROR_VARIABLE _taex_run_err
+)
+
+if(_taex_run_status EQUAL 0)
+  message(STATUS "Yes, ${_taex_me} works to detect IEEE754 special values")
+  set(AIR_EXISTS_MACRO_FAILS 0 CACHE INTERNAL "AIR_EXISTS macro works correctly")
+else()
+  message(STATUS "NO, ${_taex_me} FAILS to detect IEEE754 special values")
+  message(STATUS "Probe stderr:\n${_taex_run_err}")
+  set(AIR_EXISTS_MACRO_FAILS 1 CACHE INTERNAL "AIR_EXISTS macro fails")
+endif()
+
+#-----------------------------------------------------------------------------
+# We gather here to build the monolithic library 'libteem'
+
+# (whereas the old-but-recently-updated GNUmakefiles build finer-grained per-library
+# libraries libair, libbiff, etc, which are still needed for Teem hacking
+
+add_library(Teem "")
+
+# Ensure build's include dir exists for generated headers
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include/teem)
+
+# Public include directories
+target_include_directories(Teem
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${HEADERS_INSTALL_DIR}>
+)
+
+# Say "cc -D TEEM_DEP" and link with DEP target if dependency DEP is used
+foreach(_tdep IN LISTS _Teem_DEPS)
+  if(Teem_HAVE_${_tdep})
+    message(STATUS "Will use ${_tdep}: ${_doc_${_tdep}}")
+    target_compile_definitions(Teem PUBLIC "TEEM_${_tdep}")
+    # This attaches DEP=${_target_${_tdep}} to the Teem target, but not any particular
+    # command-line executable. It is PRIVATE because Teem is designed to not directly
+    # expose any thing from, say, png.h or libpng in its API or ABI - there are always
+    # stub alternatives for when DEP is not used. PRIVATE is saying: use DEP when
+    # building the target, but do not automatically propagate DEP to things (like unu)
+    # depending on the target
+    target_link_libraries(Teem PRIVATE "${_target_${_tdep}}")
+  else()
+    message(STATUS "  (not using ${_tdep}: ${_doc_${_tdep}})")
+  endif()
+endforeach()
+# confirm results of loop above: what dependencies do I consume
+get_target_property(_Teem_libs Teem LINK_LIBRARIES)
+message(STATUS "Teem LINK_LIBRARIES = ${_Teem_libs}")
+## Not interesting for Teem: what dependencies do I expose. Will show
+## "_Teem_libs-NOTFOUND" because of Teem's API/ABI invariance w.r.t dependencies
+#get_target_property(_Teem_libs Teem INTERFACE_LINK_LIBRARIES)
+#message(STATUS "Teem INTERFACE_LINK_LIBRARIES = ${_Teem_libs}")
+
+# Say "cc -D TEEM_STATIC" if not building a shared library
+# (used as part of handling Windows "extern" analog)
+target_compile_definitions(Teem PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:TEEM_STATIC>")
+
+## Handling linking with math library libm via -lm
+# We could be brute-force, and add -lm to link line for any and all Unices:
+#     if(UNIX)
+#       target_link_libraries(Teem PRIVATE m)
+#     endif()
+# But actually, not all Unices need to link with -lm; let's figure out if it is needed
+
+include(CheckFunctionExists)
+
+# First: can we link sin() without -lm?
+unset(CMAKE_REQUIRED_LIBRARIES)
+check_function_exists(sin HAVE_SIN_WITHOUT_LIBM)
+
+# If not, try again with -lm
+if(NOT HAVE_SIN_WITHOUT_LIBM)
+  set(CMAKE_REQUIRED_LIBRARIES m)
+  check_function_exists(sin HAVE_SIN_WITH_LIBM)
+  unset(CMAKE_REQUIRED_LIBRARIES)
+endif()
+
+# Decide outcome
+if(HAVE_SIN_WITHOUT_LIBM)
+  message(STATUS "sin() found without libm; do NOT need to link with -lm")
+elseif(HAVE_SIN_WITH_LIBM)
+  message(STATUS "sin() requires libm; DO need to link with -lm")
+  target_link_libraries(Teem PRIVATE m)
+else()
+  message(FATAL_ERROR "Could not find sin() at all!")
+endif()
+
+# Set various properties
+set_target_properties(Teem PROPERTIES
+  OUTPUT_NAME teem  # so we get libteem not libTeem
+  VERSION ${Teem_VERSION_STRING}
+  SOVERSION ${Teem_VERSION_MAJOR}
+  POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS}
+)
+
+#-----------------------------------------------------------------------------
+# Teem's component libraries
+
+# Each component library will append its public headers to global property
+# "Teem_HEADER_FILES".  For clarity, we initialize it to empty string now.
+set_property(GLOBAL PROPERTY Teem_HEADER_FILES "")
+
+# Helper function component library call to declare its contribution
+function(_Teem_add_library _pathtolib)
+  get_filename_component(_lib ${_pathtolib} NAME)
+  cmake_parse_arguments(${_lib} "" "" "SOURCES;PUBLIC_HEADERS" ${ARGN})
+
+  # 1. Append public headers to global property Teem_HEADER_FILES, except that
+  # we need to also remember the containing directory; prepend that now.
+  # Will need the same prepending of sources for source_group below
+  set(${_lib}_LIB_SOURCES ${${_lib}_SOURCES})
+  list(TRANSFORM ${_lib}_LIB_SOURCES PREPEND "${_lib}/")
+  set(${_lib}_LIB_PUBLIC_HEADERS ${${_lib}_PUBLIC_HEADERS})
+  list(TRANSFORM ${_lib}_LIB_PUBLIC_HEADERS PREPEND "${_lib}/")
+  set_property(GLOBAL APPEND PROPERTY Teem_HEADER_FILES ${${_lib}_LIB_PUBLIC_HEADERS})
+
+  # 2. Add all sources (including private headers) to Teem
+  target_sources(Teem PRIVATE
+    ${${_lib}_SOURCES}
+    ${${_lib}_PUBLIC_HEADERS}
+  )
+
+  # 3. Group sources logically for IDEs
+  source_group(${_lib} FILES
+    ${${_lib}_LIB_SOURCES}
+    ${${_lib}_LIB_PUBLIC_HEADERS}
+  )
+endfunction()
+
+# (TEEM_LIB_LIST)
+set(Teem_LIBRARIES
+    air hest biff nrrd ell moss unrrdu alan tijk gage dye bane
+    limn echo hoover seek ten elf pull coil push mite meet)
+# Read in CMakeLists.txt of each library
+foreach(_dir IN LISTS Teem_LIBRARIES)
+  # each one calls _Teem_add_library
+  add_subdirectory(src/${_dir})
+endforeach()
+
+#-----------------------------------------------------------------------------
+# Public headers: copy, configure, and declare via FILE_SET
+
+# Set *variable* _Teem_headers from *property* Teem_HEADER_FILES
+get_property(_Teem_headers GLOBAL PROPERTY Teem_HEADER_FILES)
+
+# Copy header files to install location
+set(_Teem_headers_full)
+foreach(_dirhdr IN LISTS _Teem_headers)
+  # e.g. set _hdr="air.h" from _dirhdr="air/air.h"
+  get_filename_component(_hdr ${_dirhdr} NAME)
+  set(_dest "${CMAKE_BINARY_DIR}/include/teem/${_hdr}")
+  # cmake_print_variables(_dirhdr _dest)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/${_dirhdr} ${_dest} COPYONLY)
+  list(APPEND _Teem_headers_full "${_dest}")
+endforeach()
+# cmake_print_variables(_Teem_headers_full)
+
+# Configure generated header airExistsConf.h
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMake/airExistsConf.h
+               ${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h
+               @ONLY NEWLINE_STYLE UNIX)
+list(APPEND _Teem_headers_full "${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h")
+
+# Declare where public headers are found during build
+target_sources(Teem
+  PUBLIC
+    FILE_SET public_headers
+    TYPE HEADERS
+    BASE_DIRS ${CMAKE_BINARY_DIR}/include
+    FILES ${_Teem_headers_full}
+)
+
+#-----------------------------------------------------------------------------
+# We also gather here to build the command-line executables (e.g. "unu")
+
+add_subdirectory(src/bin)
+
+#-----------------------------------------------------------------------------
+# Optional helper tools (hex/dehex)
+
+# If requested, helper dehex/exhex programs
+if(Teem_BUILD_HEX)
+    add_subdirectory(src/hex)
+endif()
+
+#-----------------------------------------------------------------------------
+# Testing
+
+if(BUILD_TESTING)
+    include(CTest) # belatedly
+    enable_testing()
+    add_subdirectory(Testing) # add Teem-specific tests
+endif()
+
+#-----------------------------------------------------------------------------
+# Install rules
+
+install(TARGETS Teem
+  EXPORT TeemTargets
+  RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+  LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+  ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+  FILE_SET public_headers DESTINATION ${HEADERS_INSTALL_DIR}
+)
+
+# Export targets for find_package
+install(EXPORT TeemTargets
+  FILE TeemTargets.cmake
+  NAMESPACE Teem::
+  DESTINATION ${CONFIG_INSTALL_DIR}
+)
+
+include(CMakePackageConfigHelpers)
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake.in"
+"@PACKAGE_INIT@\ninclude(\"\${CMAKE_CURRENT_LIST_DIR}/TeemTargets.cmake\")\n")
+
+configure_package_config_file(${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake
+  INSTALL_DESTINATION ${CONFIG_INSTALL_DIR}
+)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/TeemConfigVersion.cmake
+  VERSION ${Teem_VERSION_STRING}
+  COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/TeemConfigVersion.cmake
+  DESTINATION ${CONFIG_INSTALL_DIR}
+)
