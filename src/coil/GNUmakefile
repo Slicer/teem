@@ -46,8 +46,10 @@ $(L).Included := yes
 $(L).Depends = ten ell nrrd biff air
 $(L).PublicHdr = coil.h
 $(L).PrivateHdr =
-$(L).Obj = defaultsCoil.o enumsCoil.o scalarCoil.o tensorCoil.o \
-            realmethods.o methodsCoil.o coreCoil.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    coreCoil.c defaultsCoil.c enumsCoil.c methodsCoil.c realmethods.c scalarCoil.c \
+    tensorCoil.c \
+  )
 $(L).Test = coiler
 ####
 ####

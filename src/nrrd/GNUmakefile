@@ -46,20 +46,16 @@ $(L).Included := yes
 $(L).Depends = biff hest air
 $(L).PublicHdr = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
 $(L).PrivateHdr = privateNrrd.h
-$(L).Obj = \
-	accessors.o  arith.o     arraysNrrd.o   apply1D.o apply2D.o \
-	axis.o       comment.o   convertNrrd.o  defaultsNrrd.o   \
-	deringNrrd.o   endianNrrd.o   enumsNrrd.o   filt.o   gzio.o  \
-	hestNrrd.o   histogram.o iter.o         kernel.o   	 \
-	map.o        measure.o   methodsNrrd.o  parseNrrd.o      \
-	read.o       write.o        reorder.o   resampleNrrd.o \
-	simple.o     subset.o     superset.o  tmfKernel.o      \
-	winKernel.o  bsplKernel.o  ccmethods.o  cc.o        range.o  \
-        encoding.o   encodingRaw.o  encodingAscii.o  encodingHex.o \
-	encodingGzip.o   encodingBzip2.o  encodingZRL.o \
-	format.o     formatNRRD.o     formatPNM.o      formatPNG.o \
-	formatVTK.o      formatText.o     formatEPS.o      \
-	keyvalue.o  resampleContext.o  fftNrrd.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    accessors.c apply1D.c apply2D.c arith.c arraysNrrd.c axis.c bsplKernel.c cc.c \
+    ccmethods.c comment.c convertNrrd.c defaultsNrrd.c deringNrrd.c encoding.c \
+    encodingAscii.c encodingBzip2.c encodingGzip.c encodingHex.c encodingRaw.c \
+    encodingZRL.c endianNrrd.c enumsNrrd.c fftNrrd.c filt.c format.c formatEPS.c \
+    formatNRRD.c formatPNG.c formatPNM.c formatText.c formatVTK.c gzio.c hestNrrd.c \
+    histogram.c iter.c kernel.c keyvalue.c map.c measure.c methodsNrrd.c \
+    parseNrrd.c range.c read.c reorder.c resampleContext.c resampleNrrd.c simple.c \
+    subset.c superset.c tmfKernel.c winKernel.c write.c \
+  )
 $(L).Test = tread trand ax io strio texp minmax tkernel typestest \
 	tline genvol quadvol convo kv reuse histrad otsu \
 	dnorm morph phrnd

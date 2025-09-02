@@ -45,12 +45,13 @@ $(L).Included := yes
 $(L).Depends = ell unrrdu nrrd biff hest air
 $(L).PublicHdr = limn.h
 $(L).PrivateHdr = privateLimn.h
-$(L).Obj = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
-        obj.o transform.o shapes.o renderLimn.o io.o hestLimn.o \
-	splineMisc.o splineMethods.o splineEval.o enumsLimn.o \
-	splineFit.o polydata.o polyshapes.o polymod.o polyfilter.o \
-	lpuFlotsam.o lpu_about.o lpu_ccfind.o lpu_psel.o lpu_rast.o \
-	lpu_verts.o lpu_meas.o lpu_sort.o lpu_cbfit.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    cam.c defaultsLimn.c enumsLimn.c envmap.c hestLimn.c io.c light.c lpu_about.c \
+    lpu_cbfit.c lpu_ccfind.c lpu_meas.c lpu_psel.c lpu_rast.c lpu_sort.c \
+    lpu_verts.c lpuFlotsam.c methodsLimn.c obj.c polydata.c polyfilter.c polymod.c \
+    polyshapes.c qn.c renderLimn.c shapes.c splineEval.c splineFit.c \
+    splineMethods.c splineMisc.c transform.c \
+  )
 $(L).Test = map light tcam tps tspline tbc tcamanim soid off2eps \
 	triimg plot intx tio clip lpu tqn
 ####

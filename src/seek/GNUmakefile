@@ -45,8 +45,10 @@ $(L).Included := yes
 $(L).Depends = gage limn ell nrrd biff hest air
 $(L).PublicHdr = seek.h
 $(L).PrivateHdr =
-$(L).Obj = enumsSeek.o tables.o methodsSeek.o setSeek.o updateSeek.o \
-	extract.o textract.o descend.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    descend.c enumsSeek.c extract.c methodsSeek.c setSeek.c tables.c textract.c \
+    updateSeek.c \
+  )
 $(L).Test = tiso trv
 ####
 ####

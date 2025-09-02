@@ -45,7 +45,9 @@ $(L).Included := yes
 $(L).Depends = air
 $(L).PublicHdr = hest.h
 $(L).PrivateHdr = privateHest.h
-$(L).Obj = defaultsHest.o methodsHest.o usage.o parseHest.o adders.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    adders.c defaultsHest.c methodsHest.c parseHest.c usage.c \
+  )
 $(L).Test = ex1 ex2 ex3 ex4 ex5 ex6 strings bday tmpl
 ####
 ####

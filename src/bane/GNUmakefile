@@ -45,11 +45,11 @@ $(L).Included := yes
 $(L).Depends = gage unrrdu nrrd biff air
 $(L).PublicHdr = bane.h
 $(L).PrivateHdr = privateBane.h
-$(L).Obj = defaultsBane.o rangeBane.o inc.o clip.o measr.o methodsBane.o \
-	valid.o trnsf.o scat.o hvol.o trex.o \
-	gkmsFlotsam.o \
-	gkmsHvol.o gkmsScat.o gkmsInfo.o gkmsPvg.o gkmsOpac.o \
-	gkmsMite.o gkmsTxf.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    clip.c defaultsBane.c gkmsFlotsam.c gkmsHvol.c gkmsInfo.c gkmsMite.c gkmsOpac.c \
+    gkmsPvg.c gkmsScat.c gkmsTxf.c hvol.c inc.c measr.c methodsBane.c rangeBane.c \
+    scat.c trex.c trnsf.c valid.c \
+  )
 $(L).Test = tinfo sigma pos opac
 ####
 ####

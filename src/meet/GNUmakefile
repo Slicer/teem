@@ -46,7 +46,9 @@ $(L).Included := yes
 $(L).Depends = air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite
 $(L).PublicHdr = meet.h
 $(L).PrivateHdr =
-$(L).Obj = enumall.o meetNrrd.o meetGage.o meetPull.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    enumall.c meetGage.c meetNrrd.c meetPull.c \
+  )
 $(L).Test = strace vpnts tenums
 ####
 ####

@@ -45,7 +45,9 @@ $(L).Included := yes
 $(L).Depends = ten tijk limn ell nrrd air
 $(L).PublicHdr = elf.h
 $(L).PrivateHdr =
-$(L).Obj = ballStickElf.o ESHEstimElf.o glyphElf.o maximaElf.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    ballStickElf.c ESHEstimElf.c glyphElf.c maximaElf.c \
+  )
 $(L).Test =
 ####
 ####

@@ -45,8 +45,9 @@ $(L).Included := yes
 $(L).Depends = ten gage ell nrrd biff air
 $(L).PublicHdr = push.h
 $(L).PrivateHdr = privatePush.h
-$(L).Obj = defaultsPush.o methodsPush.o binning.o \
-  forces.o corePush.o setup.o action.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    action.c binning.c corePush.c defaultsPush.c forces.c methodsPush.c setup.c \
+  )
 $(L).Test = eparse pusher
 ####
 ####

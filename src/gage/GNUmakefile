@@ -45,11 +45,13 @@ $(L).Included := yes
 $(L).Depends = ell nrrd biff air
 $(L).PublicHdr = gage.h
 $(L).PrivateHdr = privateGage.h
-$(L).Obj = defaultsGage.o miscGage.o scl.o kind.o \
-        shape.o pvl.o update.o deconvolve.o \
-	print.o sclanswer.o sclprint.o sclfilter.o \
-	vecGage.o vecprint.o twovecGage.o st.o filter.o ctx.o \
-	stack.o stackBlur.o optimsig.o
+# NOT including multiGage.c for now, and scl3pfilterbody.c is just a macro
+$(L).Obj = $(patsubst %.c,%.o, \
+    ctx.c deconvolve.c defaultsGage.c filter.c kind.c miscGage.c \
+    optimsig.c print.c pvl.c scl.c sclanswer.c sclfilter.c \
+    sclprint.c shape.c st.c stack.c stackBlur.c twovecGage.c update.c vecGage.c \
+    vecprint.c \
+  )
 $(L).Test = ctfix demo vh aalias indx genoptsig ssc maxes tplot
 ####
 ####

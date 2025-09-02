@@ -45,8 +45,10 @@ $(L).Included := yes
 $(L).Depends = limn ell nrrd biff air
 $(L).PublicHdr = echo.h
 $(L).PrivateHdr = privateEcho.h
-$(L).Obj = enumsEcho.o methodsEcho.o objmethods.o bounds.o set.o model.o \
-	matter.o intx.o sqd.o list.o color.o lightEcho.o renderEcho.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    bounds.c color.c enumsEcho.c intx.c lightEcho.c list.c matter.c methodsEcho.c \
+    model.c objmethods.c renderEcho.c set.c sqd.c \
+  )
 $(L).Test = test trend
 ####
 ####

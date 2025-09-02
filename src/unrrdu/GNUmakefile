@@ -46,20 +46,19 @@ $(L).Depends = moss nrrd biff hest air
 $(L).PublicHdr = unrrdu.h
 $(L).PrivateHdr = privateUnrrdu.h
 $(L).Obj = flotsam.o
-#
-# The source for unu command xxx must define a unuCmd "unu_xxxCmd".
-# This applies to every .o file below.
-#
-$(L).Obj  += flip.o slice.o sselect.o convert.o crop.o pad.o permute.o \
-	histo.o resample.o cmedian.o reshape.o shuffle.o minmax.o quantize.o \
-	unquantize.o project.o swap.o join.o dhisto.o \
-	jhisto.o dice.o heq.o histax.o gamma.o make.o 1op.o 2op.o 3op.o \
-	lut.o subst.o rmap.o imap.o lut2.o save.o head.o data.o splice.o \
-	inset.o axinsert.o axdelete.o axinfo.o ccfind.o ccadj.o ccmerge.o \
-	ccsettle.o about.o axsplit.o axmerge.o mlut.o mrmap.o tile.o untile.o \
-	unorient.o env.o dist.o affine.o i2w.o w2i.o fft.o acrop.o dering.o \
-	diff.o cksum.o dnorm.o vidicon.o undos.o uncmt.o basinfo.o grid.o ilk.o \
-	ninspect.o hack.o aabplot.o block.o unblock.o built.o
+# The source file xxx.c for "unu xxx" must define a unuCmd "unu_xxxCmd".
+# This applies to every .o file listed here.
+$(L).Obj += $(patsubst %.c,%.o, \
+    1op.c 2op.c 3op.c aabplot.c about.c acrop.c affine.c axdelete.c axinfo.c \
+    axinsert.c axmerge.c axsplit.c basinfo.c block.c built.c ccadj.c ccfind.c \
+    ccmerge.c ccsettle.c cksum.c cmedian.c convert.c crop.c data.c dering.c \
+    dhisto.c dice.c diff.c dist.c dnorm.c env.c fft.c flip.c gamma.c grid.c hack.c \
+    head.c heq.c histax.c histo.c i2w.c ilk.c imap.c inset.c jhisto.c join.c lut.c \
+    lut2.c make.c minmax.c mlut.c mrmap.c ninspect.c pad.c permute.c project.c \
+    quantize.c resample.c reshape.c rmap.c save.c shuffle.c slice.c splice.c \
+    sselect.c subst.c swap.c tile.c unblock.c uncmt.c undos.c unorient.c \
+    unquantize.c untile.c vidicon.c w2i.c \
+  )
 $(L).Test =
 ####
 ####

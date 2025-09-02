@@ -46,7 +46,9 @@ $(L).Included := yes
 $(L).Depends = ell biff air
 $(L).PublicHdr = dye.h
 $(L).PrivateHdr =
-$(L).Obj = methodsDye.o convertDye.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    convertDye.c methodsDye.c \
+  )
 $(L).Test = conv bow mchist iconv
 ####
 ####

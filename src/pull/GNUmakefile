@@ -45,9 +45,11 @@ $(L).Included := yes
 $(L).Depends = ten limn gage ell nrrd biff hest air
 $(L).PublicHdr = pull.h
 $(L).PrivateHdr = privatePull.h
-$(L).Obj = defaultsPull.o energy.o infoPull.o volumePull.o taskPull.o  \
-    binningPull.o corePull.o contextPull.o actionPull.o constraints.o \
-    pointPull.o popcntl.o ccPull.o parmPull.o initPull.o enumsPull.o trace.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    actionPull.c binningPull.c ccPull.c constraints.c contextPull.c corePull.c \
+    defaultsPull.c energy.c enumsPull.c infoPull.c initPull.c parmPull.c \
+    pointPull.c popcntl.c taskPull.c trace.c volumePull.c \
+  )
 $(L).Test = eparse circ
 ####
 ####

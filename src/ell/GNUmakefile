@@ -45,7 +45,9 @@ $(L).Included := yes
 $(L).Depends = nrrd biff air
 $(L).PublicHdr = ell.h ellMacros.h
 $(L).PrivateHdr =
-$(L).Obj = cubicEll.o eigen.o miscEll.o vecEll.o mat.o quat.o genmat.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    cubicEll.c eigen.c genmat.c mat.c miscEll.c quat.c vecEll.c \
+  )
 $(L).Test = sort3 invert tq wheel rot2aa inter mmul es6
 ####
 ####

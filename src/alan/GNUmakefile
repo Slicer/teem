@@ -45,7 +45,9 @@ $(L).Included := yes
 $(L).Depends = air biff ell nrrd
 $(L).PublicHdr = alan.h
 $(L).PrivateHdr =
-$(L).Obj = methodsAlan.o enumsAlan.o coreAlan.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    coreAlan.c enumsAlan.c methodsAlan.c \
+  )
 $(L).Test =
 ####
 ####

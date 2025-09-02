@@ -45,7 +45,9 @@ $(L).Included := yes
 $(L).Depends = limn ell nrrd biff air
 $(L).PublicHdr = hoover.h
 $(L).PrivateHdr =
-$(L).Obj = defaultsHoover.o stub.o methodsHoover.o rays.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    defaultsHoover.c methodsHoover.c rays.c stub.c \
+  )
 $(L).Test =
 ####
 ####

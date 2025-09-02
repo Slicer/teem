@@ -45,7 +45,9 @@ $(L).Included := yes
 $(L).Depends = air
 $(L).PublicHdr = biff.h
 $(L).PrivateHdr = privateBiff.h
-$(L).Obj = biffmsg.o biffbiff.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    biffbiff.c biffmsg.c \
+  )
 $(L).Test = test
 ####
 ####

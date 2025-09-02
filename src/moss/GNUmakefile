@@ -45,7 +45,9 @@ $(L).Included := yes
 $(L).Depends = ell nrrd biff hest air
 $(L).PublicHdr = moss.h
 $(L).PrivateHdr = privateMoss.h
-$(L).Obj = defaultsMoss.o methodsMoss.o sampler.o xform.o hestMoss.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    defaultsMoss.c hestMoss.c methodsMoss.c sampler.c xform.c \
+  )
 $(L).Test = invert
 ####
 ####

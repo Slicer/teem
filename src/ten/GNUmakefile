@@ -45,24 +45,20 @@ $(L).Included := yes
 $(L).Depends = echo limn gage unrrdu ell nrrd biff air
 $(L).PublicHdr = ten.h tenMacros.h
 $(L).PrivateHdr = privateTen.h
-$(L).Obj = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
-	mod.o estimate.o tenGage.o tenDwiGage.o qseg.o path.o qglox.o \
-	fiberMethods.o fiber.o epireg.o defaultsTen.o bimod.o bvec.o \
-	triple.o experSpec.o tenModel.o modelBall.o model1Stick.o \
-	model1Vector2D.o model1Unit2D.o model2Unit2D.o \
-	modelBall1Stick.o modelBall1StickEMD.o modelBall1Cylinder.o \
-	model1Cylinder.o model1Tensor2.o modelZero.o modelB0.o \
-	tendAbout.o \
-	tendFlotsam.o tendGrads.o tendAnplot.o tendAnvol.o tendEval.o \
-	tendEvec.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
-	tendTriple.o tendTconv.o tendAvg.o \
-	tendAnhist.o tendMake.o tendSatin.o tendShrink.o tendGlyph.o \
-	tendFiber.o tendEpireg.o tendBmat.o tendEstim.o tendSim.o \
-	tendMsim.o tendMfit.o tendMconv.o \
-	tendSlice.o tendEllipse.o tendEvecrgb.o tendNorm.o tendAnscale.o \
-	tendEvalpow.o tendEvalclamp.o tendEvaladd.o tendEvalmult.o \
-	tendHelix.o tendBfit.o \
-	tendUnmf.o tendLog.o tendExp.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    aniso.c bimod.c bvec.c chan.c defaultsTen.c enumsTen.c epireg.c estimate.c \
+    experSpec.c fiber.c fiberMethods.c glyph.c grads.c miscTen.c mod.c \
+    model1Cylinder.c model1Stick.c model1Tensor2.c model1Unit2D.c model1Vector2D.c \
+    model2Unit2D.c modelB0.c modelBall.c modelBall1Cylinder.c modelBall1Stick.c \
+    modelBall1StickEMD.c modelZero.c path.c qglox.c qseg.c tendAbout.c tendAnhist.c \
+    tendAnplot.c tendAnscale.c tendAnvol.c tendAvg.c tendBfit.c tendBmat.c \
+    tendEllipse.c tendEpireg.c tendEstim.c tendEval.c tendEvaladd.c tendEvalclamp.c \
+    tendEvalmult.c tendEvalpow.c tendEvec.c tendEvecrgb.c tendEvq.c tendExp.c \
+    tendExpand.c tendFiber.c tendFlotsam.c tendGlyph.c tendGrads.c tendHelix.c \
+    tendLog.c tendMake.c tendMconv.c tendMfit.c tendMsim.c tendNorm.c tendPoint.c \
+    tendSatin.c tendShrink.c tendSim.c tendSlice.c tendSten.c tendTconv.c \
+    tendTriple.c tendUnmf.c tenDwiGage.c tenGage.c tenModel.c tensor.c triple.c \
+  )
 # tendCalc.o nixed
 $(L).Test = roistat tg tt tem rotedge tsoid odf-hist to tensorDotDat \
 	igrt cntr geode taniso csim ttriple tqgl teigen

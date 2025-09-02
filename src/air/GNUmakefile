@@ -45,8 +45,11 @@ $(L).Included := yes
 $(L).Depends =
 $(L).PublicHdr = air.h
 $(L).PrivateHdr = privateAir.h
-$(L).Obj = 754.o randMT.o randJSF.o array.o miscAir.o parseAir.o math.o \
-	endianAir.o mop.o enum.o sane.o string.o threadAir.o heap.o
+# list below copied from similar block in CMakeLists.txt, but then add " \"
+$(L).Obj = $(patsubst %.c,%.o, \
+    754.c array.c endianAir.c enum.c heap.c math.c miscAir.c mop.c parseAir.c \
+    randJSF.c randMT.c sane.c string.c threadAir.c \
+  )
 $(L).Test = floatprint doubleprint tok tmop tline fp trand trandJSF tmisc \
 	bessy tarr texp logrice tprint
 ####

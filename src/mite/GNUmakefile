@@ -46,8 +46,9 @@ $(L).Included := yes
 $(L).Depends = ten hoover limn gage ell nrrd biff air
 $(L).PublicHdr = mite.h
 $(L).PrivateHdr = privateMite.h
-$(L).Obj = defaultsMite.o kindnot.o txf.o shade.o \
-            user.o renderMite.o thread.o ray.o
+$(L).Obj = $(patsubst %.c,%.o, \
+    defaultsMite.c kindnot.c ray.c renderMite.c shade.c thread.c txf.c user.c \
+  )
 $(L).Test =
 ####
 ####
