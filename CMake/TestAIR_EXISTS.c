@@ -19,9 +19,9 @@ typedef union {
 /* from teem/src/air/754.c: this could actually be a quiet NaN
    or a signalling NaN, but that shouldn't make a difference for
    this configure-time test  */
-const airFloat airFloatQNaN = {0x7fffffff};
-const airFloat airFloatPosInf = {0x7f800000};
-const airFloat airFloatNegInf = {0xff800000};
+static const airFloat airFloatQNaN = {0x7fffffff};
+static const airFloat airFloatPosInf = {0x7f800000};
+static const airFloat airFloatNegInf = {0xff800000};
 
 #define AIR_CAST(t, v) ((t)(v))
 /* MUST BE COPIED DIRECTLY FROM from air.h !! */
@@ -38,7 +38,7 @@ main(int argc, char *argv[]) {
   double nanD = (double)nanF;
   double pinfD = (double)pinfF;
   double ninfD = (double)ninfF;
-  float piD = 3.1415926535897932384626433;
+  double piD = 3.1415926535897932384626433;
   int ret;
   if (AIR_EXISTS(nanF) || AIR_EXISTS(pinfF) || AIR_EXISTS(ninfF)    /* */
       || AIR_EXISTS(nanD) || AIR_EXISTS(pinfD) || AIR_EXISTS(ninfD) /* */
