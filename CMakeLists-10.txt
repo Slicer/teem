@@ -398,25 +398,26 @@ function(_Teem_add_library _pathtolib)
   get_filename_component(_lib ${_pathtolib} NAME)
   cmake_parse_arguments(${_lib} "" "" "SOURCES;PUBLIC_HEADERS" ${ARGN})
 
-  # 1. Append public headers to global property Teem_HEADER_FILES, except that
-  # we need to also remember the containing directory; prepend that now.
-  # Will need the same prepending of sources for source_group below
+  # 1. Prepend containing directory ${_lib} to sources and headers
   set(${_lib}_LIB_SOURCES ${${_lib}_SOURCES})
   list(TRANSFORM ${_lib}_LIB_SOURCES PREPEND "${_lib}/")
   set(${_lib}_LIB_PUBLIC_HEADERS ${${_lib}_PUBLIC_HEADERS})
   list(TRANSFORM ${_lib}_LIB_PUBLIC_HEADERS PREPEND "${_lib}/")
+
+  # 2. Collect public headers for installation
   set_property(GLOBAL APPEND PROPERTY Teem_HEADER_FILES ${${_lib}_LIB_PUBLIC_HEADERS})
 
-  # 2. Add all sources (including private headers) to Teem
-  target_sources(Teem PRIVATE
-    ${${_lib}_SOURCES}
-    ${${_lib}_PUBLIC_HEADERS}
-  )
+  # 3. Add sources for compilation
+  # (headers will be seen via dependency analysis)
+  target_sources(Teem PRIVATE ${${_lib}_SOURCES})
 
-  # 3. Group sources logically for IDEs
-  source_group(${_lib} FILES
-    ${${_lib}_LIB_SOURCES}
-    ${${_lib}_LIB_PUBLIC_HEADERS}
+  # 4. IDE grouping of library using TREE (modern CMake) under single "Teem/src" prefix
+  source_group(
+    TREE "${CMAKE_CURRENT_SOURCE_DIR}/${_lib}"
+    PREFIX "Teem/src/${_lib}"
+    FILES
+      ${${_lib}_LIB_SOURCES}
+      ${${_lib}_LIB_PUBLIC_HEADERS}
   )
 endfunction()
 
