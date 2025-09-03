@@ -19,6 +19,10 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
+# message(WARNING "This file (TeemUse.cmake) is no longer used by TeemV2 CMake")
+# message(WARNING "This file (TeemUse.cmake) will be deleted soon.")
+# message(WARNING "Question/Concerns?  https://discord.gg/xBBqZGXkF7")
+
 if(NOT Teem_FOUND)
   message(FATAL_ERROR "Something went wrong. You are including TeemUse.cmake but Teem was not found")
 endif()
