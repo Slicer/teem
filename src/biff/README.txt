@@ -1,4 +1,4 @@
-All about /* Biff: */ annotations (new with Teem 1.13)
+All about /* Biff: */ annotations (new with Teem v2)
 
 teem/src/_util/scan-symbols.py -biff (the "biff auto-scan") will scrutinize Teem source
 code to look at how it uses biff. This analysis creates parsable annotations of function
