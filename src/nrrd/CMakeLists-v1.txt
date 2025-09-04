@@ -1,0 +1,65 @@
+# This variable will help provide a master list of all the sources.
+# Add new source files here.
+set(NRRD_SOURCES
+  accessors.c
+  apply1D.c
+  apply2D.c
+  arith.c
+  arraysNrrd.c
+  axis.c
+  cc.c
+  ccmethods.c
+  comment.c
+  convertNrrd.c
+  defaultsNrrd.c
+  deringNrrd.c
+  encoding.c
+  encodingAscii.c
+  encodingBzip2.c
+  encodingGzip.c
+  encodingHex.c
+  encodingRaw.c
+  encodingZRL.c
+  endianNrrd.c
+  enumsNrrd.c
+  filt.c
+  format.c
+  formatEPS.c
+  formatNRRD.c
+  formatPNG.c
+  formatPNM.c
+  formatText.c
+  formatVTK.c
+  gzio.c
+  hestNrrd.c
+  histogram.c
+  iter.c
+  kernel.c
+  keyvalue.c
+  map.c
+  measure.c
+  methodsNrrd.c
+  nrrd.h
+  nrrdDefines.h
+  nrrdEnums.h
+  nrrdMacros.h
+  parseNrrd.c
+  privateNrrd.h
+  range.c
+  read.c
+  reorder.c
+  resampleContext.c
+  fftNrrd.c
+  resampleNrrd.c
+  simple.c
+  subset.c
+  superset.c
+  tmfKernel.c
+  winKernel.c
+  bsplKernel.c
+  write.c
+  )
+
+target_sources(teem PRIVATE ${NRRD_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( nrrd FILES ${NRRD_SOURCES} )
