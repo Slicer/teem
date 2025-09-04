@@ -195,10 +195,8 @@ endforeach()
 #-----------------------------------------------------------------------------
 # Install directory layout
 
-# Will not include patch number, since (as of Teem V2.0)
-# API+ABI really are preserved if only patch number is changing
 if(Teem_INSTALL_VERSIONED_SUBDIRS)
-  set(_verpath "teem-${Teem_VERSION_MAJOR}.${Teem_VERSION_MINOR}")
+  set(_verpath "teem-${Teem_VERSION_STRING}")
   set(HEADERS_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/${_verpath}")
   set(LIB_INSTALL_DIR     "${CMAKE_INSTALL_LIBDIR}/${_verpath}")
   set(BIN_INSTALL_DIR     "${CMAKE_INSTALL_BINDIR}/${_verpath}")
@@ -499,9 +497,12 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Testing
+# Note: these tests are very incomplete. It is unclear how much of Teem's future
+# development will hinge on CTest-based testing, now that the Python/CFFI bindings
+# offer a much more convenient way to call into Teem.
 
 if(BUILD_TESTING)
-    include(CTest) # belatedly
+    include(CTest)
     enable_testing()
     add_subdirectory(Testing) # add Teem-specific tests
 endif()
@@ -509,36 +510,35 @@ endif()
 #-----------------------------------------------------------------------------
 # Install rules
 
-install(TARGETS Teem
-  EXPORT TeemTargets
-  RUNTIME DESTINATION ${BIN_INSTALL_DIR}
-  LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-  ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-  FILE_SET public_headers DESTINATION ${HEADERS_INSTALL_DIR}
+include(CMakePackageConfigHelpers)
+
+# Generate TeemConfig.cmake from our template
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMake/TeemConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake
+  INSTALL_DESTINATION ${CONFIG_INSTALL_DIR}
 )
 
-# Export targets for find_package
+# Generate version file (so find_package can check Teem >= X.Y.Z)
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/TeemConfigVersion.cmake
+  VERSION ${Teem_VERSION_STRING}
+  # Teem v2 does have non-zero ABI and API changes from Teem pre-v2, hence the
+  # SameMajorVersion instead of AnyNewerVersion below.  Most Teem-using code will likely
+  # not need changing to use v2, but it probably should be recompiled.  We are honoring
+  # the expectations of the semantic versioning that Teem bought in 2005 with version
+  # 1.9.0.
+  COMPATIBILITY SameMajorVersion
+)
+
+# Export targets (defined earlier via add_library + install(TARGETS …))
 install(EXPORT TeemTargets
   FILE TeemTargets.cmake
   NAMESPACE Teem::
   DESTINATION ${CONFIG_INSTALL_DIR}
 )
 
-include(CMakePackageConfigHelpers)
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake.in"
-"@PACKAGE_INIT@\ninclude(\"\${CMAKE_CURRENT_LIST_DIR}/TeemTargets.cmake\")\n")
-
-configure_package_config_file(${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake
-  INSTALL_DESTINATION ${CONFIG_INSTALL_DIR}
-)
-
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/TeemConfigVersion.cmake
-  VERSION ${Teem_VERSION_STRING}
-  COMPATIBILITY AnyNewerVersion
-)
-
+# Install the package config and version files
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/TeemConfigVersion.cmake
