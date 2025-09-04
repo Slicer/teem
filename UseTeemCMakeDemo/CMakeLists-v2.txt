@@ -1,0 +1,24 @@
+
+# Shows how to use CMake to make an executable that depends on Teem
+
+# Actually this version requirement may be needlessly high; an earlier
+# CMake version may also work; probably anything above 3.0
+cmake_minimum_required(VERSION 3.14)
+
+# Set (demo) project name, initialize compiler detection and compiler flags
+project(TestNrrdIO LANGUAGES C)
+
+# Find Teem (must be installed in CMAKE_PREFIX_PATH or default system paths)
+find_package(Teem REQUIRED)
+
+# Associate one executable testio with project
+add_executable(testio testio.c)
+
+# Link testio against the imported target, which brings in include paths and
+# transitive dependencies automatically
+target_link_libraries(testio PRIVATE Teem::Teem)
+
+# Install the testio binary into ${CMAKE_INSTALL_PREFIX}/bin
+install(TARGETS testio
+  RUNTIME DESTINATION bin     # for executables on all platforms
+)
