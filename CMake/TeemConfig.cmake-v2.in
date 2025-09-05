@@ -31,6 +31,10 @@ set(Teem_VERSION_MINOR @Teem_VERSION_MINOR@)
 set(Teem_VERSION_PATCH @Teem_VERSION_PATCH@)
 set(Teem_VERSION "@Teem_VERSION_STRING@")
 
+# Where this Teem package was installed
+set(Teem_INSTALL_PREFIX "@Teem_EFFECTIVE_INSTALL_PREFIX@")
+message(STATUS "Found Teem @Teem_VERSION_STRING@ at ${Teem_INSTALL_PREFIX}")
+
 # Tools installed with Teem (optional metadata)
 set(Teem_TOOLS "@Teem_TOOLS@")
 

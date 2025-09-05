@@ -19,7 +19,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 10.892
+# Teem/CMakeLists.txt Version 10.92
 # Re-written entirely for TeemV2
 
 #-----------------------------------------------------------------------------
@@ -38,6 +38,7 @@ set(Teem_VERSION_STRING ${Teem_VERSION_MAJOR}.${Teem_VERSION_MINOR}.${Teem_VERSI
 
 project(Teem VERSION ${Teem_VERSION_STRING}
         DESCRIPTION "Teem libraries developed by Gordon Kindlmann et al."
+        HOMEPAGE_URL "https://teem.sourceforge.net/"
         LANGUAGES C)
 
 message(STATUS "
@@ -57,7 +58,7 @@ message(STATUS "
 
 # https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
 
-include(GNUInstallDirs)      # sets CMAKE_INSTALL_* variables
+include(GNUInstallDirs)      # sets CMAKE_INSTALL_*DIR variables
 include(CMakeParseArguments) # for cmake_parse_arguments
 include(CMakePrintHelpers)   # for debugging via cmake_print_variables(varname)
 
@@ -106,7 +107,7 @@ endforeach()
 # Other options
 option(Teem_BUILD_HEX_UTILS "Build stand-alone raw<-->hex decoder/encoder" OFF)
 option(BUILD_TESTING "Build with (in-progress) Teem tests" OFF)
-option(Teem_INSTALL_VERSIONED_SUBDIRS "Install in Teem-X.Y subdir of install/{bin,lib,include}" OFF)
+option(Teem_INSTALL_VERSIONED_PREFIX "Install bin/,lib/,include/ in install/Teem-X.Y.Z subdir" OFF)
 
 #-----------------------------------------------------------------------------
 # RPATH trickery
@@ -142,7 +143,7 @@ elseif(APPLE)
     # because the relative layout is the same.
     # HEY build bin fail, but install bin ok + ok post mv installdir
     set(CMAKE_INSTALL_RPATH "@loader_path/../lib")
-    # With this, build bin works and install bin works, but can't mv installdir
+    # With this, both build bin works and install bin works, but can't move installdir
     #set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
@@ -220,21 +221,21 @@ endforeach()
 # Describe install directory layout with variables:
 # HEADERS_INSTALL_DIR, LIB_INSTALL_DIR, BIN_INSTALL_DIR, CONFIG_INSTALL_DIR
 # which are paths to the different things relative to the install prefix
+# (which may be a versioned subdirectory, if requested)
 # The CMAKE_INSTALL_* variables were set by include(GNUInstallDirs).
 
-if(Teem_INSTALL_VERSIONED_SUBDIRS)
-  set(_verpath "teem-${Teem_VERSION_STRING}")
-  set(HEADERS_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/${_verpath}")
-  set(LIB_INSTALL_DIR     "${CMAKE_INSTALL_LIBDIR}/${_verpath}")
-  set(BIN_INSTALL_DIR     "${CMAKE_INSTALL_BINDIR}/${_verpath}")
-  # We do want package name "Teem" here, not teem
-  set(CONFIG_INSTALL_DIR  "${CMAKE_INSTALL_LIBDIR}/${_verpath}/cmake/Teem")
-else()
-  set(HEADERS_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
-  set(LIB_INSTALL_DIR     "${CMAKE_INSTALL_LIBDIR}")
-  set(BIN_INSTALL_DIR     "${CMAKE_INSTALL_BINDIR}")
-  set(CONFIG_INSTALL_DIR  "${CMAKE_INSTALL_LIBDIR}/cmake/Teem")
+if(Teem_INSTALL_VERSIONED_PREFIX)
+  # redefine the whole prefix: <prefix>/Teem-X.Y.Z/
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/Teem-${Teem_VERSION_STRING}"
+      CACHE PATH "Install path prefix, prepended onto install directories." FORCE)
 endif()
+
+# Now just use GNUInstallDirs defaults
+set(HEADERS_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
+set(LIB_INSTALL_DIR     "${CMAKE_INSTALL_LIBDIR}")
+set(BIN_INSTALL_DIR     "${CMAKE_INSTALL_BINDIR}")
+set(CONFIG_INSTALL_DIR  "${CMAKE_INSTALL_LIBDIR}/cmake/Teem")
+
 # so that BIN_INSTALL_DIR can be seen by src/bin/CMakeLists.txt
 set(BIN_INSTALL_DIR "${BIN_INSTALL_DIR}" CACHE INTERNAL "Install dir for binaries")
 
@@ -473,7 +474,7 @@ foreach(_dir IN LISTS Teem_LIBRARIES)
   add_subdirectory(src/${_dir})
 endforeach()
 
-if(0)
+if(0)  # inspecting the properties
   # confirm results of prior target_link_libraries(PRIVATE)s
   # (what dependencies do I consume)
   get_target_property(_Teem_libs Teem LINK_LIBRARIES)
@@ -608,9 +609,12 @@ if(NOT _Teem_find_deps)
   # if, actually, there aren't any dependencies, add a comment saying so
   string(APPEND _Teem_find_deps "# (actually, no dependencies in this Teem build)\n")
 endif()
-# Then, empower the next configure command to convert @Teem_CONFIG_DEPENDENCIES@
-# (appearing in TeemConfig.cmake.in) to _Teem_find_deps
+# Then, empower the upcoming configure_package_config_file command to convert
+# @Teem_CONFIG_DEPENDENCIES@ (appearing in TeemConfig.cmake.in) to _Teem_find_deps
 set(Teem_CONFIG_DEPENDENCIES "${_Teem_find_deps}")
+# If we redefined CMAKE_INSTALL_PREFIX (because Teem_INSTALL_VERSIONED_PREFIX was ON),
+# record it for TeemConfig.cmake
+set(Teem_EFFECTIVE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 # now finally generate TeemConfig.cmake
 configure_package_config_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/CMake/TeemConfig.cmake.in
