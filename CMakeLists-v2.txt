@@ -19,7 +19,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 10.885
+# Teem/CMakeLists.txt Version 10.892
 # Re-written entirely for TeemV2
 
 #-----------------------------------------------------------------------------
@@ -109,31 +109,52 @@ option(BUILD_TESTING "Build with (in-progress) Teem tests" OFF)
 option(Teem_INSTALL_VERSIONED_SUBDIRS "Install in Teem-X.Y subdir of install/{bin,lib,include}" OFF)
 
 #-----------------------------------------------------------------------------
-# RPATH settings for macOS
-#
-# By default CMake patches installed binaries with `install_name_tool` to replace
-# build-tree RPATHs with install-tree RPATHs. On macOS this causes errors if `make
-# install` is run more than once, because the RPATH has already been modified.
-#
-# The solution used here is to build the executables *already* using the same install
-# RPATH, so no fixup is needed at install time.
-#
-# - Shared build: executables/dylibs use ${CMAKE_INSTALL_PREFIX}/lib
-# - Static build: no RPATHs needed at all
+# RPATH trickery
 
-if(APPLE)
-  set(CMAKE_MACOSX_RPATH ON)
-
+if(UNIX AND NOT APPLE)
+  # Linux, BSD, etc.
   if(BUILD_SHARED_LIBS)
-    # Use install RPATH even in the build tree
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    # Executables in bin/ will find libs in ../lib
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+
+    # Let CMake add additional transitive dependency paths
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+    # Separate build-tree vs install-tree RPATHs
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
     set(CMAKE_SKIP_BUILD_RPATH FALSE)
     set(CMAKE_SKIP_INSTALL_RPATH FALSE)
   else()
-    # Static build: disable RPATHs entirely
+    # Static build: no RPATH needed
+    set(CMAKE_SKIP_BUILD_RPATH TRUE)
+    set(CMAKE_SKIP_INSTALL_RPATH TRUE)
+  endif()
+elseif(APPLE)
+  set(CMAKE_MACOSX_RPATH ON)
+  if(BUILD_SHARED_LIBS)
+    # Build artifacts already contain the desired *install* RPATH,
+    # so the install step won't need to patch anything.
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
+    # For Teem’s own executables (in bin) to find Teem’s dylibs (in lib)
+    # in the *installed* tree. In the Teem build tree this usually also works
+    # because the relative layout is the same.
+    # HEY build bin fail, but install bin ok + ok post mv installdir
+    set(CMAKE_INSTALL_RPATH "@loader_path/../lib")
+    # With this, build bin works and install bin works, but can't mv installdir
+    #set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+    # Make the install step idempotent: do not try to re-edit LC_RPATH.
+    # set(CMAKE_SKIP_INSTALL_RPATH TRUE) # HEY with this, nothing has an RPATH!
+    set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+
+    # Do not strip build-tree RPATH (we’re *using* the install rpath in the build tree)
+    set(CMAKE_SKIP_BUILD_RPATH FALSE)
+
+  else()
+    # Static build: no RPATH needed
     set(CMAKE_SKIP_BUILD_RPATH TRUE)
     set(CMAKE_SKIP_INSTALL_RPATH TRUE)
   endif()
@@ -452,35 +473,36 @@ foreach(_dir IN LISTS Teem_LIBRARIES)
   add_subdirectory(src/${_dir})
 endforeach()
 
-# confirm results of prior target_link_libraries(PRIVATE)s
-# (what dependencies do I consume)
-get_target_property(_Teem_libs Teem LINK_LIBRARIES)
-message(STATUS "Teem LINK_LIBRARIES = ${_Teem_libs}")
+if(0)
+  # confirm results of prior target_link_libraries(PRIVATE)s
+  # (what dependencies do I consume)
+  get_target_property(_Teem_libs Teem LINK_LIBRARIES)
+  message(STATUS "Teem LINK_LIBRARIES = ${_Teem_libs}")
 
-## Not interesting for Teem: what dependencies do I expose
-#get_target_property(_Teem_libs Teem INTERFACE_LINK_LIBRARIES)
-#message(STATUS "Teem INTERFACE_LINK_LIBRARIES = ${_Teem_libs}")
-## This will show "_Teem_libs-NOTFOUND" because of
-## Teem's API/ABI invariance w.r.t dependencies
+  ## Not interesting for Teem: what dependencies do I expose
+  #get_target_property(_Teem_libs Teem INTERFACE_LINK_LIBRARIES)
+  #message(STATUS "Teem INTERFACE_LINK_LIBRARIES = ${_Teem_libs}")
+  ## This will show "_Teem_libs-NOTFOUND" because of
+  ## Teem's API/ABI invariance w.r.t dependencies
 
-# confirm results of prior target_include_directories()s:
-# PRIVATE   --> INCLUDE_DIRECTORIES
-# PUBLIC    --> INCLUDE_DIRECTORIES and INTERFACE_INCLUDE_DIRECTORIES
-# INTERFACE --> INTERFACE_INCLUDE_DIRECTORIES
-get_target_property(_teem_incdirs Teem INCLUDE_DIRECTORIES)
-message(STATUS "Teem INCLUDE_DIRECTORIES: ${_teem_incdirs}")
-get_target_property(_teem_inter_incdirs Teem INTERFACE_INCLUDE_DIRECTORIES)
-message(STATUS "Teem INTERFACE_INCLUDE_DIRECTORIES: ${teem_inter_incdirs}")
+  # confirm results of prior target_include_directories()s:
+  # PRIVATE   --> INCLUDE_DIRECTORIES
+  # PUBLIC    --> INCLUDE_DIRECTORIES and INTERFACE_INCLUDE_DIRECTORIES
+  # INTERFACE --> INTERFACE_INCLUDE_DIRECTORIES
+  get_target_property(_teem_incdirs Teem INCLUDE_DIRECTORIES)
+  message(STATUS "Teem INCLUDE_DIRECTORIES: ${_teem_incdirs}")
+  get_target_property(_teem_inter_incdirs Teem INTERFACE_INCLUDE_DIRECTORIES)
+  message(STATUS "Teem INTERFACE_INCLUDE_DIRECTORIES: ${teem_inter_incdirs}")
 
-# confirm results of prior target_compile_definitions()s:
-# PRIVATE   --> COMPILE_DEFINITIONS
-# PUBLIC    --> COMPILE_DEFINITIONS and INTERFACE_COMPILE_DEFINITIONS
-# INTERFACE --> INTERFACE_COMPILE_DEFINITIONS
-get_target_property(_teem_compdefs Teem COMPILE_DEFINITIONS)
-message(STATUS "Teem COMPILE_DEFINITIONS: ${_teem_compdefs}")
-get_target_property(_teem_inter_compdefs Teem INTERFACE_INCLUDE_DIRECTORIES)
-message(STATUS "Teem INTERFACE_COMPILE_DEFINITIONS: ${teem_inter_compdefs}")
-
+  # confirm results of prior target_compile_definitions()s:
+  # PRIVATE   --> COMPILE_DEFINITIONS
+  # PUBLIC    --> COMPILE_DEFINITIONS and INTERFACE_COMPILE_DEFINITIONS
+  # INTERFACE --> INTERFACE_COMPILE_DEFINITIONS
+  get_target_property(_teem_compdefs Teem COMPILE_DEFINITIONS)
+  message(STATUS "Teem COMPILE_DEFINITIONS: ${_teem_compdefs}")
+  get_target_property(_teem_inter_compdefs Teem INTERFACE_INCLUDE_DIRECTORIES)
+  message(STATUS "Teem INTERFACE_COMPILE_DEFINITIONS: ${teem_inter_compdefs}")
+endif()
 
 #-----------------------------------------------------------------------------
 # Public headers
@@ -568,7 +590,28 @@ install(TARGETS Teem
 
 include(CMakePackageConfigHelpers)
 
-# Generate TeemConfig.cmake from our template
+# Generate TeemConfig.cmake from template CMake/TeemConfig.cmake.in
+# We have to do some work to teach Teem to pull in its own dependencies.
+# First build up list of find_dependency() calls for TeemConfig.cmake:
+set(_Teem_find_deps "")
+foreach(_tdep IN LISTS _Teem_DEPS)
+  if(Teem_USE_${_tdep})
+    if(NOT _Teem_find_deps)
+      # before first dependency have to say what find_dependency means
+      string(APPEND _Teem_find_deps "include(CMakeFindDependencyMacro)\n")
+    endif()
+    # Map to CMake package name
+    string(APPEND _Teem_find_deps "find_dependency(${_cpname_${_tdep}} REQUIRED)\n")
+  endif()
+endforeach()
+if(NOT _Teem_find_deps)
+  # if, actually, there aren't any dependencies, add a comment saying so
+  string(APPEND _Teem_find_deps "# (actually, no dependencies in this Teem build)\n")
+endif()
+# Then, empower the next configure command to convert @Teem_CONFIG_DEPENDENCIES@
+# (appearing in TeemConfig.cmake.in) to _Teem_find_deps
+set(Teem_CONFIG_DEPENDENCIES "${_Teem_find_deps}")
+# now finally generate TeemConfig.cmake
 configure_package_config_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/CMake/TeemConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake
