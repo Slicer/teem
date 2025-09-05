@@ -19,7 +19,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 10.85
+# Teem/CMakeLists.txt Version 10.885
 # Re-written entirely for TeemV2
 
 #-----------------------------------------------------------------------------
@@ -55,15 +55,17 @@ message(STATUS "
 #-----------------------------------------------------------------------------
 # Module paths and helper includes
 
-include(GNUInstallDirs)
+# https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
+
+include(GNUInstallDirs)      # sets CMAKE_INSTALL_* variables
 include(CMakeParseArguments) # for cmake_parse_arguments
-# include(CMakePrintHelpers)  # for debugging via cmake_print_variables(varname)
+include(CMakePrintHelpers)   # for debugging via cmake_print_variables(varname)
 
 # CMake modules path (for e.g. FindLEVMAR.cmake)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 #-----------------------------------------------------------------------------
-# Dependency list and project options
+# Project options, including choosing dependencies
 #  - canonical list of optional dependencies
 #  - option() flags for enabling/disabling them
 
@@ -175,7 +177,8 @@ endforeach()
 # so we don't have (for example): _cpname[_tdep]
 # but now, after the foreach above, we have: ${_cpname_${_tdep}}
 
-# With all that uniformity set up: try to find_package() for all DEPs requested
+# With all that uniformity set up: try to find_package() for all DEPs requested,
+# and set Teem_HAVE_DEP if we did find it (we have it)
 foreach(_tdep IN LISTS _Teem_DEPS)
   if(Teem_USE_${_tdep})
     # this DEP is requested
@@ -193,7 +196,10 @@ endforeach()
 #message(STATUS "PNG::PNG links to: ${_png_libs}")
 
 #-----------------------------------------------------------------------------
-# Install directory layout
+# Describe install directory layout with variables:
+# HEADERS_INSTALL_DIR, LIB_INSTALL_DIR, BIN_INSTALL_DIR, CONFIG_INSTALL_DIR
+# which are paths to the different things relative to the install prefix
+# The CMAKE_INSTALL_* variables were set by include(GNUInstallDirs).
 
 if(Teem_INSTALL_VERSIONED_SUBDIRS)
   set(_verpath "teem-${Teem_VERSION_STRING}")
@@ -212,7 +218,7 @@ endif()
 set(BIN_INSTALL_DIR "${BIN_INSTALL_DIR}" CACHE INTERNAL "Install dir for binaries")
 
 #-----------------------------------------------------------------------------
-# Configure-time feature test: does AIR_EXISTS() work like isfinite()?
+# Configure-time test: does AIR_EXISTS() work like isfinite()?
 
 # A lot of work for one little macro (which GLK started using before the functionally
 # equivalent isfinite() became widely available).  The little CMake/TestAIR_EXISTS.c
@@ -293,7 +299,7 @@ execute_process(
   ERROR_VARIABLE _taex_run_err
 )
 
-# Act on the results
+# Act on the results; set AIR_EXISTS_MACRO_FAILS
 if(_taex_run_status EQUAL 0)
   message(CHECK_PASS "Yes, it detects IEEE754 special values")
   set(AIR_EXISTS_MACRO_FAILS 0 CACHE INTERNAL "AIR_EXISTS macro works correctly")
@@ -310,6 +316,7 @@ else()
   message(CHECK_FAIL "NO, it FAILS to detect IEEE754 special values")
   set(AIR_EXISTS_MACRO_FAILS 1 CACHE INTERNAL "AIR_EXISTS macro fails")
 endif()
+# AIR_EXISTS_MACRO_FAILS is used indirectly, below, by configure_file(airExistsConf.h)
 
 #-----------------------------------------------------------------------------
 # We gather here to build the monolithic library 'libteem'
@@ -322,7 +329,7 @@ add_library(Teem "")
 # Ensure build's include dir exists for generated headers
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include/teem)
 
-# Public include directories
+# Set Teem target properties about where headers are found
 target_include_directories(Teem
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
@@ -330,7 +337,9 @@ target_include_directories(Teem
     $<INSTALL_INTERFACE:${HEADERS_INSTALL_DIR}>
 )
 
-# Say "cc -D TEEM_DEP" and link with DEP target if dependency DEP is used
+# For each chosen dependency _tdep, add Teem target properties about:
+#  - which -D flags are needed to enable _tdep during compiling,
+#  - how to link with _tdep's library at link time
 foreach(_tdep IN LISTS _Teem_DEPS)
   if(Teem_HAVE_${_tdep})
     message(STATUS "Will use ${_tdep}: ${_doc_${_tdep}}")
@@ -346,19 +355,12 @@ foreach(_tdep IN LISTS _Teem_DEPS)
     message(STATUS "  (not using ${_tdep}: ${_doc_${_tdep}})")
   endif()
 endforeach()
-# confirm results of loop above: what dependencies do I consume
-get_target_property(_Teem_libs Teem LINK_LIBRARIES)
-message(STATUS "Teem LINK_LIBRARIES = ${_Teem_libs}")
-## Not interesting for Teem: what dependencies do I expose. Will show
-## "_Teem_libs-NOTFOUND" because of Teem's API/ABI invariance w.r.t dependencies
-#get_target_property(_Teem_libs Teem INTERFACE_LINK_LIBRARIES)
-#message(STATUS "Teem INTERFACE_LINK_LIBRARIES = ${_Teem_libs}")
 
-# Say "cc -D TEEM_STATIC" if not building a shared library
+# Also: say "cc -D TEEM_STATIC" if not building a shared library
 # (used as part of handling Windows "extern" analog)
 target_compile_definitions(Teem PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:TEEM_STATIC>")
 
-## Handling linking with math library libm via -lm
+#### ---------------- Handling linking with math library libm via -lm
 # We could be brute-force, and add -lm to link line for any and all Unices:
 #     if(UNIX)
 #       target_link_libraries(Teem PRIVATE m)
@@ -395,8 +397,9 @@ else()
     message(FATAL_ERROR "Could not find sin() at all!")
   endif()
 endif()
+#### ---------------- end of handling -lm
 
-# Set the target properties
+# Set remaining target properties
 set_target_properties(Teem PROPERTIES
   OUTPUT_NAME teem  # so we get libteem not libTeem
   VERSION ${Teem_VERSION_STRING}
@@ -445,17 +448,48 @@ set(Teem_LIBRARIES
     limn echo hoover seek ten elf pull coil push mite meet)
 # Read in CMakeLists.txt of each library
 foreach(_dir IN LISTS Teem_LIBRARIES)
-  # each one calls _Teem_add_library
+  # each CMakeLists.txt is just a single call to _Teem_add_library()
   add_subdirectory(src/${_dir})
 endforeach()
 
+# confirm results of prior target_link_libraries(PRIVATE)s
+# (what dependencies do I consume)
+get_target_property(_Teem_libs Teem LINK_LIBRARIES)
+message(STATUS "Teem LINK_LIBRARIES = ${_Teem_libs}")
+
+## Not interesting for Teem: what dependencies do I expose
+#get_target_property(_Teem_libs Teem INTERFACE_LINK_LIBRARIES)
+#message(STATUS "Teem INTERFACE_LINK_LIBRARIES = ${_Teem_libs}")
+## This will show "_Teem_libs-NOTFOUND" because of
+## Teem's API/ABI invariance w.r.t dependencies
+
+# confirm results of prior target_include_directories()s:
+# PRIVATE   --> INCLUDE_DIRECTORIES
+# PUBLIC    --> INCLUDE_DIRECTORIES and INTERFACE_INCLUDE_DIRECTORIES
+# INTERFACE --> INTERFACE_INCLUDE_DIRECTORIES
+get_target_property(_teem_incdirs Teem INCLUDE_DIRECTORIES)
+message(STATUS "Teem INCLUDE_DIRECTORIES: ${_teem_incdirs}")
+get_target_property(_teem_inter_incdirs Teem INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "Teem INTERFACE_INCLUDE_DIRECTORIES: ${teem_inter_incdirs}")
+
+# confirm results of prior target_compile_definitions()s:
+# PRIVATE   --> COMPILE_DEFINITIONS
+# PUBLIC    --> COMPILE_DEFINITIONS and INTERFACE_COMPILE_DEFINITIONS
+# INTERFACE --> INTERFACE_COMPILE_DEFINITIONS
+get_target_property(_teem_compdefs Teem COMPILE_DEFINITIONS)
+message(STATUS "Teem COMPILE_DEFINITIONS: ${_teem_compdefs}")
+get_target_property(_teem_inter_compdefs Teem INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "Teem INTERFACE_COMPILE_DEFINITIONS: ${teem_inter_compdefs}")
+
+
 #-----------------------------------------------------------------------------
-# Public headers: copy, configure, and declare via FILE_SET
+# Public headers
 
 # Set *variable* _Teem_headers from *property* Teem_HEADER_FILES
 get_property(_Teem_headers GLOBAL PROPERTY Teem_HEADER_FILES)
+# cmake_print_variables(_Teem_headers)
 
-# Copy header files to install location
+# Copy header files from source into build
 set(_Teem_headers_full)
 foreach(_dirhdr IN LISTS _Teem_headers)
   # e.g. set _hdr="air.h" from _dirhdr="air/air.h"
@@ -468,18 +502,29 @@ endforeach()
 # cmake_print_variables(_Teem_headers_full)
 
 # Configure generated header airExistsConf.h
+# *This* is where AIR_EXISTS_MACRO_FAILS (set above) is actually used;
+# teem/CMake/airExistsConf.h contains the line:
+#   #cmakedefine AIR_EXISTS_MACRO_FAILS
+# which is transformed to
+#   #define AIR_EXISTS_MACRO_FAILS
+# so that teem/src/air/air.h's definition of AIR_EXISTS can fall back on airExists()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMake/airExistsConf.h
-               ${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h
+               ${CMAKE_BINARY_DIR}/include/teem/airExistsConf.h
                @ONLY NEWLINE_STYLE UNIX)
-list(APPEND _Teem_headers_full "${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h")
+list(APPEND _Teem_headers_full "${CMAKE_BINARY_DIR}/include/teem/airExistsConf.h")
 
-# Declare where public headers are found during build
+# Declare the set of public header files that belong to the Teem library.
+# - "FILE_SET public_headers" groups them under a set named "public_headers",
+#   so that install(TARGETS) can reference it
+# - "BASE_DIRS ${CMAKE_BINARY_DIR}/include" names the directory that the
+#   headers are considered relative to, so that when Teem is installed,
+#   the include tree layout is preserved so users can #include <teem/air.h>
 target_sources(Teem
   PUBLIC
     FILE_SET public_headers
-    TYPE HEADERS
+    TYPE HEADERS  # these are headers, no sources
     BASE_DIRS ${CMAKE_BINARY_DIR}/include
-    FILES ${_Teem_headers_full}
+    FILES ${_Teem_headers_full} # the list of header files
 )
 
 #-----------------------------------------------------------------------------
@@ -509,6 +554,17 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Install rules
+
+# Declare how Teem should be installed, and hang all this off the "TeemTargets" export
+# set. This does not copy files immediately; it only registers installation rules, which
+# are applied at `cmake --install` time
+install(TARGETS Teem
+  EXPORT TeemTargets
+  LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+  ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+  RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+  FILE_SET public_headers DESTINATION ${HEADERS_INSTALL_DIR}
+)
 
 include(CMakePackageConfigHelpers)
 
