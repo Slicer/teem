@@ -18,6 +18,13 @@ add_executable(testio testio.c)
 # transitive dependencies automatically
 target_link_libraries(testio PRIVATE Teem::Teem)
 
+# Give the installed binary an LC_RPATH that points at the actual libteem location
+set_target_properties(testio PROPERTIES
+  INSTALL_RPATH "$<TARGET_FILE_DIR:Teem::Teem>"
+  # Optional but nice for running from the build tree on non-Apple platforms too:
+  BUILD_RPATH   "$<TARGET_FILE_DIR:Teem::Teem>"
+)
+
 # Install the testio binary into ${CMAKE_INSTALL_PREFIX}/bin
 install(TARGETS testio
   RUNTIME DESTINATION bin     # for executables on all platforms
