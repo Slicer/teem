@@ -53,7 +53,7 @@ main(int argc, const char *argv[]) {
   fprintf(stderr, "%s: nrrdSanity() passed\n", me);
   if (argc <= 1) {
     /* we're done */
-    return 1;
+    return 0;
   }
 
   const char *fin = argv[1];
@@ -71,7 +71,7 @@ main(int argc, const char *argv[]) {
   nrrdDescribe(stdout, nrrd);
   if (argc == 2) {
     /* we're done */
-    return 1;
+    return 0;
   }
 
   /* write out the array */
