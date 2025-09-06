@@ -240,6 +240,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   airStrtokQuoting = AIR_TRUE;
+  /* hparm->verbosity = 3; /* HEY JUST FOR DEBUGGING */
   USAGE_OR_PARSE(_unrrdu_makeInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   encoding = nrrdEncodingArray[encodingType];

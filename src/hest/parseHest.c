@@ -35,47 +35,52 @@ be, and we can avoid using an airArray.  The drawback is that we open and read t
 the response files twice.  Alas.
 */
 static int
-_hestArgsInResponseFiles(int *argcP, int *nrfP, const char **argv, char *err,
+_hestArgsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, char *err,
                          const hestParm *parm) {
   FILE *file;
   static const char me[] = "_hestArgsInResponseFiles: ";
   char line[AIR_STRLEN_HUGE + 1], *pound;
-  int ai, len;
+  int argIdx, len;
 
-  *argcP = 0;
-  *nrfP = 0;
+  *argsNumP = 0;
+  *respFileNumP = 0;
   if (!parm->respFileEnable) {
     /* don't do response files; we're done */
     return 0;
   }
 
-  ai = 0;
-  while (argv[ai]) {
-    if (parm->respFileFlag == argv[ai][0]) {
+  argIdx = 0;
+  while (argv[argIdx]) {
+    if (parm->respFileFlag == argv[argIdx][0]) {
+      /* argv[argIdx] looks like its naming a response file */
       /* NOTE: despite the repeated temptation: "-" aka stdin cannot be a response file,
          because it is going to be read in twice: once by _hestArgsInResponseFiles, and
          then again by copyArgv */
-      if (!(file = fopen(argv[ai] + 1, "rb"))) {
+      if (!(file = fopen(argv[argIdx] + 1, "rb"))) {
         /* can't open the indicated response file for reading */
         sprintf(err, "%scouldn't open \"%s\" for reading as response file", ME,
-                argv[ai] + 1);
-        *argcP = 0;
-        *nrfP = 0;
+                argv[argIdx] + 1);
+        *argsNumP = 0;
+        *respFileNumP = 0;
         return 1;
       }
+      /* read first line, and start looping over lines */
       len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
       while (len > 0) {
+        /* first # (or #-alike char) is turned into line end */
         if ((pound = strchr(line, parm->respFileComment))) {
           *pound = '\0';
         }
+        /* count words in line */
         airOneLinify(line);
-        *argcP += airStrntok(line, AIR_WHITESPACE);
+        *argsNumP += airStrntok(line, AIR_WHITESPACE);
+        /* read next line for next iter */
         len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
       }
       fclose(file); /* ok because file != stdin, see above */
-      (*nrfP)++;
+      (*respFileNumP)++;
     }
-    ai++;
+    argIdx++;
   }
   return 0;
 }
@@ -116,10 +121,9 @@ So "--" marks the end of some "option-arguments".
 But hestParse does not know or care about "operands": *every* element of the given argv
 will be interpreted as the argument to some option, including an unflagged option (a
 variable unflagged option is how hest would support something like "cksum *.txt").  For
-hest to implement the expected behavior for
-"--", hest has to care about "--" only in the context of collecting parameters to
-*flagged* options. But copyArgv() is upstream of that awareness (of flagged vs
-unflagged), so we do not act on "--" here.
+hest to implement the expected behavior for "--", hest has to care about "--" only in the
+context of collecting parameters to *flagged* options. But copyArgv() is upstream of that
+awareness (of flagged vs unflagged), so we do not act on "--" here.
 
 Note that there are lots of ways that hest does NOT conform to these POSIX guidelines
 (such as: currently single-character flags cannot be grouped together, and options can
@@ -131,33 +135,49 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
          airArray *pmop) {
   static const char me[] = "copyArgv";
   char line[AIR_STRLEN_HUGE + 1], *pound;
-  int len, newArgc, oldArgc, incr, ai;
+  unsigned int len, newArgc, oldArgc, incr, argIdx;
   FILE *file;
 
-  newArgc = oldArgc = 0;
-  *sawHelp = AIR_FALSE;
+  /* count number of given ("old") args */
+  oldArgc = 0;
   while (oldArgv[oldArgc]) {
-    if (parm->respectDashDashHelp && !strcmp("--help", oldArgv[oldArgc])) {
+    oldArgc++;
+  }
+
+  if (parm->verbosity > 1) {
+    printf("%s: hello, oldArgc (number of input args) = %u:\n", me, oldArgc);
+    for (argIdx = 0; argIdx < oldArgc; argIdx++) {
+      printf("    oldArgv[%u] == |%s|\n", argIdx, oldArgv[argIdx]);
+    }
+  }
+
+  newArgc = 0;
+  *sawHelp = AIR_FALSE;
+  for (argIdx = 0; argIdx < oldArgc; argIdx++) {
+    if (parm->respectDashDashHelp && !strcmp("--help", oldArgv[argIdx])) {
       *sawHelp = AIR_TRUE;
       break;
     }
     /* else not a show-stopper argument */
     if (parm->verbosity) {
-      printf("%s:________ newArgc = %d, oldArgc = %d -> \"%s\"\n", me, newArgc, oldArgc,
-             oldArgv[oldArgc]);
+      printf("%s:________ newArgc = %u, argIdx = %u -> \"%s\"\n", me, newArgc, argIdx,
+             oldArgv[argIdx]);
       printArgv(newArgc, newArgv, "     ");
     }
-    if (!parm->respFileEnable || parm->respFileFlag != oldArgv[oldArgc][0]) {
-      /* nothing to do with a response file */
-      newArgv[newArgc] = airStrdup(oldArgv[oldArgc]);
+    if (!parm->respFileEnable || parm->respFileFlag != oldArgv[argIdx][0]) {
+      /* either ignoring response files, or its not a response file:
+      we copy the arg, remember to free it, and increment the new arg idx */
+      newArgv[newArgc] = airStrdup(oldArgv[argIdx]);
       airMopAdd(pmop, newArgv[newArgc], airFree, airMopAlways);
       newArgc += 1;
     } else {
       /* It is a response file.  Error checking on open-ability
          should have been done by _hestArgsInResponseFiles() */
-      file = fopen(oldArgv[oldArgc] + 1, "rb");
+      file = fopen(oldArgv[argIdx] + 1, "rb");
+      /* start line-reading loop */
       len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
       while (len > 0) {
+        unsigned rgi;
         if (parm->verbosity) printf("%s: line: |%s|\n", me, line);
         /* HEY HEY too bad for you if you put # inside a string */
         if ((pound = strchr(line, parm->respFileComment))) *pound = '\0';
@@ -166,22 +186,22 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
         incr = airStrntok(line, AIR_WHITESPACE);
         if (parm->verbosity) printf("%s: -1-> line: |%s|, incr=%d\n", me, line, incr);
         airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE, incr, AIR_FALSE);
-        for (ai = 0; ai < incr; ai++) {
+        for (rgi = 0; rgi < incr; rgi++) {
           /* This time, we did allocate memory.  We can use airFree and
              not airFreeP because these will not be reset before mopping */
-          airMopAdd(pmop, newArgv[newArgc + ai], airFree, airMopAlways);
+          airMopAdd(pmop, newArgv[newArgc + rgi], airFree, airMopAlways);
         }
         len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
         newArgc += incr;
       }
       fclose(file);
     }
-    oldArgc++;
     if (parm->verbosity) {
       printArgv(newArgc, newArgv, "     ");
-      printf("%s: ^^^^^^^ newArgc = %d, oldArgc = %d\n", me, newArgc, oldArgc);
+      printf("%s: ^^^^^^^ newArgc = %d, argIdx = %d\n", me, newArgc, argIdx);
     }
   }
+  /* NULL-terminate newArgv[] */
   newArgv[newArgc] = NULL;
 
   return newArgc;
@@ -1395,7 +1415,8 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   static const char me[] = "hestParse: ";
   char *param, *param_copy;
   char **argv, **prms, *err;
-  int a, argc, argc_used, argr, *appr, *udflt, nrf, numOpts, big, ret, i, sawHelp;
+  int a, argc, argc_used, respArgNum, *appr, *udflt, respFileNum, numOpts, big, ret, i,
+    sawHelp;
   unsigned int *nprm;
   airArray *mop;
   hestParm *parm;
@@ -1463,15 +1484,17 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
      by seeing how many args are in the response files, and then adding
      on the args from the actual argv (getting this right the first time
      greatly simplifies the problem of eliminating memory leaks) */
-  if (_hestArgsInResponseFiles(&argr, &nrf, _argv, err, PARM)) {
+  if (_hestArgsInResponseFiles(&respArgNum, &respFileNum, _argv, err, PARM)) {
     airMopError(mop);
     return 1;
   }
-  argc = argr + _argc - nrf;
+  /* the effective # args is superficial _argc, adjusted for how every response filename
+     is effectively removed and then replace by its contents */
+  argc = _argc + respArgNum - respFileNum;
 
   if (PARM->verbosity) {
-    printf("%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", me, nrf, argr, _argc,
-           argc);
+    printf("%s: respFileNum = %d; respArgNum = %d; _argc = %d --> argc = %d\n", me,
+           respFileNum, respArgNum, _argc, argc);
   }
   argv = AIR_CALLOC(argc + 1, char *);
   airMopMem(mop, &argv, airMopAlways);
