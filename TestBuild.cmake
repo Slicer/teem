@@ -19,6 +19,8 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
+message(FATAL_ERROR "TestBuild.cmake will be deleted soon; no longer used in Teem v2")
+
 # Where the source code lives
 set (CTEST_SOURCE_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}")
 set (CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-ctest")

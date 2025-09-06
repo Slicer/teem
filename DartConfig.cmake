@@ -19,6 +19,8 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
+message(FATAL_ERROR "DartConfig.cmake will be deleted soon; no longer used in Teem v2")
+
 include(${CMAKE_SOURCE_DIR}/CTestConfig.cmake)
 set(NIGHTLY_START_TIME "${CTEST_NIGHTLY_START_TIME}")
 set(DROP_METHOD "${CTEST_DROP_METHOD}")
