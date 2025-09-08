@@ -9,6 +9,11 @@
 
 #include "testutil.h"
 
+/* Names of the environment variables that communicate the data and tmp directories.
+   HEY: have to keep in sync with CMakeLists.txt in this same directory */
+#define DATA_DIR_ENVVAR "TEEM_TEST_DATA_DIR"
+#define TMP_DIR_ENVVAR  "TEEM_TEST_TMP_DIR"
+
 // prependEnvVar(envVar, fName) returns a *newly-allocated* string concatenating
 // the value of environment variable `envVar`, '/', and `fName`
 static char *
@@ -45,13 +50,13 @@ prependEnvVar(const char *envVar, const char *fName) {
 // for test data filename `fName`, this returns a new-allocated path to it
 char *
 teemTestDataPath(const char *fName) {
-  return prependEnvVar("TEEM_TEST_DATA_DIR", fName);
+  return prependEnvVar(DATA_DIR_ENVVAR, fName);
 }
 
 // for temporary file name `fName`, this returns a new-allocated path to it
 char *
 teemTestTmpPath(const char *fName) {
-  return prependEnvVar("TEEM_TEST_TMP_DIR", fName);
+  return prependEnvVar(TMP_DIR_ENVVAR, fName);
 }
 
 /* (for testing)

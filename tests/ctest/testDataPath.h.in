@@ -26,6 +26,15 @@
 #include <string.h>
 #include <teem/air.h>
 
+// #warning only became standard in C23:
+// https://en.cppreference.com/w/c/preprocessor/warning.html
+#warning "With the new Teem v2 testing framework, this file is not needed anymore;"
+#warning "the location of data is now communicated at run-time via environment"
+#warning "variables, rather than at configure- and compile-time via a header file."
+#warning "But the file is sticking around for now out of gratitude to James Bigler"
+#warning "who first got this working :)"
+#error "testDataPath.h no longer used"
+
 /*
 ** testDataPathPrefix allocates and returns a string which is
 ** the given "base" prefixed with the path to the test datasets,

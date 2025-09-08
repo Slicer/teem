@@ -19,7 +19,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 10.92
+# Teem/CMakeLists.txt Version 10.94
 
 # This CMakeLists.txt describes a Teem package that contains:
 # (1) a library ("libteem" on unix) and
@@ -33,7 +33,7 @@
 # development, but there's no reason to complicate this CMakeLists.txt with describing
 # those smaller libraries and their inter-dependencies.
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Project setup: version, metadata, and language
 
 # CMake Version 3.25 came out November 16, 2022
@@ -64,12 +64,12 @@ message(STATUS "
 
 ")
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Include helpers and module paths
 
 # include(CTest) will create the BUILD_TESTING option, turn it ON, hook into CTest, and
 # in turn include(CTestConfig.cmake). Most of which is fine, but we want to turn
-# BUILD_TESTING OFF and give a better description
+# BUILD_TESTING OFF by default and give a better description
 set(BUILD_TESTING OFF CACHE BOOL "Build Teem's *meagre* ctests")
 include(CTest)
 
@@ -81,7 +81,7 @@ include(CMakePrintHelpers)   # for debugging via cmake_print_variables(varname)
 # CMake modules path (for e.g. FindLEVMAR.cmake)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Project options, including choosing dependencies
 #  - canonical list of optional dependencies
 #  - option() flags for enabling/disabling them
@@ -124,59 +124,40 @@ endforeach()
 option(Teem_BUILD_HEX_UTILS "Build stand-alone raw<-->hex decoder/encoder" OFF)
 option(Teem_INSTALL_VERSIONED_PREFIX "Install bin/,lib/,include/ in install/Teem-X.Y.Z subdir" OFF)
 
-###-----------------------------------------------------------------------------
-# RPATH taming
+###-------------------------------------------------------------------------------------
+# RPATH configuration
 
-if(UNIX AND NOT APPLE)
-  # Linux, BSD, etc.
-  if(BUILD_SHARED_LIBS)
-    # Executables in bin/ will find libs in ../lib
-    set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+# Earlier versions of this tried to do clever things so that "make install; make install"
+# would not generate errors (on Mac) like:
+#  install_name_tool: for: <bin> (for architecture arm64) option
+#    "-add_rpath @loader_path/../lib" would duplicate path, file already has LC_RPATH ...
+# But it is just too fussy and becomes too complicated.  So instead, see comment later
+# below about "clean out old installed RPATH-aware files" in installdir/{bin,lib}:
+# we just erase those files first as part of "make install"
 
-    # Let CMake add additional transitive dependency paths
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-    # Separate build-tree vs install-tree RPATHs
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-
-    set(CMAKE_SKIP_BUILD_RPATH FALSE)
-    set(CMAKE_SKIP_INSTALL_RPATH FALSE)
-  else()
-    # Static build: no RPATH needed
-    set(CMAKE_SKIP_BUILD_RPATH TRUE)
-    set(CMAKE_SKIP_INSTALL_RPATH TRUE)
+if(BUILD_SHARED_LIBS)
+  # set(CMAKE_SKIP_RPATH FALSE) # "This is the default unless you explicitly set it TRUE somewhere else. You can drop it"
+  if(APPLE)
+    # Enable MacOS RPATH support
+    set(CMAKE_MACOSX_RPATH ON)
   endif()
-elseif(APPLE)
-  set(CMAKE_MACOSX_RPATH ON)
-  if(BUILD_SHARED_LIBS)
-    # Build artifacts already contain the desired *install* RPATH,
-    # so the install step won't need to patch anything.
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
-    # For Teem’s own executables (in bin) to find Teem’s dylibs (in lib)
-    # in the *installed* tree. In the Teem build tree this usually also works
-    # because the relative layout is the same.
-    # HEY build bin fail, but install bin ok + ok post mv installdir
+  # - - - - - - - - - - - - -
+  # Install-tree settings
+  #
+  # Executables and libraries after 'make install' should be relocatable:
+  #   - libraries go in install/lib
+  #   - tools in install/bin use @loader_path/../lib (Mac) or $ORIGIN/../lib (Linux)
+  set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)  # Avoid adding system paths
+  if(APPLE)
     set(CMAKE_INSTALL_RPATH "@loader_path/../lib")
-    # With this, both build bin works and install bin works, but can't move installdir
-    #set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-    # Make the install step idempotent: do not try to re-edit LC_RPATH.
-    # set(CMAKE_SKIP_INSTALL_RPATH TRUE) # HEY with this, nothing has an RPATH!
-    set(CMAKE_SKIP_INSTALL_RPATH FALSE)
-
-    # Do not strip build-tree RPATH (we’re *using* the install rpath in the build tree)
-    set(CMAKE_SKIP_BUILD_RPATH FALSE)
-
-  else()
-    # Static build: no RPATH needed
-    set(CMAKE_SKIP_BUILD_RPATH TRUE)
-    set(CMAKE_SKIP_INSTALL_RPATH TRUE)
+  elseif(UNIX)
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
   endif()
 endif()
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Dependency discovery
 #  - normalize names/targets/FOUND vars
 #  - run find_package() for requested DEPs
@@ -232,7 +213,7 @@ endforeach()
 #get_target_property(_png_libs PNG::PNG INTERFACE_LINK_LIBRARIES)
 #message(STATUS "PNG::PNG links to: ${_png_libs}")
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Describe install directory layout with variables:
 # HEADERS_INSTALL_DIR, LIB_INSTALL_DIR, BIN_INSTALL_DIR, CONFIG_INSTALL_DIR
 # which are paths to the different things relative to the install prefix
@@ -254,7 +235,7 @@ set(CONFIG_INSTALL_DIR  "${CMAKE_INSTALL_LIBDIR}/cmake/Teem")
 # so that BIN_INSTALL_DIR can be seen by src/bin/CMakeLists.txt
 set(BIN_INSTALL_DIR "${BIN_INSTALL_DIR}" CACHE INTERNAL "Install dir for binaries")
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Configure-time test: does AIR_EXISTS() work like isfinite()?
 
 # A lot of work for one little macro (which GLK started using before the functionally
@@ -355,8 +336,8 @@ else()
 endif()
 # AIR_EXISTS_MACRO_FAILS is used indirectly, below, by configure_file(airExistsConf.h)
 
-###-----------------------------------------------------------------------------
-# Describe the Teem library
+###-------------------------------------------------------------------------------------
+# Describe the (monolithic) Teem library
 
 add_library(Teem "")
 
@@ -442,8 +423,8 @@ set_target_properties(Teem PROPERTIES
   POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS}
 )
 
-###-----------------------------------------------------------------------------
-# Collect sources from Teem's component libraries
+###-------------------------------------------------------------------------------------
+# Collect sources from Teem's component libraries (to make single Teem library)
 
 # Each component library will append its public headers to global property
 # "Teem_HEADER_FILES".  For clarity, we initialize it to empty string now.
@@ -517,7 +498,7 @@ if(0)  # inspecting the properties set so far
   message(STATUS "Teem INTERFACE_COMPILE_DEFINITIONS: ${teem_inter_compdefs}")
 endif()
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Declare Teem's public headers
 
 # Set *variable* _Teem_headers from previously set *property* Teem_HEADER_FILES
@@ -562,12 +543,37 @@ target_sources(Teem
     FILES ${_Teem_headers_full} # the list of header files
 )
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Describe Teem's command-line executables (e.g. "unu")
 
+# Only on Mac with shared libraries: clean out old installed RPATH-aware files before
+# installing new ones, because getting the RPATH stuff to be set correctly after the
+# first "make install", but *not* modified after a second "make install", is just too
+# annoying to figure out.  This hack has to *precede* any other install() commands, which
+# is why this shows up here, before src/bin/CMakeLists.txt's teem_add_executable() can
+# call install()
+if(BUILD_SHARED_LIBS)
+  if(APPLE)
+    install(CODE "
+      file(GLOB old_bins \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/*\")
+      file(GLOB old_libs \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/*\")
+      if(old_bins OR old_libs)
+        message(STATUS \"Removing prior \$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/{bin,lib}/* rather than attempt RPATH surgery\")
+      endif()
+      if(old_bins)
+        file(REMOVE \${old_bins})
+      endif()
+      if(old_libs)
+        file(REMOVE \${old_libs})
+      endif()
+    ")
+  endif()
+endif()
+
+# Describe all the command-line tools (unu and friends)
 add_subdirectory(src/bin)
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Optional helper tools (hex/dehex)
 
 # If requested, helper dehex/exhex programs
@@ -575,7 +581,7 @@ if(Teem_BUILD_HEX_UTILS)
     add_subdirectory(src/hex)
 endif()
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Testing via CTest
 # Note: these tests are very incomplete. It is unclear how much of Teem's future
 # development will hinge on CTest-based testing, now that the Python/CFFI bindings
@@ -585,7 +591,7 @@ if(BUILD_TESTING)
     add_subdirectory(tests/ctest)
 endif()
 
-###-----------------------------------------------------------------------------
+###-------------------------------------------------------------------------------------
 # Install rules
 
 # Declare how Teem should be installed, and hang all this off the "TeemTargets" export
@@ -601,14 +607,14 @@ install(TARGETS Teem
 
 include(CMakePackageConfigHelpers)
 
-# Generate TeemConfig.cmake from template CMake/TeemConfig.cmake.in
+# Generate TeemConfig.cmake from template CMake/TeemConfig.cmake.in.
 # We have to do some work to teach Teem to pull in its own dependencies.
-# First build up list of find_dependency() calls for TeemConfig.cmake:
+# First, build up list of find_dependency() calls for TeemConfig.cmake:
 set(_Teem_find_deps "")
 foreach(_tdep IN LISTS _Teem_DEPS)
   if(Teem_USE_${_tdep})
     if(NOT _Teem_find_deps)
-      # before first dependency we have to say what find_dependency() means
+      # before first dependency, we have to say how to find_dependency()
       string(APPEND _Teem_find_deps "include(CMakeFindDependencyMacro)\n")
     endif()
     # Map to CMake package name
