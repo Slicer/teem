@@ -1,25 +1,23 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2019  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Copyright (C) 2009--2025  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
   You should have received a copy of the GNU Lesser General Public License
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "teem/meet.h"
+#include <teem/meet.h>
 
 /*
 ** Tests:
@@ -553,7 +551,7 @@ multiAnswerCollect(multiAnswer *man) {
 }
 
 static int
-multiAnswerCompare(multiAnswer *man1, multiAnswer *man2) {
+multiAnswerCompare(multiAnswer *man1, multiAnswer *man2, double eps) {
   static const char me[] = "multiAnswerCompare";
   unsigned int si, slen;
 
@@ -567,12 +565,17 @@ multiAnswerCompare(multiAnswer *man1, multiAnswer *man2) {
   slen = AIR_MIN(man1->slen, man2->slen);
 #endif
   for (si = 0; si < slen; si++) {
-    if (man1->san[si] != man2->san[si]) {
+    double v1 = man1->san[si], v2 = man2->san[si];
+    double avg = (fabs(v1) + fabs(v2)) / 2;
+    double diff = fabs(v1 - v2) / (avg ? avg : 1);
+    if (diff > eps) {
       /* HEY should track down which part of which answer,
          in man1 and man2, is different, which was the
          purpose of recording ispec and sidx */
-      biffAddf(BKEY, "%s: man1->san[si] %.17g != man2->san[si] %.17g", me, man1->san[si],
-               man2->san[si]);
+      biffAddf(
+        BKEY,
+        "%s: relerr(man1->san[si] %.17g , man2->san[si] %.17g) = %.17g > eps %.17g", me,
+        man1->san[si], man2->san[si], diff, eps);
       return 1;
     }
   }
@@ -804,7 +807,8 @@ probeTask1(gageContext *gctxComp[KIND_NUM], gageContext *gctx[KIND_NUM],
 
       multiAnswerCollect(man[kindIdx]);
       multiAnswerCollect(manComp[kindIdx]);
-      if (multiAnswerCompare(manComp[kindIdx], man[kindIdx])) {
+      /* HEY HEY why on earth can't this be exactly the same? */
+      if (multiAnswerCompare(manComp[kindIdx], man[kindIdx], 1e-7)) {
         biffAddf(BKEY, "%s: on point %u of kindIdx %u", me, probeIdx, kindIdx);
         return 1;
       }

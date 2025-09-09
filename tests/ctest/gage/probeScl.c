@@ -1,26 +1,24 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2019  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Copyright (C) 2009--2025  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
   You should have received a copy of the GNU Lesser General Public License
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "teem/gage.h"
-#include <testDataPath.h>
+#include <teem/gage.h>
+#include <testutil.h>
 
 /*
 ** Tests:
@@ -83,7 +81,7 @@ main(int argc, const char **argv) {
 
   nscl = nrrdNew();
   airMopAdd(mop, nscl, (airMopper)nrrdNuke, airMopAlways);
-  fullname = testDataPathPrefix("fmob-c4h.nrrd");
+  fullname = teemTestDataPath("fmob-c4h.nrrd");
   airMopAdd(mop, fullname, airFree, airMopAlways);
   if (nrrdLoad(nscl, fullname, NULL)) {
     char *err;
@@ -204,7 +202,7 @@ main(int argc, const char **argv) {
     char *corrfn, explain[AIR_STRLEN_LARGE + 1];
     int pret, differ;
 
-    corrfn = testDataPathPrefix("test/probeSclAns.nrrd");
+    corrfn = teemTestDataPath("test/probeSclAns.nrrd");
     airMopAdd(mop, corrfn, airFree, airMopAlways);
     ncorr = nrrdNew();
     airMopAdd(mop, ncorr, (airMopper)nrrdNuke, airMopAlways);
