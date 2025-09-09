@@ -140,7 +140,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
 
   /* count number of given ("old") args */
   oldArgc = 0;
-  while (oldArgv[oldArgc]) {
+  while (oldArgv /* might be NULL for testing */ && oldArgv[oldArgc]) {
     oldArgc++;
   }
 
