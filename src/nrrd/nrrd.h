@@ -512,7 +512,7 @@ typedef struct {
   char name[AIR_STRLEN_SMALL + 1];
 
   /* number of parameters needed (# elements in parm[] used) */
-  unsigned int numParm; /* HEY: should be "parmNum" in standard convention */
+  unsigned int parmNum;
 
   /* smallest x (x > 0) such that k(y) = 0 for all y > x, y < -x */
   double (*support)(const double *parm);

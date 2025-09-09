@@ -62,7 +62,7 @@ nrrdSimpleResample(Nrrd *nout, const Nrrd *nin, const NrrdKernel *kernel,
     return 1;
   }
 
-  np = kernel->numParm;
+  np = kernel->parmNum;
   for (ai = 0; ai < nin->dim; ai++) {
     double axmin, axmax;
     info->kernel[ai] = kernel;
@@ -162,7 +162,7 @@ _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
       biffAddf(NRRD, "%s: info's axis %d min,max not both set", me, ai);
       return 1;
     }
-    np = k->numParm;
+    np = k->parmNum;
     for (p = 0; p < np; p++) {
       if (!AIR_EXISTS(info->parm[ai][p])) {
         biffAddf(NRRD, "%s: didn't set parameter %d (of %d) for axis %d\n", me, p, np,

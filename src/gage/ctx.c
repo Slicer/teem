@@ -196,7 +196,7 @@ gageContextNix(gageContext *ctx) {
 int /* Biff: 1 */
 gageKernelSet(gageContext *ctx, int which, const NrrdKernel *k, const double *kparm) {
   static const char me[] = "gageKernelSet";
-  int numParm;
+  int parmNum;
   double support, integral;
 
   if (!(ctx && k && kparm)) {
@@ -211,9 +211,9 @@ gageKernelSet(gageContext *ctx, int which, const NrrdKernel *k, const double *kp
   if (ctx->verbose) {
     fprintf(stderr, "%s: which = %d -> %s\n", me, which, airEnumStr(gageKernel, which));
   }
-  numParm = k->numParm;
-  if (!(AIR_IN_CL(0, numParm, NRRD_KERNEL_PARMS_NUM))) {
-    biffAddf(GAGE, "%s: kernel's numParm (%d) not in range [%d,%d]", me, numParm, 0,
+  parmNum = k->parmNum;
+  if (!(AIR_IN_CL(0, parmNum, NRRD_KERNEL_PARMS_NUM))) {
+    biffAddf(GAGE, "%s: kernel's parmNum (%d) not in range [%d,%d]", me, parmNum, 0,
              NRRD_KERNEL_PARMS_NUM);
     return 1;
   }

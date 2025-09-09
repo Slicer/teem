@@ -26,7 +26,7 @@
 ** has to be updated to record which kernels (including their derivatives)
 ** use parm[0] for scale.
 
-                                 numParm  parm[0]   parm[1]   parm[2]
+                                 parmNum  parm[0]   parm[1]   parm[2]
                   nrrdKernelZero    1     scale
                  nrrdKernelCheap    1     scale
                    nrrdKernelBox    1     scale
@@ -3128,9 +3128,9 @@ nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
       airMopError(mop);
       return 1;
     }
-    if ((*kernelP)->numParm > NRRD_KERNEL_PARMS_NUM) {
+    if ((*kernelP)->parmNum > NRRD_KERNEL_PARMS_NUM) {
       biffAddf(NRRD, "%s: kernel \"%s\" requests %d parameters > max %d", me, kstr,
-               (*kernelP)->numParm, NRRD_KERNEL_PARMS_NUM);
+               (*kernelP)->parmNum, NRRD_KERNEL_PARMS_NUM);
       airMopError(mop);
       return 1;
     }
@@ -3142,12 +3142,12 @@ nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
         || *kernelP == nrrdKernelCos4SupportDebugDD
         || *kernelP == nrrdKernelCos4SupportDebugDDD) {
       /* for these kernels, we need all the parameters given explicitly */
-      needParm = (*kernelP)->numParm;
+      needParm = (*kernelP)->parmNum;
     } else {
       /*  For everything else (note that TMF kernels are handled
           separately), we can make do with one less than the required,
           by using the default spacing  */
-      needParm = ((*kernelP)->numParm > 0 ? (*kernelP)->numParm - 1 : 0);
+      needParm = ((*kernelP)->parmNum > 0 ? (*kernelP)->parmNum - 1 : 0);
     }
     if (needParm > 0 && !pstr) {
       biffAddf(NRRD,
@@ -3157,7 +3157,7 @@ nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
       airMopError(mop);
       return 1;
     }
-    for (haveParm = 0; haveParm < (*kernelP)->numParm; haveParm++) {
+    for (haveParm = 0; haveParm < (*kernelP)->parmNum; haveParm++) {
       if (!pstr) break;
       if (1 != airSingleSscanf(pstr, "%lg", parm + haveParm)) {
         biffAddf(NRRD, "%s: trouble parsing \"%s\" as double (in \"%s\")", me, _pstr,
@@ -3183,7 +3183,7 @@ nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
                me, haveParm, needParm, _pstr, _str);
       airMopError(mop);
       return 1;
-    } else if (haveParm == needParm && needParm == (*kernelP)->numParm - 1) {
+    } else if (haveParm == needParm && needParm == (*kernelP)->parmNum - 1) {
       /* shift up parsed values, and set parm[0] to default */
       for (jj = haveParm; jj >= 1; jj--) {
         parm[jj] = parm[jj - 1];
@@ -3192,7 +3192,7 @@ nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
     } else {
       if (pstr) {
         biffAddf(NRRD, "%s: \"%s\" (in \"%s\") has more than %d doubles", me, _pstr,
-                 _str, (*kernelP)->numParm);
+                 _str, (*kernelP)->parmNum);
         airMopError(mop);
         return 1;
       }
@@ -3268,9 +3268,9 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE + 1], const NrrdKernelSpec *ksp) 
     }
   } else {
     strcpy(str, ksp->kernel->name);
-    if (ksp->kernel->numParm) {
+    if (ksp->kernel->parmNum) {
       unsigned int pi;
-      for (pi = 0; pi < ksp->kernel->numParm; pi++) {
+      for (pi = 0; pi < ksp->kernel->parmNum; pi++) {
         sprintf(stmp, "%c%.17g", (!pi ? ':' : ','), ksp->parm[pi]);
         if (strlen(str) + strlen(stmp) > warnLen) {
           biffAddf(NRRD, "%s: kernel parm %u could overflow", me, pi);
@@ -3320,7 +3320,7 @@ nrrdKernelCompare(const NrrdKernel *kernA, const double parmA[NRRD_KERNEL_PARMS_
     }
     return 0;
   }
-  pnum = kernA->numParm;
+  pnum = kernA->parmNum;
   if (!pnum) {
     /* actually, we're done: no parms and kernels are equal */
     *differ = 0;

@@ -273,7 +273,7 @@ meetNrrdKernelAllCheck(void) {
       }
       kj++;
     }
-    pnum = kk->numParm;
+    pnum = kk->parmNum;
     EE = 0;
     /* the second argument to CHECK is how much to scale up the
        permissible error in kernel evaluations (between float and double)

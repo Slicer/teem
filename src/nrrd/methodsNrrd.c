@@ -426,7 +426,7 @@ nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
 
   if (ksp && k && kparm) {
     ksp->kernel = k;
-    for (p = 0; p < (k->numParm); p++) {
+    for (p = 0; p < (k->parmNum); p++) {
       ksp->parm[p] = kparm[p];
     }
   }

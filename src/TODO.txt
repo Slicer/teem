@@ -144,7 +144,6 @@ nrrd:
  - add fields for "if I don't interpolate, what's my approximate inverse?"
  - add statement of accuracy (in a Taylor series sense)
  - add: am I an odd or even function
-******* - rename numParm --> parmNum
 ******* - fix the kernels that meetNrrdKernelAllCheck revealed to be broken
 * with NrrdFormat:
  - There is now an available() method, but this is incomplete - EPS is

@@ -54,7 +54,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz, NrrdKernelSpec *uk) {
       fprintf(stderr, "%d --> %s resample\n", need, need ? "WILL" : "won't");
       if (need) {
         rsi->kernel[i] = uk->kernel;
-        memcpy(rsi->parm[i], uk->parm, uk->kernel->numParm * sizeof(double));
+        memcpy(rsi->parm[i], uk->parm, uk->kernel->parmNum * sizeof(double));
         if (!AIR_EXISTS(nin->axis[i].min)) {
           nin->axis[i].min = 0.0;
         }
@@ -144,7 +144,7 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz, NrrdKernelSpec *dk) {
       char stmp1[AIR_STRLEN_SMALL + 1], stmp2[AIR_STRLEN_SMALL + 1];
       need = 1;
       rsi->kernel[i] = dk->kernel;
-      memcpy(rsi->parm[i], dk->parm, dk->kernel->numParm * sizeof(double));
+      memcpy(rsi->parm[i], dk->parm, dk->kernel->parmNum * sizeof(double));
       rsi->samples[i] = sz[i];
       if (!AIR_EXISTS(nin->axis[i].min)) {
         nin->axis[i].min = 0.0;

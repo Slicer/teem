@@ -284,7 +284,7 @@ nrrdResampleKernelSet(NrrdResampleContext *rsmc, unsigned int axIdx,
 
   rsmc->axis[axIdx].kernel = kernel;
   if (kernel) {
-    for (kpIdx = 0; kpIdx < kernel->numParm; kpIdx++) {
+    for (kpIdx = 0; kpIdx < kernel->parmNum; kpIdx++) {
       rsmc->axis[axIdx].kparm[kpIdx] = kparm[kpIdx];
     }
     if (rsmc->verbose) {
@@ -626,7 +626,7 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
         biffAddf(NRRD, "%s: don't have min, max set on axis %u", me, axIdx);
         return 1;
       }
-      for (kpIdx = 0; kpIdx < axis->kernel->numParm; kpIdx++) {
+      for (kpIdx = 0; kpIdx < axis->kernel->parmNum; kpIdx++) {
         if (!AIR_EXISTS(axis->kparm[kpIdx])) {
           biffAddf(NRRD, "%s: didn't set kernel parm %u on axis %u", me, kpIdx, axIdx);
           return 1;
@@ -794,7 +794,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
          nrrdKernelParm0IsScale(), we have to do what we probably should have been done
          all along: simulating the kernel scaling by pre-processing the evaluation
          locations and post-processing the kernel weights */
-      if (0 == axis->kernel->numParm || !nrrdKernelParm0IsScale(axis->kernel)) {
+      if (0 == axis->kernel->parmNum || !nrrdKernelParm0IsScale(axis->kernel)) {
         size_t nn, ii;
         double ratio;
         nn = dotLen * axis->samples;
