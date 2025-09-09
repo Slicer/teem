@@ -1,26 +1,24 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2019  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Copyright (C) 2009--2025  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
   You should have received a copy of the GNU Lesser General Public License
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "teem/nrrd.h"
-#include <testDataPath.h>
+#include <teem/nrrd.h>
+#include <testutil.h>
 
 /*
 ** Tests:
@@ -41,23 +39,34 @@ int
 main(int argc, const char *argv[]) {
   const char *me;
   size_t vi, ii, qvalLen;
-  Nrrd *nval, *nhist, *nimg, *nread, *ncorr, *ninmem[3];
+  Nrrd *nval, *nhist, *nimg, *nmine, *ncorr, *ninmem[3];
   double aa, bb, *val;
   airArray *mop;
-  char *name, explain[AIR_STRLEN_LARGE + 1];
+  char explain[AIR_STRLEN_LARGE + 1];
 #define VALS 0
 #define HIST 1
 #define IMAG 2
   /* PGM image since this Teem build might not support PNG */
-  static const char *const mine[3] = {"vals.nrrd", "histo.nrrd", "histo.pgm"};
-  static const char *const corr[3] = {"test/trandvals.nrrd", "test/trandhisto.nrrd",
-                                      "test/trandhisto.pgm"};
+  static const char *const mineFile[3] = {"vals.nrrd", "histo.nrrd", "histo.pgm"};
+  char *minePath[3];
+  static const char *const corrFile[3] = {"test/trandvals.nrrd", "test/trandhisto.nrrd",
+                                          "test/trandhisto.pgm"};
+  char *corrPath[3];
   static const char *const what[3] = {"value", "histogram", "histogram image"};
   int differ, wi;
 
   AIR_UNUSED(argc);
   me = argv[0];
   mop = airMopNew();
+
+  for (unsigned int fidx = 0; fidx < 3; fidx++) {
+    // generate (and mop) string holding path to my tmp files
+    minePath[fidx] = teemTestTmpPath(mineFile[fidx]);
+    airMopAdd(mop, minePath[fidx], airFree, airMopAlways);
+    // generate (and mop) string holding path to correct files to compare with
+    corrPath[fidx] = teemTestDataPath(corrFile[fidx]);
+    airMopAdd(mop, corrPath[fidx], airFree, airMopAlways);
+  }
 
   qvalLen = 10 * BINS;
   nrrdAlloc_va(nval = nrrdNew(), nrrdTypeDouble, 1, 4 * qvalLen);
@@ -68,16 +77,15 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
   nimg = nrrdNew();
   airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
-  nread = nrrdNew();
-  airMopAdd(mop, nread, (airMopper)nrrdNuke, airMopAlways);
+  nmine = nrrdNew();
+  airMopAdd(mop, nmine, (airMopper)nrrdNuke, airMopAlways);
   ncorr = nrrdNew();
   airMopAdd(mop, ncorr, (airMopper)nrrdNuke, airMopAlways);
 
   airSrandMT(999);
   vi = 0;
-  /* without first casting to float, the platform-dependent
-     differences in the values from airNormalRand() would
-     lead to testing errors, e.g.:
+  /* without first casting to float, the platform-dependent differences in the values
+     from airNormalRand() would lead to testing errors, e.g.:
      correct (test/trandvals.nrrd) and generated values differ:
      valA[0]=0.36654774192269141 < valB[0]=0.36654774192269146 by 5.55112e-17
      Would be nice to figure out exactly what the origin of that is ... */
@@ -95,11 +103,11 @@ main(int argc, const char *argv[]) {
     val[vi++] = AIR_CAST(float, bb);
   }
 
-  if (nrrdSave(mine[VALS], nval, NULL)
+  if (nrrdSave(minePath[VALS], nval, NULL)
       || nrrdHisto(nhist, nval, NULL, NULL, BINS, nrrdTypeInt)
-      || nrrdSave(mine[HIST], nhist, NULL)
+      || nrrdSave(minePath[HIST], nhist, NULL)
       || nrrdHistoDraw(nimg, nhist, HGHT, AIR_TRUE, 0.0)
-      || nrrdSave(mine[IMAG], nimg, NULL)) {
+      || nrrdSave(minePath[IMAG], nimg, NULL)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
@@ -107,20 +115,18 @@ main(int argc, const char *argv[]) {
     return 1;
   }
 
-  ninmem[VALS] = nval;
+  ninmem[VALS] = nval; // these were mopped above
   ninmem[HIST] = nhist;
   ninmem[IMAG] = nimg;
   for (wi = 0; wi < 3; wi++) {
-    name = testDataPathPrefix(corr[wi]);
-    airMopAdd(mop, name, airFree, airMopAlways);
-    if (nrrdLoad(ncorr, name, NULL) || nrrdLoad(nread, mine[wi], NULL)) {
+    if (nrrdLoad(nmine, minePath[wi], NULL) || nrrdLoad(ncorr, corrPath[wi], NULL)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble reading %s:\n%s", me, err, what[wi]);
       airMopError(mop);
       return 1;
     }
-    if (nrrdCompare(ninmem[wi], nread, AIR_FALSE /* onlyData */, 0.0 /* epsilon */,
+    if (nrrdCompare(ninmem[wi], nmine, AIR_FALSE /* onlyData */, 0.0 /* epsilon */,
                     &differ, explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -130,14 +136,14 @@ main(int argc, const char *argv[]) {
       return 1;
     }
     if (differ) {
-      fprintf(stderr, "%s: in-mem and from-disk (%s) %ss differ: %s\n", me, mine[wi],
+      fprintf(stderr, "%s: in-mem and from-disk (%s) %ss differ: %s\n", me, minePath[wi],
               what[wi], explain);
       airMopError(mop);
       return 1;
     } else {
       printf("%s: good: in-mem and from-disk %ss same\n", me, what[wi]);
     }
-    if (nrrdCompare(ncorr, nread, AIR_FALSE /* onlyData */, 0.0 /* epsilon */, &differ,
+    if (nrrdCompare(ncorr, nmine, AIR_FALSE /* onlyData */, 0.0 /* epsilon */, &differ,
                     explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -147,8 +153,8 @@ main(int argc, const char *argv[]) {
       return 1;
     }
     if (differ) {
-      fprintf(stderr, "%s: correct (%s) and generated %ss differ: %s\n", me, corr[wi],
-              what[wi], explain);
+      fprintf(stderr, "%s: correct (%s) and generated %ss differ: %s\n", me,
+              corrPath[wi], what[wi], explain);
       airMopError(mop);
       return 1;
     } else {

@@ -32,10 +32,10 @@ target_link_libraries(teem_testutil PRIVATE Teem)
 
 ###-------------------------------------------------------------------------------------
 # Two helper functions for creating and describing tests:
-# teem_create_test_executable: creates the executable test program
+# teem_create_test_bin: creates the executable test program
 # teem_add_test: uses the executable to declare a new test
 
-# teem_create_test_executable(<target> <src> [USE_TMPDIR]):
+# teem_create_test_bin(<target> <src> [USE_TMPDIR]):
 # From test program source file <src> create executable, hereafter referred to as
 # <target>.  If USE_TMPDIR, then create a tmp directory "<target>_tmp" that the test can
 # use for writing files.  Attach the necessary environment variables to the target, to be
@@ -44,7 +44,7 @@ target_link_libraries(teem_testutil PRIVATE Teem)
 # the source code of the test program, than the circumstances of how the test executable
 # is run.
 #
-function(teem_create_test_executable target src)
+function(teem_create_test_bin target src)
   set(options USE_TMPDIR)
   # this sets TCTE_USE_TMPDIR if "USE_TMPDIR" was passed
   cmake_parse_arguments(TCTE "${options}" "" "" ${ARGN})
@@ -65,7 +65,7 @@ endfunction()
 
 # teem_add_test(<target> [NAME <name>] [ARGS <args>...])
 # This creates the CTest test via add_test() around the <target> created by
-# teem_create_test_executable above.  The NAME option, if used, creates a name for the
+# teem_create_test_bin above.  The NAME option, if used, creates a name for the
 # test different than ${target} The ARGS option says how to run it on the command-line.
 #
 function(teem_add_test target)
@@ -105,7 +105,30 @@ function(teem_add_test target)
 endfunction()
 
 ###-------------------------------------------------------------------------------------
-# The Tests!
+# The Tests (such as they are)
 #
 # These are the component libraries that have tests; more added as time permits
+# (TEEM_LIB_LIST) except that most (those yearning for tests) are commented out
 add_subdirectory(air)
+# add_subdirectory(hest)
+add_subdirectory(biff)
+add_subdirectory(nrrd)
+# add_subdirectory(ell)
+# add_subdirectory(moss)
+add_subdirectory(unrrdu)
+# add_subdirectory(alan)
+# add_subdirectory(tijk)
+#add_subdirectory(gage)  # TOFIX
+# add_subdirectory(dye)
+# add_subdirectory(bane)
+# add_subdirectory(limn)
+# add_subdirectory(echo)
+# add_subdirectory(hoover)
+# add_subdirectory(seek)
+#add_subdirectory(ten)  # TOFIX
+# add_subdirectory(elf)
+# add_subdirectory(pull)
+# add_subdirectory(coil)
+# add_subdirectory(push)
+# add_subdirectory(mite)
+#add_subdirectory(meet)  # TOFIX

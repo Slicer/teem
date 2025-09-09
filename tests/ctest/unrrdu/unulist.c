@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2009--2025  University of Chicago
   Copyright (C) 2005--2008  Gordon Kindlmann
   Copyright (C) 1998--2004  University of Utah
 
@@ -17,10 +17,10 @@
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "teem/unrrdu.h"
+#include <teem/unrrdu.h>
 
 /*
-** Tests:
+** Exercises (not quite testing, yet) unrrduUsageUnu, unrrduCmdList[]->main
 */
 
 int
@@ -40,11 +40,12 @@ main(int argc, const char **argv) {
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
 
-  /* This just generates all the usage information for unu itself, and then
-     for all the unu sub-commands.  The purpose is to exercise hest's
-     generation of usage info for all the options, and to make sure (by human
-     inspection now, later by something automated) that the use of stderr vs
-     stdout, and return values, is consistent across all commands */
+  /* This just generates all the usage information for unu itself, and
+     then for all the unu sub-commands.  The purpose is to exercise
+     hest's generation of usage info for all the options, and to make
+     sure (by human inspection now, later by something automated) that
+     the use of stderr vs stdout, and return values, is consistent
+     across all commands */
 
   fprintf(out, "%s: ################### BEGIN unu\n", me);
   unrrduUsageUnu("unu", hparm, AIR_TRUE /* alsoHidden */);
@@ -52,9 +53,10 @@ main(int argc, const char **argv) {
 
   uci = 0;
   do {
-    fprintf(out, "%s: ################### BEGIN unu %s\n", me, unrrduCmdList[uci]->name);
+    fprintf(out, "%s: ################### BEGIN (%u) unu %s\n", me, uci,
+            unrrduCmdList[uci]->name);
     ret = unrrduCmdList[uci]->main(0, NULL, unrrduCmdList[uci]->name, hparm);
-    fprintf(out, "%s: ################### END unu %s (ret=%d)\n", me,
+    fprintf(out, "%s: ################### END (%u) unu %s (ret=%d)\n", me, uci,
             unrrduCmdList[uci]->name, ret);
     uci++;
   } while (unrrduCmdList[uci]);

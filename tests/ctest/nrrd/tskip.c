@@ -1,25 +1,24 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2019  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Copyright (C) 2009--2025  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
   You should have received a copy of the GNU Lesser General Public License
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "teem/nrrd.h"
+#include <teem/nrrd.h>
+#include <testutil.h>
 
 #define BKEY "tskip"
 
@@ -49,7 +48,7 @@ main(int argc, const char **argv) {
   Nrrd *nref, *nin;
   size_t *size, ii, nn, tick, pad[2];
   unsigned int axi, refCRC, gotCRC, sizeNum;
-  char *berr, *outS[2], stmp[AIR_STRLEN_SMALL + 1], doneStr[AIR_STRLEN_SMALL + 1];
+  char *berr, *outSbase[2], stmp[AIR_STRLEN_SMALL + 1], doneStr[AIR_STRLEN_SMALL + 1];
   airRandMTState *rng;
   unsigned int seed, *rdata, printbytes;
   unsigned char *dataUC;
@@ -72,7 +71,7 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "pb", "print", airTypeUInt, 1, 1, &printbytes, "0",
              "bytes to print at beginning and end of data, to help "
              "debug problems");
-  hestOptAdd(&hopt, "o", "out.data out.nhdr", airTypeString, 2, 2, outS, NULL,
+  hestOptAdd(&hopt, "o", "out.data out.nhdr", airTypeString, 2, 2, outSbase, NULL,
              "output filenames of data and header");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, tskipInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
@@ -122,6 +121,10 @@ main(int argc, const char **argv) {
   fflush(stderr);
   refCRC = nrrdCRC32(nref, airEndianBig);
   fprintf(stderr, "%u\n", refCRC);
+
+  char *outS[2];
+  airMopAdd(mop, outS[0] = teemTestTmpPath(outSbase[0]), airFree, airMopAlways);
+  airMopAdd(mop, outS[1] = teemTestTmpPath(outSbase[1]), airFree, airMopAlways);
 
   /* write data, with padding */
   fprintf(stderr, "saving data . . . ");
