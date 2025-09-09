@@ -375,45 +375,10 @@ endforeach()
 # (used as part of handling Windows "extern" analog)
 target_compile_definitions(Teem PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:TEEM_STATIC>")
 
-# # # - - - - - - - - - - - Handling linking with math library libm via -lm
-# We could be brute-force, and add -lm to link line for any and all Unices:
-#     if(UNIX)
-#       target_link_libraries(Teem PRIVATE m)
-#     endif()
-# But not all Unices actually need to link with -lm to access math functions
-# like sin() and exp(); let's figure out if we need it.
-
-# https://cmake.org/cmake/help/latest/module/CheckSourceCompiles.html
-include(CheckSourceCompiles)
-
-# Tiny test program that calls sin()
-set(_Teem_libm_test_source "
-  #include <math.h>
-  int main(void) { return (int)sin(0.0); }
-")
-
-# Always start with a clean slate
-unset(CMAKE_REQUIRED_LIBRARIES)
-
-# First try compiling without -lm
-check_source_compiles(C "${_Teem_libm_test_source}" HAVE_SIN_WITHOUT_LIBM)
-
-if(HAVE_SIN_WITHOUT_LIBM)
-  message(STATUS "sin() found without libm; do NOT need to link with -lm")
-else()
-  # Retry compiling with -lm
-  set(CMAKE_REQUIRED_LIBRARIES m)
-  check_source_compiles(C "${_Teem_libm_test_source}" HAVE_SIN_WITH_LIBM)
-  unset(CMAKE_REQUIRED_LIBRARIES)
-
-  if(HAVE_SIN_WITH_LIBM)
-    message(STATUS "sin() requires libm; DO need to link with -lm")
-    target_link_libraries(Teem PRIVATE m)
-  else()
-    message(FATAL_ERROR "Could not find sin() at all!")
-  endif()
+# brute-force: add -lm to link line for any and all Unices:
+if(UNIX)
+  target_link_libraries(Teem PRIVATE m)
 endif()
-# # # - - - - - - - - - - - end of handling -lm
 
 # Set remaining target properties
 set_target_properties(Teem PROPERTIES
