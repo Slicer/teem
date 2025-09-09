@@ -25,7 +25,7 @@
 #define ME ((parm && parm->verbosity) ? me : "")
 
 /*
-_hestArgsInResponseFiles()
+argsInResponseFiles()
 
 returns the number of "args" (i.e. the number of space-separated strings) that will be
 parsed from the response files. The role of this function is solely to simplify the task
@@ -35,10 +35,10 @@ be, and we can avoid using an airArray.  The drawback is that we open and read t
 the response files twice.  Alas.
 */
 static int
-_hestArgsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, char *err,
-                         const hestParm *parm) {
+argsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, char *err,
+                    const hestParm *parm) {
   FILE *file;
-  static const char me[] = "_hestArgsInResponseFiles: ";
+  static const char me[] = "argsInResponseFiles: ";
   char line[AIR_STRLEN_HUGE + 1], *pound;
   int argIdx, len;
 
@@ -50,12 +50,12 @@ _hestArgsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, ch
   }
 
   argIdx = 0;
-  while (argv[argIdx]) {
+  while (argv /* can be NULL for testing */ && argv[argIdx]) {
     if (parm->respFileFlag == argv[argIdx][0]) {
       /* argv[argIdx] looks like its naming a response file */
       /* NOTE: despite the repeated temptation: "-" aka stdin cannot be a response file,
-         because it is going to be read in twice: once by _hestArgsInResponseFiles, and
-         then again by copyArgv */
+         because it is going to be read in twice: once by argsInResponseFiles, and then
+         again by copyArgv */
       if (!(file = fopen(argv[argIdx] + 1, "rb"))) {
         /* can't open the indicated response file for reading */
         sprintf(err, "%scouldn't open \"%s\" for reading as response file", ME,
@@ -172,7 +172,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
       newArgc += 1;
     } else {
       /* It is a response file.  Error checking on open-ability
-         should have been done by _hestArgsInResponseFiles() */
+         should have been done by argsInResponseFiles() */
       file = fopen(oldArgv[argIdx] + 1, "rb");
       /* start line-reading loop */
       len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
@@ -1484,7 +1484,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
      by seeing how many args are in the response files, and then adding
      on the args from the actual argv (getting this right the first time
      greatly simplifies the problem of eliminating memory leaks) */
-  if (_hestArgsInResponseFiles(&respArgNum, &respFileNum, _argv, err, PARM)) {
+  if (argsInResponseFiles(&respArgNum, &respFileNum, _argv, err, PARM)) {
     airMopError(mop);
     return 1;
   }
