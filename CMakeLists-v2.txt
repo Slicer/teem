@@ -285,7 +285,10 @@ target_compile_definitions(Teem PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:TE
 include(CheckLibM)
 if(LIBM_NEEDED)
   message(STATUS "Will explicitly link with -lm")
-  target_link_libraries(Teem PRIVATE m)
+  target_link_libraries(Teem
+      PRIVATE  # still link to Teem itself
+      INTERFACE m  # this ensures consumers (executables) get -lm automatically
+  )
 else()
   message(STATUS "Do not need to link with -lm")
 endif()
