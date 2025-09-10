@@ -33,7 +33,13 @@ if(DEFINED LIBM_NEEDED)
   return()
 endif()
 
-set(_lmn_desc "Need to explicitly link with -lm?")
+if(BUILD_SHARED_LIBS)
+  set(_lib_type SHARED)
+else()
+  set(_lib_type STATIC)
+endif()
+
+set(_lmn_desc "Need to add -lm when linking with math-using ${_lib_type} lib?")
 message(STATUS "CheckLibM: ${_lmn_desc}")
 
 set(_checklibm_dir "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/tmpCheckLibM")
@@ -74,7 +80,9 @@ cmake_minimum_required(VERSION 3.13)
 project(CheckLibM_${suffix} C)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
-add_library(tiny SHARED \"${_checklibm_dir}/tiny.c\")
+# Create libtiny is shared or static, according to BUILD_SHARED_LIBS
+add_library(tiny ${_lib_type} \"${_checklibm_dir}/tiny.c\")
+# Make maintiny link only with tiny and optional extra_libs
 add_executable(maintiny \"${_checklibm_dir}/maintiny.c\")
 target_link_libraries(maintiny PRIVATE tiny ${extra_libs})
   ")
@@ -124,7 +132,7 @@ _checklibm_try_build_and_run(no_libm "" _checklibm_no_libm_ok)
 if(_checklibm_no_libm_ok)
   # ... and either it did work without `-lm`, or ...
   set(LIBM_NEEDED FALSE CACHE BOOL ${_lmn_desc})
-  message(STATUS "CheckLibM: math works without -lm")
+  message(STATUS "CheckLibM: don't need -lm when linking with math-using ${_lib_type} lib")
 else()
   # ... it did not work without -lm.
   # Does it does work *with* -lm?
@@ -133,7 +141,7 @@ else()
   if(_checklibm_with_libm_ok)
     # Yes, it does work with -lm.
     set(LIBM_NEEDED TRUE CACHE BOOL "${_lmn_desc}")
-    message(STATUS "CheckLibM: yes, math requires explicit -lm")
+    message(STATUS "CheckLibM: yes, do need -lm when linking with math-using ${_lib_type} lib")
   else()
     # Yikes, it failed both without and with -lm. Bye.
     message(FATAL_ERROR
