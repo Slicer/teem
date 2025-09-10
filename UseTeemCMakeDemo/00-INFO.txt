@@ -12,28 +12,32 @@ CMake built Teem.  Then:
 
 should show `bin`, `include`, `lib`.
 
-2) The following will create a `build` subdirectory right here where testio.c
-is, doing the configure and generate steps of CMake:
+2) The following will create a `localbuild` subdirectory right here where
+testio.c is, doing the configure and generate steps of CMake:
 
-  cmake -S . -B build \
+  cmake -S . -B buildhere \
      -DCMAKE_PREFIX_PATH=$TEEM_DIR \
-     -DCMAKE_INSTALL_PREFIX=install
+     -DCMAKE_INSTALL_PREFIX=installhere
 
 The `.` argument to `cmake -S` is the path to the source directory, and the
-`build` argument to `cmake -B` is the path to the new testio build directory.
-After the `find_package` in ./CMakeLists.txt runs, CMake will set its own
-`Teem_DIR` variable to $TEEM_DIR. The `install` local (relative) path will be
-the subdirectory that CMake will install into later.
+`buildhere` argument to `cmake -B` is the path of the to-be-created directory
+to will contain all of CMake's work and files for building this
+"DemoOfUsingTeem" project (named by the `project(DemoOfUsingTeem LANGUAGES C)`
+line in CMakeLists.txt).  After the `find_package` in ./CMakeLists.txt runs,
+CMake will set its own `Teem_DIR` variable to $TEEM_DIR. The `installhere` path
+is where CMake will install things in when asked to install.
 
 3) To build in a way that is agnostic w.r.t. build system:
 
-  cmake --build build
+  cmake --build buildhere
 
-which means: run the "build" step (first "--build") in the local `build`
-subdirectory (second "build").  Or if you like running make:
+which means: run the "build" step (first "--build") in the `buildhere`
+directory.  Or if you like running make directly:
 
-  (cd build; make)
+  (cd buildhere; make)
 
 4) To install:
 
-  cmake --install build
+  cmake --install buildhere
+
+which runs CMake's "install" process on whatever has been built in "buildhere"

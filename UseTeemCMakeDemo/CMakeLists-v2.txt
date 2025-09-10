@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Set (demo) project name, initialize compiler detection and compiler flags
-project(TestNrrdIO LANGUAGES C)
+project(DemoOfUsingTeem LANGUAGES C)
 
 # Find Teem (must be installed in CMAKE_PREFIX_PATH or default system paths)
 find_package(Teem REQUIRED)
