@@ -1,0 +1,40 @@
+#!/bin/sh
+# teem-config: script to document how this Teem was built
+# Copyright (C) 2025  University of Chicago
+
+USAGE="Usage: $0 [--cflags] [--libs] [--version]"
+
+if [ $# -eq 0 ]; then
+    echo $USAGE
+    exit 1
+fi
+
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+version=@Teem_VERSION_STRING@
+private_libs="@Teem_PC_PRIVATE_LIBS@"
+
+show_cflags=no
+show_libs=no
+show_version=no
+
+for arg in "$@"; do
+    case "$arg" in
+        --cflags) show_cflags=yes ;;
+        --libs) show_libs=yes ;;
+        --version) show_version=yes ;;
+        *) echo $USAGE; exit 1 ;;
+    esac
+done
+
+if [ "$show_cflags" = yes ]; then
+    echo -I${includedir}
+fi
+if [ "$show_libs" = yes ]; then
+    echo -L${libdir} -lteem ${private_libs}
+fi
+if [ "$show_version" = yes ]; then
+    echo ${version}
+fi

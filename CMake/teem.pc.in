@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+
+Name: Teem
+Description: Tools to process and visualize scientific data and images
+Version: @Teem_VERSION_STRING@
+Cflags: -I${includedir}
+Libs: -L${libdir} -lteem
+Libs.private: @Teem_PC_PRIVATE_LIBS@
