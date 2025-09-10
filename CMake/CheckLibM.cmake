@@ -46,9 +46,12 @@ file(MAKE_DIRECTORY "${_checklibm_dir}")
 # T=log1pf(tanf(1.5703125)) ~= 7.634267208876022, so RT=(int)T should be 7
 # If 7 == RT, our exit status should be unix for "all good", i.e. 0 ==> return 7 != T
 file(WRITE "${_checklibm_dir}/tiny.c" "
+#include <stdio.h>
 #include <math.h>
 int tinyFunc(double val) {
-  return (6 != (int)(log1pf(tanf(val)))); // should be 7 not 6
+  int ret = (6 != (int)(log1pf(tanf(val))));  // should be 7 not 6
+  printf(\"tinyFunc: returning %d (%s)\n\", ret, ret ? \"bad\" : \"good\");
+  return ret;
 }
 ")
 
