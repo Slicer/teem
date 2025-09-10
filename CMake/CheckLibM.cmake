@@ -33,6 +33,7 @@ if(DEFINED LIBM_NEEDED)
   return()
 endif()
 
+# BUILD_SHARED_LIBS informs what kind of libtiny we make
 if(BUILD_SHARED_LIBS)
   set(_lib_type SHARED)
 else()
