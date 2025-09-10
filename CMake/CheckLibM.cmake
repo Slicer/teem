@@ -73,13 +73,17 @@ function(_checklibm_try_build_and_run suffix extra_libs result_var)
 cmake_minimum_required(VERSION 3.13)
 project(CheckLibM_${suffix} C)
 
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 add_library(tiny SHARED \"${_checklibm_dir}/tiny.c\")
 add_executable(maintiny \"${_checklibm_dir}/maintiny.c\")
 target_link_libraries(maintiny PRIVATE tiny ${extra_libs})
   ")
 
   # Compile the project
-  try_compile(_ok "${_proj_dir}/build" "${_proj_dir}" CheckLibM_${suffix}
+  try_compile(_ok
+              "${_proj_dir}/build"
+              "${_proj_dir}"
+              CheckLibM_${suffix}
               OUTPUT_VARIABLE _out)
 
   if(NOT _ok)
