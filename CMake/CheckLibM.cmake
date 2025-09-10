@@ -4,7 +4,7 @@
 
 ### Rationale
 # Different unices have different ways of tacitly linking (or not) with -lm.
-# In the interests of pedantic explicitness, we figure out if, linking with -lm
+# In the interests of pedantic explicitness, we figure out if linking with -lm
 # is needed when linking with a library that calls math functions.  Yes,
 # https://cmake.org/cmake/help/latest/module/CheckLibraryExists.html could
 # probably do the job here, but once I (GLK) went down the rabbit hole of
@@ -48,7 +48,7 @@ file(MAKE_DIRECTORY "${_checklibm_dir}")
 file(WRITE "${_checklibm_dir}/tiny.c" "
 #include <math.h>
 int tinyFunc(double val) {
-  return (7 != (int)(log1pf(tanf(val))));
+  return (6 != (int)(log1pf(tanf(val)))); // should be 7 not 6
 }
 ")
 
@@ -93,7 +93,7 @@ target_link_libraries(maintiny PRIVATE tiny ${_extra_libs})
         ERROR_VARIABLE  _${_suffix}_runerr
       )
       if(_${_suffix}_runres EQUAL 0)
-        set(${_result_var} TRUE PARENT_SCOPE)
+        set(${_result_var} TRUE)
       else()
         message(FATAL_ERROR
           "CheckLibM: maintiny built in ${_suffix} mode but failed at runtime.\n"
@@ -105,7 +105,7 @@ target_link_libraries(maintiny PRIVATE tiny ${_extra_libs})
       message(FATAL_ERROR "CheckLibM: maintiny executable missing in ${_suffix} test")
     endif()
   else()
-    set(${_result_var} FALSE PARENT_SCOPE)
+    set(${_result_var} FALSE)
   endif()
 endmacro()
 
@@ -126,9 +126,9 @@ else()
   if(_checklibm_with_libm_ok)
     # Yes, it does work with -lm.
     set(LIBM_NEEDED TRUE CACHE BOOL "${_lmn_desc}")
-    message(STATUS "CheckLibM: math requires explicit -lm")
+    message(STATUS "CheckLibM: yes, math requires explicit -lm")
   else()
-    # Yikes, it failed without and with -lm. Bye.
+    # Yikes, it failed both without and with -lm. Bye.
     message(FATAL_ERROR
       "CheckLibM: math test failed even with -lm. Output:\n"
       "${_checklibm_no_libm_out}\n"
