@@ -19,7 +19,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 10.94
+# Teem/CMakeLists.txt Version 10.95
 
 # This CMakeLists.txt describes a Teem package that contains:
 # (1) a library ("libteem" on unix) and
@@ -78,7 +78,7 @@ include(GNUInstallDirs)      # sets CMAKE_INSTALL_*DIR variables
 include(CMakeParseArguments) # for cmake_parse_arguments
 include(CMakePrintHelpers)   # for debugging via cmake_print_variables(varname)
 
-# CMake modules path (for e.g. FindLEVMAR.cmake)
+# CMake modules path (for e.g. CheckLibM.cmake)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 ###-------------------------------------------------------------------------------------
@@ -375,9 +375,13 @@ endforeach()
 # (used as part of handling Windows "extern" analog)
 target_compile_definitions(Teem PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:TEEM_STATIC>")
 
-# brute-force: add -lm to link line for any and all Unices:
-if(UNIX)
+# Do we need to link with -lm?
+include(CheckLibM)
+if(LIBM_NEEDED)
+  message(STATUS "Will explicitly link with -lm")
   target_link_libraries(Teem PRIVATE m)
+else()
+  message(STATUS "Do not need to link with -lm")
 endif()
 
 # Set remaining target properties
