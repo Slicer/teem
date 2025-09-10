@@ -33,7 +33,7 @@ if(DEFINED LIBM_NEEDED)
   return()
 endif()
 
-set(_lmn_desc "Does the platform require linking with -lm?")
+set(_lmn_desc "Need to explicitly link with -lm?")
 message(STATUS "CheckLibM: ${_lmn_desc}")
 
 set(_checklibm_dir "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/tmpCheckLibM")
