@@ -49,8 +49,8 @@ file(WRITE "${_checklibm_dir}/tiny.c" "
 #include <stdio.h>
 #include <math.h>
 int tinyFunc(double val) {
-  int ret = (6 != (int)(log1pf(tanf(val))));  // should be 7 not 6
-  printf(\"tinyFunc: returning %d (%s)\n\", ret, ret ? \"bad\" : \"good\");
+  int ret = (7 != (int)(log1pf(tanf(val))));
+  printf(\"tinyFunc: returning %d (%s)\\n\", ret, ret ? \"bad\" : \"good\");
   return ret;
 }
 ")
@@ -63,54 +63,54 @@ int main(void) {
 }
 ")
 
-# big helper macro to build & run test project
-macro(_checklibm_try_build_and_run _suffix _extra_libs _result_var)
-  set(_proj_dir "${_checklibm_dir}/${_suffix}")
+# Function that compiles and runs `maintiny` test
+function(_checklibm_try_build_and_run suffix extra_libs result_var)
+  # Local variables inside function
+  set(_proj_dir "${_checklibm_dir}/${suffix}")
   file(MAKE_DIRECTORY "${_proj_dir}")
 
-  # write a minimal CMake project
   file(WRITE "${_proj_dir}/CMakeLists.txt" "
 cmake_minimum_required(VERSION 3.13)
-project(CheckLibM_${_suffix} C)
+project(CheckLibM_${suffix} C)
 
 add_library(tiny SHARED \"${_checklibm_dir}/tiny.c\")
 add_executable(maintiny \"${_checklibm_dir}/maintiny.c\")
-target_link_libraries(maintiny PRIVATE tiny ${_extra_libs})
+target_link_libraries(maintiny PRIVATE tiny ${extra_libs})
   ")
 
-  try_compile(_${_suffix}_ok
-    "${_proj_dir}/build"
-    "${_proj_dir}"
-    CheckLibM_${_suffix}
-    OUTPUT_VARIABLE _${_suffix}_out
-  )
+  # Compile the project
+  try_compile(_ok "${_proj_dir}/build" "${_proj_dir}" CheckLibM_${suffix}
+              OUTPUT_VARIABLE _out)
 
-  if(_${_suffix}_ok)
+  if(NOT _ok)
+    message(STATUS "CheckLibM: ${suffix} compilation failed:\n${_out}")
+    set(${result_var} FALSE PARENT_SCOPE)
+  else()
     # Run the resulting binary to check runtime
     set(_bin "${_proj_dir}/build/maintiny${CMAKE_EXECUTABLE_SUFFIX}")
-    if(EXISTS "${_bin}")
-      execute_process(
-        COMMAND "${_bin}"
-        RESULT_VARIABLE _${_suffix}_runres
-        OUTPUT_VARIABLE _${_suffix}_runout
-        ERROR_VARIABLE  _${_suffix}_runerr
-      )
-      if(_${_suffix}_runres EQUAL 0)
-        set(${_result_var} TRUE)
+    if(NOT EXISTS "${_bin}")
+      message(FATAL_ERROR "CheckLibM: maintiny executable missing for ${suffix} test")
+      set(${result_var} FALSE PARENT_SCOPE)
+    else()
+      # Run the binary
+      execute_process(COMMAND "${_bin}"
+                      RESULT_VARIABLE _runres
+                      OUTPUT_VARIABLE _runout
+                      ERROR_VARIABLE _runerr)
+      if(_runres EQUAL 0)
+        # 0 is unix for "all good"; what we want
+        set(${result_var} TRUE PARENT_SCOPE)
       else()
         message(FATAL_ERROR
           "CheckLibM: maintiny built in ${_suffix} mode but failed at runtime.\n"
-          "Exit code: ${_${_suffix}_runres}\n"
-          "Stdout: ${_${_suffix}_runout}\n"
-          "Stderr: ${_${_suffix}_runerr}")
+          "Exit code: ${_runres}\n"
+          "Stdout: ${_runout}\n"
+          "Stderr: ${_runerr}")
+        set(${result_var} FALSE PARENT_SCOPE)
       endif()
-    else()
-      message(FATAL_ERROR "CheckLibM: maintiny executable missing in ${_suffix} test")
     endif()
-  else()
-    set(${_result_var} FALSE)
   endif()
-endmacro()
+endfunction()
 
 ### ------------------------------------------------------------------------
 # Now run the test.
