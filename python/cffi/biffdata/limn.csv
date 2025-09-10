@@ -1,4 +1,4 @@
-func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+func_name,return_type,error_val(s),mubi,biff_key,cfile:linenumber
 limnCameraUpdate,int,1,0,limn,limn/cam.c:31
 limnCameraAspectSet,int,1,0,limn,limn/cam.c:128
 limnCameraPathMake,int,1,0,limn,limn/cam.c:187
@@ -53,13 +53,6 @@ limnObjectPSDraw,int,1,0,limn,limn/renderLimn.c:182
 limnObjectPSDrawConcave,int,1,0,limn,limn/renderLimn.c:312
 limnSplineNrrdEvaluate,int,1,0,limn,limn/splineEval.c:321
 limnSplineSample,int,1,0,limn,limn/splineEval.c:359
-limnSplineTypeSpecNew,limnSplineTypeSpec *,NULL,0,limn,limn/splineMethods.c:23
-limnSplineNew,limnSpline *,NULL,0,limn,limn/splineMethods.c:122
-limnSplineNrrdCleverFix,int,1,0,limn,limn/splineMethods.c:247
-limnSplineCleverNew,limnSpline *,NULL,0,limn,limn/splineMethods.c:392
-limnSplineUpdate,int,1,0,limn,limn/splineMethods.c:420
-limnSplineTypeSpecParse,limnSplineTypeSpec *,NULL,0,limn,limn/splineMisc.c:220
-limnSplineParse,limnSpline *,NULL,0,limn,limn/splineMisc.c:276
 limnCbfPointsNew,limnCbfPoints *,NULL,0,limn,limn/splineFit.c:175
 limnCbfPointsCheck,int,1,0,limn,limn/splineFit.c:247
 limnCbfCtxPrep,int,1,0,limn,limn/splineFit.c:518
@@ -68,6 +61,13 @@ limnCbfSingle,int,1,0,limn,limn/splineFit.c:1526
 limnCbfCorners,int,1,0,limn,limn/splineFit.c:1577
 limnCbfMulti,int,1,0,limn,limn/splineFit.c:1779
 limnCbfGo,int,1,0,limn,limn/splineFit.c:1897
+limnSplineTypeSpecNew,limnSplineTypeSpec *,NULL,0,limn,limn/splineMethods.c:23
+limnSplineNew,limnSpline *,NULL,0,limn,limn/splineMethods.c:122
+limnSplineNrrdCleverFix,int,1,0,limn,limn/splineMethods.c:247
+limnSplineCleverNew,limnSpline *,NULL,0,limn,limn/splineMethods.c:392
+limnSplineUpdate,int,1,0,limn,limn/splineMethods.c:420
+limnSplineTypeSpecParse,limnSplineTypeSpec *,NULL,0,limn,limn/splineMisc.c:220
+limnSplineParse,limnSpline *,NULL,0,limn,limn/splineMisc.c:276
 limnObjectWorldHomog,int,1,0,limn,limn/transform.c:23
 limnObjectFaceNormals,int,1,0,limn,limn/transform.c:45
 limnObjectSpaceTransform,int,1,0,limn,limn/transform.c:208

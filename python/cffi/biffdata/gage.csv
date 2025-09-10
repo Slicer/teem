@@ -1,4 +1,4 @@
-func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+func_name,return_type,error_val(s),mubi,biff_key,cfile:linenumber
 gageContextCopy,gageContext *,NULL,0,gage,gage/ctx.c:86
 gageKernelSet,int,1,0,gage,gage/ctx.c:197
 gagePerVolumeAttach,int,1,0,gage,gage/ctx.c:396
@@ -7,6 +7,11 @@ gageDeconvolve,int,1,0,gage,gage/deconvolve.c:24
 gageDeconvolveSeparable,int,1,0,gage,gage/deconvolve.c:206
 gageKindCheck,int,1,0,gage,gage/kind.c:31
 gageKindVolumeCheck,int,1,0,gage,gage/kind.c:216
+gageOptimSigSet,int,1,0,gage,gage/optimsig.c:215
+gageOptimSigContextNew,gageOptimSigContext *,NULL,0,gage,gage/optimsig.c:309
+gageOptimSigCalculate,int,1,0,gage,gage/optimsig.c:1088
+gageOptimSigErrorPlot,int,1,0,gage,gage/optimsig.c:1160
+gageOptimSigErrorPlotSliding,int,1,0,gage,gage/optimsig.c:1251
 gageVolumeCheck,int,1,0,gage,gage/pvl.c:34
 gagePerVolumeNew,gagePerVolume *,NULL,0,gage,gage/pvl.c:55
 gageQueryReset,int,1,0,gage,gage/pvl.c:259
@@ -38,8 +43,3 @@ gageStackBlurCheck,int,1,0,gage,gage/stackBlur.c:1487
 gageStackBlurGet,int,1,0,gage,gage/stackBlur.c:1595
 gageStackBlurManage,int,1,0,gage,gage/stackBlur.c:1696
 gageUpdate,int,1,0,gage,gage/update.c:311
-gageOptimSigSet,int,1,0,gage,gage/optimsig.c:215
-gageOptimSigContextNew,gageOptimSigContext *,NULL,0,gage,gage/optimsig.c:309
-gageOptimSigCalculate,int,1,0,gage,gage/optimsig.c:1088
-gageOptimSigErrorPlot,int,1,0,gage,gage/optimsig.c:1160
-gageOptimSigErrorPlotSliding,int,1,0,gage,gage/optimsig.c:1251

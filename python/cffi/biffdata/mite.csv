@@ -1,4 +1,4 @@
-func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+func_name,return_type,error_val(s),mubi,biff_key,cfile:linenumber
 miteSample,double,AIR_NAN,0,mite,mite/ray.c:149
 miteRenderBegin,int,1,0,mite,mite/renderMite.c:61
 miteShadeSpecParse,int,1,0,mite,mite/shade.c:67

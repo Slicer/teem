@@ -204,23 +204,31 @@ def proc_src(file, filename):
 def proc_lib(path_teem: str, lib: str) -> list[str]:
     """
     From Teem source checkout at path_teem, for Teem library lib, generate lines of csv data
-    about Biff annotations
+    about Biff annotations. This involves reading in the teem/src/<lib>/CMakeLists.txt file
+    to learn what are the .c files that make up the library <lib>.
     """
     path_srcs = f'{path_teem}/src/{lib}'
     # read the CMakeLists.txt file to get list of source files
+    # NOTE: This requires the "-v2" re-write of the CMakeLists.txt files for Teem v2
+    # (sorry time does not permit writing code to handle both v1 and v2 formats)
     with open(f'{path_srcs}/CMakeLists.txt', 'r', encoding='utf8') as cmfile:
-        ilines = [line.strip() for line in cmfile.readlines()]
-    idx0 = ilines.index(f'set({lib.upper()}_SOURCES')
-    idx1 = ilines.index(')')
-    filenames = filter(lambda fn: fn.endswith('.c'), ilines[idx0 + 1 : idx1])
+        # read in lines, handling comments now
+        ilines = [line.strip().split('#', 1)[0].strip() for line in cmfile.readlines()]
+    idx0 = ilines.index('SOURCES')
+    # .c filenames, .h private header filenames go between these lines
+    idx1 = ilines.index('PUBLIC_HEADERS')
+    cfiles = []
+    for line in ilines[idx0 + 1 : idx1]:
+        # only keep the .c filenames, not the .h private header filenames
+        cfiles += filter(lambda fn: fn.endswith('.c'), line.split(' '))
     olines = []
-    for filename in filenames:
+    for cfile in cfiles:
         if VERB > 1:
-            print(f'... {lib}/{filename}')
-        with open(f'{path_srcs}/{filename}', 'r', encoding='utf8') as file:
-            olines += proc_src(file, f'{lib}/{filename}')
+            print(f'... {lib}/{cfile}')
+        with open(f'{path_srcs}/{cfile}', 'r', encoding='utf8') as file:
+            olines += proc_src(file, f'{lib}/{cfile}')
     if olines:
-        olines.insert(0, proc_annote('HEADER', '', '') + ',filename:linenumber')
+        olines.insert(0, proc_annote('HEADER', '', '') + ',cfile:linenumber')
     return olines
 
 

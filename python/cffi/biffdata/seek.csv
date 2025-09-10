@@ -1,4 +1,4 @@
-func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+func_name,return_type,error_val(s),mubi,biff_key,cfile:linenumber
 seekExtract,int,1,0,seek,seek/extract.c:934
 seekDataSet,int,1,0,seek,seek/setSeek.c:54
 seekSamplesSet,int,1,0,seek,seek/setSeek.c:114

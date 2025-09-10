@@ -1,4 +1,4 @@
-func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+func_name,return_type,error_val(s),mubi,biff_key,cfile:linenumber
 tenAnisoPlot,int,1,0,ten,ten/aniso.c:1066
 tenAnisoVolume,int,1,0,ten,ten/aniso.c:1125
 tenAnisoHistogram,int,1,0,ten,ten/aniso.c:1197
@@ -29,6 +29,10 @@ tenEstimate1TensorSimulateVolume,int,1,0,ten,ten/estimate.c:1033
 tenEstimate1TensorSingle_f,int,1,0,ten,ten/estimate.c:1738
 tenEstimate1TensorSingle_d,int,1,0,ten,ten/estimate.c:1766
 tenEstimate1TensorVolume4D,int,1,0,ten,ten/estimate.c:1803
+tenExperSpecGradSingleBValSet,int,1,0,ten,ten/experSpec.c:61
+tenExperSpecGradBValSet,int,1,0,ten,ten/experSpec.c:102
+tenExperSpecFromKeyValueSet,int,1,0,ten,ten/experSpec.c:171
+tenDWMRIKeyValueFromExperSpecSet,int,1,0,ten,ten/experSpec.c:326
 tenFiberTraceSet,int,1,0,ten,ten/fiber.c:826
 tenFiberTrace,int,1,0,ten,ten/fiber.c:846
 tenFiberDirectionNumber,unsigned int,0,0,ten,ten/fiber.c:866
@@ -76,8 +80,13 @@ tenInterpParmCopy,tenInterpParm *,NULL,0,ten,ten/path.c:121
 tenInterpN_d,int,1,0,ten,ten/path.c:303
 tenInterpTwoDiscrete_d,int,1,0,ten,ten/path.c:802
 tenInterpMulti3D,int,1,0,ten,ten/path.c:952
-tenDwiGageKindSet,int,1,0,ten,ten/tenDwiGage.c:1035
-tenDwiGageKindCheck,int,1,0,ten,ten/tenDwiGage.c:1175
+tenDwiGageKindSet,int,1,0,ten,ten/tenDwiGage.c:1036
+tenDwiGageKindCheck,int,1,0,ten,ten/tenDwiGage.c:1176
+tenModelParse,int,1,0,ten,ten/tenModel.c:61
+tenModelFromAxisLearn,int,1,0,ten,ten/tenModel.c:122
+tenModelSimulate,int,1,0,ten,ten/tenModel.c:160
+tenModelSqeFit,int,1,0,ten,ten/tenModel.c:408
+tenModelConvert,int,1,0,ten,ten/tenModel.c:683
 tenTensorCheck,int,1,4,ten,ten/tensor.c:52
 tenMeasurementFrameReduce,int,1,0,ten,ten/tensor.c:85
 tenExpand2D,int,1,0,ten,ten/tensor.c:155
@@ -87,12 +96,3 @@ tenMake,int,1,0,ten,ten/tensor.c:527
 tenSlice,int,1,0,ten,ten/tensor.c:629
 tenTripleCalc,int,1,0,ten,ten/triple.c:413
 tenTripleConvert,int,1,0,ten,ten/triple.c:471
-tenExperSpecGradSingleBValSet,int,1,0,ten,ten/experSpec.c:61
-tenExperSpecGradBValSet,int,1,0,ten,ten/experSpec.c:102
-tenExperSpecFromKeyValueSet,int,1,0,ten,ten/experSpec.c:171
-tenDWMRIKeyValueFromExperSpecSet,int,1,0,ten,ten/experSpec.c:326
-tenModelParse,int,1,0,ten,ten/tenModel.c:61
-tenModelFromAxisLearn,int,1,0,ten,ten/tenModel.c:122
-tenModelSimulate,int,1,0,ten,ten/tenModel.c:160
-tenModelSqeFit,int,1,0,ten,ten/tenModel.c:408
-tenModelConvert,int,1,0,ten,ten/tenModel.c:683

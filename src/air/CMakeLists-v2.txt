@@ -1,4 +1,6 @@
 _Teem_add_library(${CMAKE_CURRENT_SOURCE_DIR}
+  # NOTE: teem/src/_util/gen_biffdata.py expects both "SOURCES" and "PUBLIC_HEADERS"
+  # to be on lines by themselves (modulo whitespace) as THE way to list all .c files
   SOURCES
     # list here pasted in from:
     #   svn status *.c

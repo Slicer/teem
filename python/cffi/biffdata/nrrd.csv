@@ -1,4 +1,4 @@
-func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+func_name,return_type,error_val(s),mubi,biff_key,cfile:linenumber
 nrrdArrayCompare,int,1,0,nrrd,nrrd/accessors.c:515
 nrrdApply1DLut,int,1,0,nrrd,nrrd/apply1D.c:432
 nrrdApplyMulti1DLut,int,1,0,nrrd,nrrd/apply1D.c:463
@@ -43,6 +43,9 @@ nrrdDeringThetaNumSet,int,1,0,nrrd,nrrd/deringNrrd.c:250
 nrrdDeringRadialKernelSet,int,1,0,nrrd,nrrd/deringNrrd.c:268
 nrrdDeringThetaKernelSet,int,1,0,nrrd,nrrd/deringNrrd.c:288
 nrrdDeringExecute,int,1,0,nrrd,nrrd/deringNrrd.c:748
+nrrdFFTWWisdomRead,int,1,0,nrrd,nrrd/fftNrrd.c:32
+nrrdFFT,int,1,0,nrrd,nrrd/fftNrrd.c:88
+nrrdFFTWWisdomWrite,int,1,0,nrrd,nrrd/fftNrrd.c:285
 nrrdCheapMedian,int,1,0,nrrd,nrrd/filt.c:405
 nrrdDistanceL2,int,1,0,nrrd,nrrd/filt.c:812
 nrrdDistanceL2Biased,int,1,0,nrrd,nrrd/filt.c:824
@@ -121,9 +124,6 @@ nrrdResampleTypeOutSet,int,1,0,nrrd,nrrd/resampleContext.c:474
 nrrdResampleRoundSet,int,1,0,nrrd,nrrd/resampleContext.c:499
 nrrdResampleClampSet,int,1,0,nrrd,nrrd/resampleContext.c:516
 nrrdResampleExecute,int,1,0,nrrd,nrrd/resampleContext.c:1451
-nrrdFFTWWisdomRead,int,1,0,nrrd,nrrd/fftNrrd.c:32
-nrrdFFT,int,1,0,nrrd,nrrd/fftNrrd.c:88
-nrrdFFTWWisdomWrite,int,1,0,nrrd,nrrd/fftNrrd.c:285
 nrrdSimpleResample,int,1,0,nrrd,nrrd/resampleNrrd.c:49
 nrrdSpatialResample,int,1,0,nrrd,nrrd/resampleNrrd.c:519
 nrrdSpaceSet,int,1,0,nrrd,nrrd/simple.c:81

@@ -1,4 +1,4 @@
-func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+func_name,return_type,error_val(s),mubi,biff_key,cfile:linenumber
 alanUpdate,int,1,0,alan,alan/coreAlan.c:58
 alanInit,int,1,0,alan,alan/coreAlan.c:97
 alanRun,int,1,0,alan,alan/coreAlan.c:451

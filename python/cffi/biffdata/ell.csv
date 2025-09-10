@@ -1,4 +1,4 @@
-func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+func_name,return_type,error_val(s),mubi,biff_key,cfile:linenumber
 ell_Nm_check,int,1,0,ell,ell/genmat.c:23
 ell_Nm_tran,int,1,0,ell,ell/genmat.c:57
 ell_Nm_mul,int,1,0,ell,ell/genmat.c:102
