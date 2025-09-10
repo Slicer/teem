@@ -1,4 +1,5 @@
 # CMake/CheckAirExists.cmake: see if AIR_EXISTS() macro works like isfinite()
+#    sets AIR_EXISTS_MACRO_FAILS if not
 # Copyright (C) 2025  University of Chicago
 # See ../LICENSE.txt for licensing terms
 
