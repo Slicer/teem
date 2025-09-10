@@ -140,5 +140,5 @@ else()
 endif()
 
 ### ------------------------------------------------------------------------
-# Cleanup
+# Cleanup if we didn't crash out
 file(REMOVE_RECURSE "${_checklibm_dir}")
