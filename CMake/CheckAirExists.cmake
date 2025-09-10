@@ -1,25 +1,24 @@
 # CMake/CheckAirExists.cmake: see if AIR_EXISTS() macro works like isfinite()
-#    sets AIR_EXISTS_MACRO_FAILS if not
 # Copyright (C) 2025  University of Chicago
 # See ../LICENSE.txt for licensing terms
 
-# A lot of work for one little macro (which GLK started using before the functionally
-# equivalent isfinite() became widely available).  The little CMake/TestAIR_EXISTS.c
-# program tests the equivalent of AIR_EXISTS (but without directly using air.h's
-# AIR_EXISTS because this has to be stand-alone), to see if it can correctly detect
-# IEEE754 special values (NaNs and infinities). For this to be a useful test that informs
-# how the rest of Teem code will work, TestAIR_EXISTS.c needs to be compiled the same as
-# Teem itself will be compiled later.  Sadly, it was not until Teem V2 that this
-# consistency was actually enforced (!)  To further help debugging, we also print out
-# exactly how TestAIR_EXISTS.c is compiled, and we use try_compile instead of try_run
-# so the resulting executable file stays available for later inspection.
+### Rationale
+# Modern C has isfinite() to detect if a given floating point value is an IEEE754 special
+# values (NaNs and infinities).  Teem development, however, started before isfinite() was
+# widely available, so it uses the AIR_EXISTS() macro in air.h.  Being a macro, there are
+# expressions that could do the right thing with some compiler options, but fail with
+# different options (like -ffast-math). So we jump through some hoops to rigorously check
+# if AIR_EXISTS() is really working, based on the little CMake/TestAIR_EXISTS.c test
+# program. For this to be a useful test that informs how the rest of Teem code will work,
+# TestAIR_EXISTS.c needs to be compiled the same as Teem itself will be compiled later.
+# Sadly, it was not until Teem V2 that this consistency was actually enforced (!)  To
+# further help debugging, we also print out exactly how TestAIR_EXISTS.c is compiled, and
+# we use try_compile instead of try_run so the resulting executable file stays available
+# for later inspection.
 #
-# (rejected but interesting debugging strategies:
-#  message(STATUS "Pausing CMake so you can inspect temporary files...")
-#  execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 30)
-#  or
-#  execute_process(COMMAND /bin/sh -c "read -p 'Press ENTER to continue...'")
-# )
+# Defines:
+#   AIR_EXISTS_MACRO_FAILS -- TRUE if AIR_EXISTS() fails with current compiler settings
+
 
 # "taex" = Test Air_EXists
 set(_taex_src "${CMAKE_CURRENT_LIST_DIR}/TestAIR_EXISTS.c")
@@ -99,3 +98,10 @@ else()
   message(CHECK_FAIL "NO, it FAILS to detect IEEE754 special values")
   set(AIR_EXISTS_MACRO_FAILS 1 CACHE INTERNAL "AIR_EXISTS macro fails")
 endif()
+
+# (rejected but interesting debugging strategies:
+#  message(STATUS "Pausing CMake so you can inspect temporary files...")
+#  execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 30)
+#  or
+#  execute_process(COMMAND /bin/sh -c "read -p 'Press ENTER to continue...'")
+# )

@@ -3,28 +3,27 @@
 # See ../LICENSE.txt for licensing terms
 
 ### Rationale
-# Different unices have different ways of tacitly linking (or not) with -lm.
-# In the interests of pedantic explicitness, we figure out if linking with -lm
-# is needed when linking with a library that calls math functions.  Yes,
-# https://cmake.org/cmake/help/latest/module/CheckLibraryExists.html could
-# probably do the job here, but once I (GLK) went down the rabbit hole of
-# understanding what the problem was, I wanted to create a CMake module that
-# replicated the minimal example I used. So, this test builds a shared library
-# `libtiny` that calls some math functions, then an executable `maintiny` that
-# calls into that library. When compiling `maintiny`, we try linking:
+# Different unices have different ways of tacitly linking (or not) with -lm.  In the
+# interests of pedantic explicitness, we figure out if linking with -lm is needed when
+# linking with a library that calls math functions.  Yes,
+# https://cmake.org/cmake/help/latest/module/CheckLibraryExists.html could probably do
+# the job here, but once I (GLK) went down the rabbit hole of understanding what the
+# problem was, I wanted to create a CMake module that replicated the minimal example I
+# used. So, this test builds a shared library `libtiny` that calls some math functions,
+# then an executable `maintiny` that calls into that library. When compiling `maintiny`,
+# we try linking:
 #   1. Without -lm
 #   2. With -lm (if needed)
 # Then we run `maintiny` to ensure the math is mathing.
 #
 # Defines:
-#   LIBM_NEEDED -- TRUE if executables must link with -lm
+#   LIBM_NEEDED -- TRUE if executables must link with -lm for current library type
 #
 # Usage example
 #   include(CheckLibM)
 #   if(LIBM_NEEDED)
 #     target_link_libraries(Teem PRIVATE m)
 #   endif()
-#
 
 ### ------------------------------------------------------------------------
 # Setup
