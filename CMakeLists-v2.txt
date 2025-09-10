@@ -17,7 +17,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 10.96
+# Teem/CMakeLists.txt Version 10.97
 
 # This CMakeLists.txt describes a Teem package that contains:
 # (1) a library ("libteem" on unix) and
@@ -90,32 +90,32 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 option(BUILD_SHARED_LIBS "Build a libteem shared library" ON)
 
 # The canonical list of libraries that Teem can (optionally) depend on. Within this
-# CMakeLists.txt file, each one is a "DEP" or dependency However, FYI, within the
-# GNUmakefiles, each is called an EXT or external.  Note: inter-dependency dependencies
+# CMakeLists.txt file, each one is a "DEP" or dependency (however, FYI, within the
+# GNUmakefiles, each is called an EXT or external).  Note: inter-dependency dependencies
 # are known in the INTERFACE_LINK_LIBRARIES of each target.
 set(_Teem_DEPS PNG ZLIB BZIP2 LEVMAR FFTW3 PTHREAD)
 
 # docstrings of all dependencies, to avoid redundancy between
-# option(Teem_DEP "${_doc}" ON) and set(Teem_DEP OFF CACHE BOOL "${_doc}" FORCE)
-set(_doc_ZLIB "Enable nrrd support for zlib (\"gzip\") data encoding")
-set(_doc_PNG "Enable nrrd support for PNG format images")
-set(_doc_BZIP2 "Enable nrrd support for bzip2 data encoding")
-set(_doc_PTHREAD "Enable hoover support for multi-threaded rendering")
-set(_doc_LEVMAR "Build with levmar for better elf and ten")
-set(_doc_FFTW3 "Build with fftw3 to enable nrrdFFT() and `unu fft`")
+# option(Teem_DEP "<doc>" ON) and set(Teem_DEP OFF CACHE BOOL "<doc>" FORCE)
+set(_Teem_dep_doc_ZLIB "Enable nrrd support for zlib (\"gzip\") data encoding")
+set(_Teem_dep_doc_PNG "Enable nrrd support for PNG format images")
+set(_Teem_dep_doc_BZIP2 "Enable nrrd support for bzip2 data encoding")
+set(_Teem_dep_doc_PTHREAD "Enable hoover support for multi-threaded rendering")
+set(_Teem_dep_doc_LEVMAR "Build with levmar for better elf and ten")
+set(_Teem_dep_doc_FFTW3 "Build with fftw3 to enable nrrdFFT() and `unu fft`")
 
 # Whether to default to DEP being ON or OFF
-set(_dflt_ZLIB ON)
-set(_dflt_PNG ON)
-set(_dflt_BZIP2 OFF)
-set(_dflt_PTHREAD ON)
-set(_dflt_LEVMAR OFF)
-set(_dflt_FFTW3 OFF)
+set(_Teem_dep_dflt_ZLIB ON)
+set(_Teem_dep_dflt_PNG ON)
+set(_Teem_dep_dflt_BZIP2 OFF)
+set(_Teem_dep_dflt_PTHREAD ON)
+set(_Teem_dep_dflt_LEVMAR OFF)
+set(_Teem_dep_dflt_FFTW3 OFF)
 
 # Add an option() for Teem_USE_DEP for each dependency DEP
 foreach(_tdep IN LISTS _Teem_DEPS)
-  #     option name         docstring           default value
-  option(Teem_USE_${_tdep}  "${_doc_${_tdep}}"  ${_dflt_${_tdep}})
+  #     option name                docstring                  default value
+  option(Teem_USE_${_tdep}  "${_Teem_dep_doc_${_tdep}}"  ${_Teem_dep_dflt_${_tdep}})
 endforeach()
 
 # Other options
@@ -157,7 +157,7 @@ endif()
 
 ###-------------------------------------------------------------------------------------
 # Dependency discovery
-#  - normalize names/targets/FOUND vars
+#  - normalize _Teem_dep_*_DEP pseudo-dictionary variables
 #  - run find_package() for requested DEPs
 
 # can't do PNG without ZLIB
@@ -167,42 +167,50 @@ if(Teem_USE_PNG AND NOT Teem_USE_ZLIB)
 endif()
 
 # Special cases of CMake package names (not "DEP")
-set(_cpname_BZIP2    "BZip2")
-set(_cpname_PTHREAD  "Threads")
+set(_Teem_dep_cpname_BZIP2   "BZip2")
+set(_Teem_dep_cpname_PTHREAD "Threads")
 # Special cases of namespace::targetname (not "DEP::DEP")
-set(_target_BZIP2   "BZip2::BZip2")
-set(_target_PTHREAD "Threads::Threads")
-set(_target_FFTW3   "FFTW3::fftw3")
+set(_Teem_dep_target_BZIP2   "BZip2::BZip2")
+set(_Teem_dep_target_PTHREAD "Threads::Threads")
+set(_Teem_dep_target_FFTW3   "FFTW3::fftw3")
 # Special cases of variable name to test for DEP availability (not "DEP_FOUND")
 # (yes PTHREAD is special; there isn't  a "Threads_FOUND"; but this enables uniformity)
-set(_found_PTHREAD  "CMAKE_USE_PTHREADS_INIT")
+set(_Teem_dep_found_PTHREAD  "CMAKE_USE_PTHREADS_INIT")
+# Special cases of how to name library with -l flag to linker command (not "-ldep")
+set(_Teem_dep_llink_ZLIB     "-lz")
+set(_Teem_dep_llink_BZIP2    "-lbz2")
+set(_Teem_dep_llink_PTHREAD  "-pthread")
 
-# Make sure _{cpack,target,found}_DEP are defined for all DEPS
+# Make sure _Teem_dep_{cpack,target,found,llink}_DEP are defined for all DEPS
+# CMake (still) doesn't have anything like a dictionary, so we don't have
+# (for example): _Teem_dep_cpname[_tdep]
+# but after the following, we do have: ${_Teem_dep_cpname_${_tdep}}
 foreach(_tdep IN LISTS _Teem_DEPS)
-  if(NOT DEFINED _cpname_${_tdep})
-    set(_cpname_${_tdep} "${_tdep}")
+  if(NOT DEFINED _Teem_dep_cpname_${_tdep})
+    set(_Teem_dep_cpname_${_tdep} "${_tdep}")
   endif()
-  if(NOT DEFINED _target_${_tdep})
-    set(_target_${_tdep} "${_tdep}::${_tdep}")
+  if(NOT DEFINED _Teem_dep_target_${_tdep})
+    set(_Teem_dep_target_${_tdep} "${_tdep}::${_tdep}")
   endif()
-  if(NOT DEFINED _found_${_tdep})
-    set(_found_${_tdep} "${_tdep}_FOUND")
+  if(NOT DEFINED _Teem_dep_found_${_tdep})
+    set(_Teem_dep_found_${_tdep} "${_tdep}_FOUND")
+  endif()
+  if(NOT DEFINED _Teem_dep_llink_${_tdep})
+    string(TOLOWER ${_tdep} _dep_lc)
+    set(_Teem_dep_llink_${_tdep} "-l${_dep_lc}")
   endif()
 endforeach()
-# CMake (still) doesn't have anything like a dictionary,
-# so we don't have (for example): _cpname[_tdep]
-# but now, after the foreach above, we have: ${_cpname_${_tdep}}
 
 # With all that uniformity set up: try to find_package() for all DEPs requested,
 # and set Teem_HAVE_DEP if we did find it (i.e. we "have" it)
 foreach(_tdep IN LISTS _Teem_DEPS)
   if(Teem_USE_${_tdep})
     # this DEP is requested
-    find_package(${_cpname_${_tdep}} QUIET)
-    if(${_found_${_tdep}})
+    find_package(${_Teem_dep_cpname_${_tdep}} QUIET)
+    if(${_Teem_dep_found_${_tdep}})
       set(Teem_HAVE_${_tdep} TRUE)
     else()
-      set(Teem_USE_${_tdep} OFF CACHE BOOL "${_doc_${_tdep}}" FORCE)
+      set(Teem_USE_${_tdep} OFF CACHE BOOL "${_Teem_dep_doc_${_tdep}}" FORCE)
     endif()
   endif()
 endforeach()
@@ -261,7 +269,7 @@ target_include_directories(Teem
 #  - how to link with _tdep's library at link time
 foreach(_tdep IN LISTS _Teem_DEPS)
   if(Teem_HAVE_${_tdep})
-    message(STATUS "Will use ${_tdep}: ${_doc_${_tdep}}")
+    message(STATUS "Will use ${_tdep}: ${_Teem_dep_doc_${_tdep}}")
     # Why PRIVATE for both of these: Teem is designed to not directly expose any thing
     # from, say, png.h or libpng in its API or ABI - there are always stub alternatives
     # for when DEP is not used.  Compiling of Teem-using .c files should not care which
@@ -269,9 +277,9 @@ foreach(_tdep IN LISTS _Teem_DEPS)
     # building the target libteem library, but we should not automatically propagate DEP
     # to executables (like unu) depending on libteem.
     target_compile_definitions(Teem PRIVATE "TEEM_${_tdep}")
-    target_link_libraries(Teem PRIVATE "${_target_${_tdep}}")
+    target_link_libraries(Teem PRIVATE "${_Teem_dep_target_${_tdep}}")
   else()
-    message(STATUS "  (not using ${_tdep}: ${_doc_${_tdep}})")
+    message(STATUS "  (not using ${_tdep}: ${_Teem_dep_doc_${_tdep}})")
   endif()
 endforeach()
 
@@ -468,7 +476,7 @@ if(BUILD_TESTING)
 endif()
 
 ###-------------------------------------------------------------------------------------
-# Install rules
+# Install rules to create the CMake package
 
 # Declare how Teem should be installed, and hang all this off the "TeemTargets" export
 # set. This does not copy files immediately; it only registers installation rules, which
@@ -494,7 +502,7 @@ foreach(_tdep IN LISTS _Teem_DEPS)
       string(APPEND _Teem_find_deps "include(CMakeFindDependencyMacro)\n")
     endif()
     # Map to CMake package name
-    string(APPEND _Teem_find_deps "find_dependency(${_cpname_${_tdep}} REQUIRED)\n")
+    string(APPEND _Teem_find_deps "find_dependency(${_Teem_dep_cpname_${_tdep}} REQUIRED)\n")
   endif()
 endforeach()
 if(NOT _Teem_find_deps)
@@ -538,4 +546,37 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/TeemConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/TeemConfigVersion.cmake
   DESTINATION ${CONFIG_INSTALL_DIR}
+)
+
+###-------------------------------------------------------------------------------------
+# For non-CMake consumers: create teem.pc for pkg-config, and teem-config script
+
+# Collect all private -llib dependency flags
+set(_pc_private_libs "")
+foreach(_tdep IN LISTS _Teem_DEPS)
+  if(Teem_HAVE_${_tdep})
+    string(APPEND _pc_private_libs " ${_Teem_dep_llink_${_tdep}}")
+  endif()
+endforeach()
+if(LIBM_NEEDED)
+  string(APPEND _pc_private_libs " -lm")
+endif()
+set(Teem_PC_PRIVATE_LIBS "${_pc_private_libs}")
+
+# Generate pkg-config teem.pc file
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMake/teem.pc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/teem.pc @ONLY
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/teem.pc
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+)
+
+# Generate teem-config helper script
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMake/teem-config.in
+  ${CMAKE_CURRENT_BINARY_DIR}/teem-config @ONLY
+)
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/teem-config
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
