@@ -132,7 +132,7 @@ _checklibm_try_build_and_run(no_libm "" _checklibm_no_libm_ok)
 if(_checklibm_no_libm_ok)
   # ... and either it did work without `-lm`, or ...
   set(LIBM_NEEDED FALSE CACHE BOOL ${_lmn_desc})
-  message(STATUS "CheckLibM: don't need -lm when linking with math-using ${_lib_type} lib")
+  message(STATUS "CheckLibM: No, do NOT need -lm when linking with math-using ${_lib_type} lib")
 else()
   # ... it did not work without -lm.
   # Does it does work *with* -lm?
@@ -141,7 +141,7 @@ else()
   if(_checklibm_with_libm_ok)
     # Yes, it does work with -lm.
     set(LIBM_NEEDED TRUE CACHE BOOL "${_lmn_desc}")
-    message(STATUS "CheckLibM: yes, do need -lm when linking with math-using ${_lib_type} lib")
+    message(STATUS "CheckLibM: yes, DO need -lm when linking with math-using ${_lib_type} lib")
   else()
     # Yikes, it failed both without and with -lm. Bye.
     message(FATAL_ERROR
