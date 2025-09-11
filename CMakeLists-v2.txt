@@ -17,7 +17,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 10.97
+# Teem/CMakeLists.txt Version 10.98
 
 # This CMakeLists.txt describes a Teem package that contains:
 # (1) a library ("libteem" on unix) and
@@ -547,6 +547,11 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/TeemConfigVersion.cmake
   DESTINATION ${CONFIG_INSTALL_DIR}
 )
+
+# Install copy of the LICENSE.txt as LICENSE
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/Teem
+        RENAME LICENSE)
 
 ###-------------------------------------------------------------------------------------
 # For non-CMake consumers: create teem.pc for pkg-config, and teem-config script
