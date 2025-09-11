@@ -1709,7 +1709,8 @@ TEN_EXPORT int tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *nhisto);
   F(expand)                                                                             \
   F(shrink)                                                                             \
   F(bfit)                                                                               \
-  F(satin)
+  F(satin)                                                                              \
+  F(lmdemo)
 TEND_MAP(TEND_DECLARE)
 TEN_EXPORT const unrrduCmd *const tendCmdList[];
 TEN_EXPORT const hestCB *const tendFiberStopCB;

@@ -55,9 +55,10 @@ $(L).Obj = $(patsubst %.c,%.o, \
     tendEllipse.c tendEpireg.c tendEstim.c tendEval.c tendEvaladd.c tendEvalclamp.c \
     tendEvalmult.c tendEvalpow.c tendEvec.c tendEvecrgb.c tendEvq.c tendExp.c \
     tendExpand.c tendFiber.c tendFlotsam.c tendGlyph.c tendGrads.c tendHelix.c \
-    tendLog.c tendMake.c tendMconv.c tendMfit.c tendMsim.c tendNorm.c tendPoint.c \
-    tendSatin.c tendShrink.c tendSim.c tendSlice.c tendSten.c tendTconv.c \
-    tendTriple.c tendUnmf.c tenDwiGage.c tenGage.c tenModel.c tensor.c triple.c \
+    tendLmdemo.c tendLog.c tendMake.c tendMconv.c tendMfit.c tendMsim.c tendNorm.c \
+    tendPoint.c tendSatin.c tendShrink.c tendSim.c tendSlice.c tendSten.c \
+    tendTconv.c tendTriple.c tendUnmf.c tenDwiGage.c tenGage.c tenModel.c tensor.c \
+    triple.c \
   )
 # tendCalc.o nixed
 $(L).Test = roistat tg tt tem rotedge tsoid odf-hist to tensorDotDat \

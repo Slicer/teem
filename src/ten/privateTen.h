@@ -24,6 +24,9 @@ extern "C" {
 #define TEND_CMD(name, info)                                                            \
   const unrrduCmd tend_##name##Cmd = {#name, info, tend_##name##Main, AIR_FALSE}
 
+#define TEND_CMD_HIDE(name, info)                                                       \
+  const unrrduCmd tend_##name##Cmd = {#name, info, tend_##name##Main, AIR_TRUE}
+
 /* USAGE, PARSE: both copied verbatim from unrrdu/privateUnrrdu.h, but
 ** then some hacking was added . . .
 */
