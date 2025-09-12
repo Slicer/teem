@@ -17,8 +17,6 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 11.2
-
 # This CMakeLists.txt describes a Teem package that contains:
 # (1) a library ("libteem" on unix) and
 # (2) associated command-line tools (like "unu").
@@ -31,6 +29,39 @@
 # development, but there's no reason to complicate this CMakeLists.txt with describing
 # those smaller libraries and their inter-dependencies.
 
+# All these CMake files:
+#  - this CMakeLists.txt
+#  - src/bin/CMakeLists.txt
+#  - src/{air,hest,biff,...}/CMakeLists.txt
+#  - CMake/
+#      FindFFTW3.cmake
+#      FindLEVMAR.cmake
+#      TeemConfig.cmake.in
+#      CheckAirExists.cmake   (new for Teem v2)
+#      CheckLibmNeeded.cmake  (new for Teem v2)
+# were re-written entirely for Teem v2, by me (GLK), with help from ChatGPT. This is the
+# first time I've really scrutinized and tried to understand the CMake files, and the
+# first time I've tried anything non-trivial with ChatGPT. Current generative AI tools
+# tend to normalize and mechanize intellectual property theft, with a huge carbon
+# footprint. They are unsustainable in so many ways. In this case my deep reservations
+# about ChatGPT were overcome by my deeper distaste for CMake. OpenAI will never be
+# honest about this, but ChatGPT's training likely consumed all available CMakeLists.txt
+# files and online discussion about CMake, regardless of the licensing terms. I apologize
+# to all those developers whose thoughtful online activity around CMake empowered ChatGPT
+# but who receive no compensation from OpenAI.
+
+# As you might guess, ChatGPT was not able to modernize the CMake files in one go; it was
+# a slow fumbling two-ish weeks of over-confident changes balanced by careful human
+# debugging, documentation searching, and reorganization. It's almost as if ChatGPT is
+# trying to maximize usage duration and future dependency. The pseudo-dictionary
+# variables like ${_Teem_dep_target_${_tdep}} (to uniformly access target names
+# "PNG::PNG" vs "FFTW3::fftw3" vs "BZip2::BZip2") were my idea, fwiw.  The whole process
+# did less to educate me on CMake's functioning than I hoped, so issues may remain,
+# especially on Windows. Still, I now recognize what a good resource this is:
+# https://gist.github.com/mbinna/c61dbb39bca0e4fb7d1f73b0d66a4fd1
+
+# Feedback and improvements are very welcome: https://discord.gg/xBBqZGXkF7
+
 ###-------------------------------------------------------------------------------------
 # Project setup: version, metadata, and language
 
@@ -40,8 +71,8 @@
 cmake_minimum_required(VERSION 3.25)
 
 # Teem version number (must match values in src/air/air.h)
-set(Teem_VERSION_MAJOR 1)
-set(Teem_VERSION_MINOR 12)
+set(Teem_VERSION_MAJOR 2)
+set(Teem_VERSION_MINOR 0)
 set(Teem_VERSION_PATCH 0)
 set(Teem_VERSION_STRING ${Teem_VERSION_MAJOR}.${Teem_VERSION_MINOR}.${Teem_VERSION_PATCH})
 
