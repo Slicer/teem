@@ -101,6 +101,7 @@ if(LEVMAR_INCLUDE_DIR AND EXISTS "${LEVMAR_INCLUDE_DIR}/levmar.h")
     set(LEVMAR_VERSION "${CMAKE_MATCH_1}")
     _status("From levmar.h parsed version: ${LEVMAR_VERSION}")
   endif()
+  unset(_levmar_header)
 endif()
 
 # Try to find full path to liblevmar library file

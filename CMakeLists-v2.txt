@@ -203,7 +203,7 @@ foreach(_tdep IN LISTS _Teem_DEPS)
 endforeach()
 
 # With all that uniformity set up: try to find_package() for all DEPs requested,
-# and set Teem_HAVE_DEP if we did find it (i.e. we "have" it)
+# and set Teem_HAVE_DEP if we did find it (i.e. we "have" found the dependency)
 foreach(_tdep IN LISTS _Teem_DEPS)
   if(Teem_USE_${_tdep})
     # this DEP is requested
@@ -211,7 +211,11 @@ foreach(_tdep IN LISTS _Teem_DEPS)
     find_package(${_Teem_dep_cpname_${_tdep}} ${_Teem_dep_version_${_tdep}} QUIET)
     if(${_Teem_dep_found_${_tdep}})
       set(Teem_HAVE_${_tdep} TRUE)
-      message(CHECK_PASS "Found")
+      if(DEFINED ${_tdep}_VERSION)
+        message(CHECK_PASS "Found version ${${_tdep}_VERSION}")
+      else()
+        message(CHECK_PASS "Found")
+      endif()
     else()
       if(DEFINED ${_tdep}_VERSION AND _Teem_dep_version_${_tdep})
         message(CHECK_FAIL
