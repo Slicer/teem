@@ -1,4 +1,4 @@
-# CMake/CheckLibM.cmake: learn if need to link with -lm for math functions
+## CheckLibmNeeded.cmake: learn if linking bin with math-using lib also needs -lm
 # Copyright (C) 2025  University of Chicago
 # See ../LICENSE.txt for licensing terms
 
@@ -20,9 +20,9 @@
 #   LIBM_NEEDED -- TRUE if executables must link with -lm for current library type
 #
 # Usage example
-#   include(CheckLibM)
+#   include(CheckLibmNeeded)
 #   if(LIBM_NEEDED)
-#     target_link_libraries(Teem PRIVATE m)
+#     target_link_libraries(mylib PRIVATE m)
 #   endif()
 
 ### ------------------------------------------------------------------------
@@ -32,14 +32,14 @@ if(DEFINED LIBM_NEEDED)
   return()
 endif()
 
+set(_me "[CheckLibmNeeded]")
+
 # BUILD_SHARED_LIBS informs what kind of libtiny we make
 if(BUILD_SHARED_LIBS)
   set(_lib_type SHARED)
 else()
   set(_lib_type STATIC)
 endif()
-
-set(_me "[CheckLibM]")
 
 set(_lmn_desc "Need to add -lm when linking with math-using ${_lib_type} lib?")
 message(STATUS "${_me} ${_lmn_desc}")
@@ -156,3 +156,6 @@ endif()
 ### ------------------------------------------------------------------------
 # Cleanup if we didn't crash out
 file(REMOVE_RECURSE "${_checklibm_dir}")
+unset(_me)
+unset(_proj_dir)
+unset(_lib_type)

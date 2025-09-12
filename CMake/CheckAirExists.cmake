@@ -1,4 +1,4 @@
-# CMake/CheckAirExists.cmake: see if AIR_EXISTS() macro works like isfinite()
+## CheckAirExists.cmake: see if AIR_EXISTS() macro works like isfinite()
 # Copyright (C) 2025  University of Chicago
 # See ../LICENSE.txt for licensing terms
 
@@ -19,6 +19,7 @@
 # Defines:
 #   AIR_EXISTS_MACRO_FAILS -- TRUE if AIR_EXISTS() fails with current compiler settings
 
+set(_me "[CheckAirExists]")
 
 # "taex" = Test Air_EXists
 set(_taex_src "${CMAKE_CURRENT_LIST_DIR}/TestAIR_EXISTS.c")
@@ -41,7 +42,7 @@ if(EXISTS "${_taex_copy}")
 endif()
 
 # Compile the probe
-message(CHECK_START "Testing whether macro ${_taex_me} detects IEEE754 special values")
+message(CHECK_START "${_me} Testing whether macro ${_taex_me} detects IEEE754 special values")
 try_compile(
   _taex_compiles         # boolean result: TRUE if compile succeeded
   SOURCES "${_taex_src}" # one or more source files for the test
@@ -56,23 +57,23 @@ try_compile(
 )
 # Always show the captured compile output, as progress indication
 string(REPLACE "\n" "\n     " _taex_compile_out_indented "${_taex_compile_out}")
-message(STATUS "Compile output:\n     ${_taex_compile_out_indented}")
+message(STATUS "${_me} Compile output:\n     ${_taex_compile_out_indented}")
 
 if(NOT _taex_compiles)
   message(CHECK_FAIL "compile failed")
-  message(FATAL_ERROR "Could not compile ${_taex_src}")
+  message(FATAL_ERROR "${_me} Could not compile ${_taex_src}")
 elseif(_taex_copy_error)
   message(CHECK_FAIL "copy failed")
-  message(FATAL_ERROR "Test program compiled but could not copy: ${_taex_copy_error}")
+  message(FATAL_ERROR "${_me} Test program compiled but could not copy: ${_taex_copy_error}")
 elseif(NOT EXISTS "${_taex_copy}")
   message(CHECK_FAIL "missing executable")
-  message(FATAL_ERROR "Test program compiled but file not found at ${_taex_copy}")
+  message(FATAL_ERROR "${_me} Test program compiled but file not found at ${_taex_copy}")
 else()
   message(CHECK_PASS "compiled successfully")
 endif()
 
 # Run the test program
-message(CHECK_START "Running ${_taex_me} test program")
+message(CHECK_START "${_me} Running ${_taex_me} test program")
 # https://cmake.org/cmake/help/latest/command/execute_process.html
 execute_process(
   COMMAND "${_taex_copy}"
@@ -89,11 +90,11 @@ else()
     # Always show stdout/stderr from the probe as indented sub-log
   if(_taex_run_out)
     string(REPLACE "\n" "\n     " _taex_run_out_indented "${_taex_run_out}")
-    message(STATUS "Probe stdout:\n     ${_taex_run_out_indented}")
+    message(STATUS "${_me} Probe stdout:\n     ${_taex_run_out_indented}")
   endif()
   if(_taex_run_err)
     string(REPLACE "\n" "\n     " _taex_run_err_indented "${_taex_run_err}")
-    message(STATUS "Probe stderr:\n     ${_taex_run_err_indented}")
+    message(STATUS "${_me} Probe stderr:\n     ${_taex_run_err_indented}")
   endif()
   message(CHECK_FAIL "NO, it FAILS to detect IEEE754 special values")
   set(AIR_EXISTS_MACRO_FAILS 1 CACHE INTERNAL "AIR_EXISTS macro fails")
@@ -105,3 +106,6 @@ endif()
 #  or
 #  execute_process(COMMAND /bin/sh -c "read -p 'Press ENTER to continue...'")
 # )
+
+# Cleanup
+unset(_me)

@@ -1,4 +1,4 @@
-# CMake/FindLEVMAR.cmake: Careful+verbose way of looking for levmar install
+## FindLEVMAR.cmake: Careful+verbose way of looking for a levmar install
 #    ("levmar" = https://users.ics.forth.gr/~lourakis/levmar/index.html)
 # Copyright (C) 2025  University of Chicago
 # See ../LICENSE.txt for licensing terms
@@ -118,7 +118,7 @@ if(LEVMAR_FOUND)
 
   # If we did find LEVMAR, but no imported target exists yet,
   # create our own IMPORTED target so downstream code can use:
-  #     target_link_libraries(myprog PRIVATE FFTW3::fftw3)
+  #     target_link_libraries(myprog PRIVATE LEVMAR::LEVMAR)
   if(NOT TARGET LEVMAR::LEVMAR)
     add_library(LEVMAR::LEVMAR UNKNOWN IMPORTED)
     set_target_properties(LEVMAR::LEVMAR PROPERTIES
@@ -127,7 +127,7 @@ if(LEVMAR_FOUND)
       INTERFACE_LINK_LIBRARIES      "${LEVMAR_LIBRARIES}"
     )
   endif()
-  _check_pass("Found: LEVMAR_INCLUDE_DIRS=${LEVMAR_INCLUDE_DIRS} LEVMAR_LIBRARIES=${LEVMAR_LIBRARIES}")
+  _check_pass("Found: ${_dep}_INCLUDE_DIR=${${_dep}_INCLUDE_DIR} ${_dep}_LIBRARY=${${_dep}_LIBRARY}")
 else()
   _check_fail("Not found")
 endif()

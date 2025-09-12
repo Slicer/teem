@@ -17,7 +17,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 10.98
+# Teem/CMakeLists.txt Version 11
 
 # This CMakeLists.txt describes a Teem package that contains:
 # (1) a library ("libteem" on unix) and
@@ -51,15 +51,11 @@ project(Teem VERSION ${Teem_VERSION_STRING}
         LANGUAGES C)
 
 message(STATUS "
-
-
 ********************************************************************
-** Please join the Teem-users discord https://discord.gg/xBBqZGXkF7
+** Please join the Teem-users Discord https://discord.gg/xBBqZGXkF7
 ** to share how Teem works or does not work for you!
 ** For example, are these re-written CMakeLists.txt files working?
 ********************************************************************
-
-
 ")
 
 ###-------------------------------------------------------------------------------------
@@ -289,12 +285,12 @@ endforeach()
 target_compile_definitions(Teem PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:TEEM_STATIC>")
 
 # Do we need to link with -lm? This finishes by setting LIBM_NEEDED
-include(CheckLibM)
+include(CheckLibmNeeded)
 if(LIBM_NEEDED)
   message(STATUS "Will explicitly link with -lm")
   target_link_libraries(Teem
-      PRIVATE  # still link to Teem itself
-      INTERFACE m  # this ensures consumers (executables) get -lm automatically
+      PRIVATE   m # Teem itself links (especially for shared library)
+      INTERFACE m # Consumers (especially for static builds) automatically link
   )
 else()
   message(STATUS "Do not need to link with -lm")
