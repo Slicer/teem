@@ -17,7 +17,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# Teem/CMakeLists.txt Version 11
+# Teem/CMakeLists.txt Version 11.2
 
 # This CMakeLists.txt describes a Teem package that contains:
 # (1) a library ("libteem" on unix) and
@@ -303,15 +303,17 @@ endforeach()
 target_compile_definitions(Teem PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:TEEM_STATIC>")
 
 # Do we need to link with -lm? This finishes by setting LIBM_NEEDED
-include(CheckLibmNeeded)
-if(LIBM_NEEDED)
-  message(STATUS "Will explicitly link with -lm")
-  target_link_libraries(Teem
-      PRIVATE   m # Teem itself links (especially for shared library)
-      INTERFACE m # Consumers (especially for static builds) automatically link
-  )
-else()
-  message(STATUS "Do not need to link with -lm")
+if(NOT WIN32) # this is all moot on Windows, which has no "m"
+  include(CheckLibmNeeded)
+  if(LIBM_NEEDED)
+    message(STATUS "Will explicitly link with -lm")
+    target_link_libraries(Teem
+        PRIVATE   m # Teem itself links (especially for shared library)
+        INTERFACE m # Consumers (especially for static builds) automatically link
+    )
+  else()
+    message(STATUS "Do not need to link with -lm")
+  endif()
 endif()
 
 # Set remaining target properties
@@ -445,13 +447,13 @@ target_sources(Teem
 ###-------------------------------------------------------------------------------------
 # Describe Teem's command-line executables (e.g. "unu")
 
-# Only on Mac with shared libraries: clean out old installed RPATH-aware files before
-# installing new ones, because getting the RPATH stuff to be set correctly after the
-# first "make install", but *not* modified after a second "make install", is just too
-# annoying to figure out.  This hack has to *precede* any other install() commands, which
-# is why this shows up here, before src/bin/CMakeLists.txt's teem_add_executable() can
-# call install()
 if(BUILD_SHARED_LIBS)
+  # Only on Mac with shared libraries: clean out old installed RPATH-aware files before
+  # installing new ones, because getting the RPATH stuff to be set correctly after the
+  # first "make install", but *not* modified after a second "make install", is just too
+  # annoying to figure out.  This hack has to *precede* any other install() commands,
+  # which is why this shows up here, before src/bin/CMakeLists.txt's
+  # teem_add_executable() can call install()
   if(APPLE)
     install(CODE "
       file(GLOB old_bins \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/*\")
@@ -466,6 +468,13 @@ if(BUILD_SHARED_LIBS)
         file(REMOVE \${old_libs})
       endif()
     ")
+  endif()
+  if(WIN32)
+    # Ensure Teem.dll and import library go to a common bin directory
+    set_target_properties(Teem PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+      LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
   endif()
 endif()
 
@@ -569,34 +578,36 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt
         RENAME LICENSE)
 
 ###-------------------------------------------------------------------------------------
-# For non-CMake consumers: create teem.pc for pkg-config, and teem-config script
+# For non-CMake non-Windows users: create teem.pc for pkg-config, and teem-config script
 
-# Collect all private -llib dependency flags
-set(_pc_private_libs "")
-foreach(_tdep IN LISTS _Teem_DEPS)
-  if(Teem_HAVE_${_tdep})
-    string(APPEND _pc_private_libs " ${_Teem_dep_llink_${_tdep}}")
+if(NOT WIN32)
+  # Collect all private -llib dependency flags
+  set(_pc_private_libs "")
+  foreach(_tdep IN LISTS _Teem_DEPS)
+    if(Teem_HAVE_${_tdep})
+      string(APPEND _pc_private_libs " ${_Teem_dep_llink_${_tdep}}")
+    endif()
+  endforeach()
+  if(LIBM_NEEDED)
+    string(APPEND _pc_private_libs " -lm")
   endif()
-endforeach()
-if(LIBM_NEEDED)
-  string(APPEND _pc_private_libs " -lm")
+  set(Teem_PC_PRIVATE_LIBS "${_pc_private_libs}")
+
+  # Generate pkg-config teem.pc file
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMake/teem.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/teem.pc @ONLY
+  )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/teem.pc
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+  )
+
+  # Generate teem-config helper script
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMake/teem-config.in
+    ${CMAKE_CURRENT_BINARY_DIR}/teem-config @ONLY
+  )
+  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/teem-config
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+  )
 endif()
-set(Teem_PC_PRIVATE_LIBS "${_pc_private_libs}")
-
-# Generate pkg-config teem.pc file
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/CMake/teem.pc.in
-  ${CMAKE_CURRENT_BINARY_DIR}/teem.pc @ONLY
-)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/teem.pc
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
-)
-
-# Generate teem-config helper script
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/CMake/teem-config.in
-  ${CMAKE_CURRENT_BINARY_DIR}/teem-config @ONLY
-)
-install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/teem-config
-  DESTINATION ${CMAKE_INSTALL_BINDIR}
-)

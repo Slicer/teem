@@ -7,6 +7,14 @@ function(teem_add_executable name)
     RUNTIME DESTINATION ${BIN_INSTALL_DIR}
     COMPONENT Runtime
   )
+  if(WIN32 AND BUILD_SHARED_LIBS)
+    # Ensure every exe ${name} sees the DLL by copying it to their output folder
+    add_custom_command(TARGET ${name} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              $<TARGET_FILE:Teem>
+              $<TARGET_FILE_DIR:${name}>
+    )
+  endif()
 endfunction()
 
 # List of all Teem command-line tools.  TeemV2 stripped down the number of tools built;
