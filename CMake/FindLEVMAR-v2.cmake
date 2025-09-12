@@ -3,16 +3,40 @@
 # Copyright (C) 2025  University of Chicago
 # See ../LICENSE.txt for licensing terms
 
-# This module defines:
-#   LEVMAR_FOUND        - True if both header and library were found
-#   LEVMAR_INCLUDE_DIR  - Directory containing levmar.h
-#   LEVMAR_LIBRARY      - Full path to levmar library file
-#   LEVMAR_INCLUDE_DIRS - Directories to add to include path (currently just levmar)
-#   LEVMAR_LIBRARIES    - Libraries to link (levmar plus lapack/blas if found)
+# This module tries to find a Levmar library and header, and sets variables/targets
+# so other CMake projects can use it.
 #
-# Usage:
+# Variables defined by this module:
+#   LEVMAR_FOUND        - True if both levmar.h and the levmar library were found
+#   LEVMAR_INCLUDE_DIR  - Directory containing levmar.h
+#                         (legacy; for include_directories)
+#   LEVMAR_LIBRARY      - Full path to the levmar library file
+#                         (legacy; for direct linking)
+#   LEVMAR_INCLUDE_DIRS - List of include directories
+#                         (legacy; typically just LEVMAR_INCLUDE_DIR)
+#   LEVMAR_LIBRARIES    - List of libraries to link
+#                         (legacy; levmar plus optional LAPACK/BLAS)
+#   LEVMAR_VERSION      - Version string parsed from levmar.h (if available)
+#
+# Imported target (modern CMake usage):
+#   LEVMAR::LEVMAR      - Imported target encapsulating include directories,
+#                         library, and optional transitive dependencies
+#                         (LAPACK/BLAS).
+#
+# Usage (modern style):
+#   find_package(LEVMAR REQUIRED)
+#   target_link_libraries(myexe PRIVATE LEVMAR::LEVMAR)
+#
+# Usage (legacy style, for code expecting variables):
 #   find_package(LEVMAR REQUIRED)
 #   target_link_libraries(myexe PRIVATE ${LEVMAR_LIBRARIES})
+#   include_directories(${LEVMAR_INCLUDE_DIRS})
+#
+# Notes:
+# - This module attempts to find LAPACK and BLAS libraries if a levmar library is found.
+#   These are included in the imported target and ${LEVMAR_LIBRARIES} if available.
+# - Versions prior to 2.5 did not provide levmar.h (used lm.h instead), so failing
+#   to find levmar.h will result in LEVMAR_FOUND=FALSE.
 
 # how we identify ourselves
 set(_dep "LEVMAR")
@@ -100,12 +124,14 @@ _status("find_library result: LEVMAR_LIBRARY='${LEVMAR_LIBRARY}'")
 # LAPACK and BLAS; we just try to find them if we did find levmar.  And we don't if
 # LAPACK or BLAS are not found, but if they are required for this levmar, then we may
 # have linker error later.
+set(_dep_libraries "")  # list of transitive dependencies
 if(LEVMAR_LIBRARY)
   _status("Looking for LAPACK & BLAS (may trigger Threads find)")
   # if we didn't find LEVMAR, no point in looking for LAPACK, BLAS
   find_package(LAPACK QUIET)
   if(LAPACK_FOUND)
     _status("LAPACK found: ${LAPACK_LIBRARIES}")
+    list(APPEND _dep_libraries ${LAPACK_LIBRARIES})
   else()
     _status("LAPACK *not* found")
   endif()
@@ -113,10 +139,14 @@ if(LEVMAR_LIBRARY)
   find_package(BLAS QUIET)
   if(BLAS_FOUND)
     _status("BLAS found: ${BLAS_LIBRARIES}")
+    list(APPEND _dep_libraries ${BLAS_LIBRARIES})
   else()
     _status("BLAS *not* found")
   endif()
 endif()
+
+# Deduplicate only transitive dependencies (LAPACK/BLAS) to avoid ld warnings
+list(REMOVE_DUPLICATES _dep_libraries)
 
 # Include the helper macro for standard handling of results
 include(FindPackageHandleStandardArgs)
@@ -131,13 +161,9 @@ find_package_handle_standard_args(LEVMAR
 if(LEVMAR_FOUND)
   set(LEVMAR_INCLUDE_DIRS ${LEVMAR_INCLUDE_DIR})
 
-  set(LEVMAR_LIBRARIES ${LEVMAR_LIBRARY})
-  if(LAPACK_FOUND)
-    list(APPEND LEVMAR_LIBRARIES ${LAPACK_LIBRARIES})
-  endif()
-  if(BLAS_FOUND)
-    list(APPEND LEVMAR_LIBRARIES ${BLAS_LIBRARIES})
-  endif()
+  # for explicit linking by old-style code
+  set(LEVMAR_LIBRARIES ${_dep_libraries})
+  list(APPEND LEVMAR_LIBRARIES ${LEVMAR_LIBRARY})
 
   # If we did find LEVMAR, but no imported target exists yet,
   # create our own IMPORTED target so downstream code can use:
@@ -147,7 +173,7 @@ if(LEVMAR_FOUND)
     set_target_properties(LEVMAR::LEVMAR PROPERTIES
       IMPORTED_LOCATION             "${LEVMAR_LIBRARY}"
       INTERFACE_INCLUDE_DIRECTORIES "${LEVMAR_INCLUDE_DIR}"
-      INTERFACE_LINK_LIBRARIES      "${LEVMAR_LIBRARIES}"
+      INTERFACE_LINK_LIBRARIES      "${_dep_libraries}" # only LAPACK/BLAS, NOT LEVMAR_LIBRARY itself
     )
   endif()
   _check_pass("Found:\n      ${_dep}_INCLUDE_DIR=${${_dep}_INCLUDE_DIR}\n      ${_dep}_LIBRARY=${${_dep}_LIBRARY}")
