@@ -39,8 +39,10 @@ else()
   set(_lib_type STATIC)
 endif()
 
+set(_me "[CheckLibM]")
+
 set(_lmn_desc "Need to add -lm when linking with math-using ${_lib_type} lib?")
-message(STATUS "CheckLibM: ${_lmn_desc}")
+message(STATUS "${_me} ${_lmn_desc}")
 
 set(_checklibm_dir "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/tmpCheckLibM")
 file(MAKE_DIRECTORY "${_checklibm_dir}")
@@ -95,13 +97,13 @@ target_link_libraries(maintiny PRIVATE tiny ${extra_libs})
               OUTPUT_VARIABLE _out)
 
   if(NOT _ok)
-    message(STATUS "CheckLibM: ${suffix} compilation failed:\n${_out}")
+    message(STATUS "${_me} ${suffix} compilation failed:\n${_out}")
     set(${result_var} FALSE PARENT_SCOPE)
   else()
     # Run the resulting binary to check runtime
     set(_bin "${_proj_dir}/build/maintiny${CMAKE_EXECUTABLE_SUFFIX}")
     if(NOT EXISTS "${_bin}")
-      message(FATAL_ERROR "CheckLibM: maintiny executable missing for ${suffix} test")
+      message(FATAL_ERROR "${_me} maintiny executable missing for ${suffix} test")
       set(${result_var} FALSE PARENT_SCOPE)
     else()
       # Run the binary
@@ -114,7 +116,7 @@ target_link_libraries(maintiny PRIVATE tiny ${extra_libs})
         set(${result_var} TRUE PARENT_SCOPE)
       else()
         message(FATAL_ERROR
-          "CheckLibM: maintiny built in ${_suffix} mode but failed at runtime.\n"
+          "${_me} maintiny built in ${_suffix} mode but failed at runtime.\n"
           "Exit code: ${_runres}\n"
           "Stdout: ${_runout}\n"
           "Stderr: ${_runerr}")
@@ -132,7 +134,7 @@ _checklibm_try_build_and_run(no_libm "" _checklibm_no_libm_ok)
 if(_checklibm_no_libm_ok)
   # ... and either it did work without `-lm`, or ...
   set(LIBM_NEEDED FALSE CACHE BOOL ${_lmn_desc})
-  message(STATUS "CheckLibM: No, do NOT need -lm when linking with math-using ${_lib_type} lib")
+  message(STATUS "${_me} No, do NOT need -lm when linking with math-using ${_lib_type} lib")
 else()
   # ... it did not work without -lm.
   # Does it does work *with* -lm?
@@ -141,11 +143,11 @@ else()
   if(_checklibm_with_libm_ok)
     # Yes, it does work with -lm.
     set(LIBM_NEEDED TRUE CACHE BOOL "${_lmn_desc}")
-    message(STATUS "CheckLibM: yes, DO need -lm when linking with math-using ${_lib_type} lib")
+    message(STATUS "${_me} yes, DO need -lm when linking with math-using ${_lib_type} lib")
   else()
     # Yikes, it failed both without and with -lm. Bye.
     message(FATAL_ERROR
-      "CheckLibM: math test failed even with -lm. Output:\n"
+      "${_me} math test failed even with -lm. Output:\n"
       "${_checklibm_no_libm_out}\n"
       "${_checklibm_with_libm_out}")
   endif()
