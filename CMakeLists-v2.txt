@@ -101,7 +101,7 @@ set(_Teem_dep_doc_ZLIB "Enable nrrd support for zlib (\"gzip\") data encoding")
 set(_Teem_dep_doc_PNG "Enable nrrd support for PNG format images")
 set(_Teem_dep_doc_BZIP2 "Enable nrrd support for bzip2 data encoding")
 set(_Teem_dep_doc_PTHREAD "Enable hoover support for multi-threaded rendering")
-set(_Teem_dep_doc_LEVMAR "Build with levmar for better elf and ten")
+set(_Teem_dep_doc_LEVMAR "Build with levmar for better ten and elf")
 set(_Teem_dep_doc_FFTW3 "Build with fftw3 to enable nrrdFFT() and `unu fft`")
 
 # Whether to default to DEP being ON or OFF
