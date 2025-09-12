@@ -20,6 +20,8 @@
 #    cd <builddir>
 #    ctest -D Nightly    # or Experimental, Continuous
 
+# HEY: how to do coverage tests?
+
 ###-------------------------------------------------------------------------------------
 # Basic set-up
 
