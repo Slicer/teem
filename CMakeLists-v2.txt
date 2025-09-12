@@ -206,6 +206,7 @@ endforeach()
 foreach(_tdep IN LISTS _Teem_DEPS)
   if(Teem_USE_${_tdep})
     # this DEP is requested
+    message(STATUS "Trying find_package(${_Teem_dep_cpname_${_tdep}})")
     find_package(${_Teem_dep_cpname_${_tdep}} QUIET)
     if(${_Teem_dep_found_${_tdep}})
       set(Teem_HAVE_${_tdep} TRUE)
