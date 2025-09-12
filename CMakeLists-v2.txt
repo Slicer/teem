@@ -39,8 +39,10 @@
 #      CheckLibmNeeded.cmake  (new for Teem v2)
 #  - src/bin/CMakeLists.txt
 #  - src/{air,biff,...}/CMakeLists.txt
+#  - CTestConfig.cmake
 #  - tests/ctest/CMakeLists.txt
 #  - tests/ctest/{air,biff,...}/CMakeLists.txt
+#  - UseTeemCMakeDemo/CMakeLists.txt
 # were re-written entirely for Teem v2, by me (GLK), with help from ChatGPT. This is the
 # first time I've really scrutinized and tried to understand the CMake files, and the
 # first time I've tried anything non-trivial with ChatGPT. Current generative AI tools
