@@ -55,8 +55,7 @@ message(STATUS "
 ** Please join the Teem-users Discord https://discord.gg/xBBqZGXkF7
 ** to share how Teem works or does not work for you!
 ** For example, are these re-written CMakeLists.txt files working?
-********************************************************************
-")
+********************************************************************")
 
 ###-------------------------------------------------------------------------------------
 # Include helpers and module paths
@@ -176,8 +175,11 @@ set(_Teem_dep_found_PTHREAD  "CMAKE_USE_PTHREADS_INIT")
 set(_Teem_dep_llink_ZLIB     "-lz")
 set(_Teem_dep_llink_BZIP2    "-lbz2")
 set(_Teem_dep_llink_PTHREAD  "-pthread")
+# Special cases for requiring specific version (else "" for no such requirement)
+# (HEY should better document here what versions the Teem code is assuming)
+set(_Teem_dep_version_LEVMAR  "2.6")
 
-# Make sure _Teem_dep_{cpack,target,found,llink}_DEP are defined for all DEPS
+# Make sure _Teem_dep_{cpack,target,found,llink,version}_DEP are defined for all DEPS
 # CMake (still) doesn't have anything like a dictionary, so we don't have
 # (for example): _Teem_dep_cpname[_tdep]
 # but after the following, we do have: ${_Teem_dep_cpname_${_tdep}}
@@ -195,6 +197,9 @@ foreach(_tdep IN LISTS _Teem_DEPS)
     string(TOLOWER ${_tdep} _dep_lc)
     set(_Teem_dep_llink_${_tdep} "-l${_dep_lc}")
   endif()
+  if(NOT DEFINED _Teem_dep_version_${_tdep})
+    set(_Teem_dep_version_${_tdep} "")
+  endif()
 endforeach()
 
 # With all that uniformity set up: try to find_package() for all DEPs requested,
@@ -202,11 +207,20 @@ endforeach()
 foreach(_tdep IN LISTS _Teem_DEPS)
   if(Teem_USE_${_tdep})
     # this DEP is requested
-    message(STATUS "Trying find_package(${_Teem_dep_cpname_${_tdep}})")
-    find_package(${_Teem_dep_cpname_${_tdep}} QUIET)
+    message(CHECK_START "Trying find_package( ${_Teem_dep_cpname_${_tdep}} ${_Teem_dep_version_${_tdep}})")
+    find_package(${_Teem_dep_cpname_${_tdep}} ${_Teem_dep_version_${_tdep}} QUIET)
     if(${_Teem_dep_found_${_tdep}})
       set(Teem_HAVE_${_tdep} TRUE)
+      message(CHECK_PASS "Found")
     else()
+      if(DEFINED ${_tdep}_VERSION AND _Teem_dep_version_${_tdep})
+        message(CHECK_FAIL
+          "Found ${_tdep} version ${${_tdep}_VERSION}, "
+          "but version ${_Teem_dep_version_${_tdep}} or newer is required."
+        )
+      else()
+        message(CHECK_FAIL "Not found")
+      endif()
       set(Teem_USE_${_tdep} OFF CACHE BOOL "${_Teem_dep_doc_${_tdep}}" FORCE)
     endif()
   endif()
