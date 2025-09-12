@@ -237,10 +237,6 @@ push:
 ** The items below have accumulated over time, but the importance of them
 ** should be re-evaluated.
 
-for cmake:
- - see if wild-card expansion works as expected on windows
- - make cmd-line utilities link with static libs
-
 [portable54-250:~/d/parepi/6] gk%
 tend estim -new -sigma 0.01 -est wls -i 6crop-dwi.nrrd \
    -B kvp -knownB0 false -t 250 -o tmp.nrrd
