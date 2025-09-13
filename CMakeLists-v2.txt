@@ -265,10 +265,6 @@ foreach(_tdep IN LISTS _Teem_DEPS)
   endif()
 endforeach()
 
-## to confirm that PNG::PNG links to ZLIB::ZLIB
-#get_target_property(_png_libs PNG::PNG INTERFACE_LINK_LIBRARIES)
-#message(STATUS "PNG::PNG links to: ${_png_libs}")
-
 ###-------------------------------------------------------------------------------------
 # Describe install directory layout with variables:
 # HEADERS_INSTALL_DIR, LIB_INSTALL_DIR, BIN_INSTALL_DIR, CONFIG_INSTALL_DIR
@@ -402,37 +398,6 @@ set(Teem_LIBRARIES
 foreach(_dir IN LISTS Teem_LIBRARIES)
   add_subdirectory(src/${_dir})
 endforeach()
-
-if(0)  # inspecting the properties set so far
-  # confirm results of prior target_link_libraries(PRIVATE)s
-  # (what dependencies do I consume)
-  get_target_property(_Teem_libs Teem LINK_LIBRARIES)
-  message(STATUS "Teem LINK_LIBRARIES = ${_Teem_libs}")
-
-  ## Not interesting for Teem: what dependencies do I expose
-  #get_target_property(_Teem_libs Teem INTERFACE_LINK_LIBRARIES)
-  #message(STATUS "Teem INTERFACE_LINK_LIBRARIES = ${_Teem_libs}")
-  ## This will show "_Teem_libs-NOTFOUND" because of
-  ## Teem's API/ABI invariance w.r.t dependencies
-
-  # confirm results of prior target_include_directories()s:
-  # PRIVATE   --> INCLUDE_DIRECTORIES
-  # PUBLIC    --> INCLUDE_DIRECTORIES and INTERFACE_INCLUDE_DIRECTORIES
-  # INTERFACE --> INTERFACE_INCLUDE_DIRECTORIES
-  get_target_property(_teem_incdirs Teem INCLUDE_DIRECTORIES)
-  message(STATUS "Teem INCLUDE_DIRECTORIES: ${_teem_incdirs}")
-  get_target_property(_teem_inter_incdirs Teem INTERFACE_INCLUDE_DIRECTORIES)
-  message(STATUS "Teem INTERFACE_INCLUDE_DIRECTORIES: ${teem_inter_incdirs}")
-
-  # confirm results of prior target_compile_definitions()s:
-  # PRIVATE   --> COMPILE_DEFINITIONS
-  # PUBLIC    --> COMPILE_DEFINITIONS and INTERFACE_COMPILE_DEFINITIONS
-  # INTERFACE --> INTERFACE_COMPILE_DEFINITIONS
-  get_target_property(_teem_compdefs Teem COMPILE_DEFINITIONS)
-  message(STATUS "Teem COMPILE_DEFINITIONS: ${_teem_compdefs}")
-  get_target_property(_teem_inter_compdefs Teem INTERFACE_INCLUDE_DIRECTORIES)
-  message(STATUS "Teem INTERFACE_COMPILE_DEFINITIONS: ${teem_inter_compdefs}")
-endif()
 
 ###-------------------------------------------------------------------------------------
 # Declare Teem's public headers
@@ -645,4 +610,14 @@ if(NOT WIN32)
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/teem-config
     DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
+endif()
+
+###-------------------------------------------------------------------------------------
+# Some possible debugging of various targets
+
+if(0)
+  include(DumpTarget)
+  dump_target(Teem)
+  dump_target(unu)
+  dump_target(PNG::PNG)
 endif()
