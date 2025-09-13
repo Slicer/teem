@@ -92,3 +92,49 @@ function(dump_target tgt)
 
   message("")
 endfunction()
+
+
+function(_td_dump_dir dir indent)
+  if(NOT indent)
+    set(indent "")
+  endif()
+
+  message("${indent}Directory: ${dir}")
+
+  # Targets created by add_library/add_executable/add_custom_target in this dir
+  get_property(_dir_targets DIRECTORY "${dir}" PROPERTY BUILDSYSTEM_TARGETS)
+  if(_dir_targets)
+    foreach(_t IN LISTS _dir_targets)
+      message("${indent}>>>>> target: ${_t}")
+      # call user-provided per-target dumper
+      dump_target(${_t})
+    endforeach()
+  endif()
+
+  # Imported targets added in this directory (CMake >= 3.21)
+  get_property(_dir_imported DIRECTORY "${dir}" PROPERTY IMPORTED_TARGETS)
+  if(_dir_imported)
+    foreach(_it IN LISTS _dir_imported)
+      message("${indent}>>>>> imported: ${_it}")
+      dump_target(${_it})
+    endforeach()
+  endif()
+
+  # Recurse into subdirectories
+  get_property(_subdirs DIRECTORY "${dir}" PROPERTY SUBDIRECTORIES)
+  foreach(_sd IN LISTS _subdirs)
+    # _sd is a directory path (absolute or relative); calling recursively is fine.
+    _td_dump_dir("${_sd}" "${indent}====")
+  endforeach()
+endfunction()
+
+function(dump_targets_all)
+  message("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
+  message("=============== Begin Hierarchical Target Dump ==============")
+
+  _td_dump_dir("${CMAKE_SOURCE_DIR}" "")
+
+  message("================ End Hierarchical Target Dump ===============")
+  message("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+
+endfunction()

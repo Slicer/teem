@@ -37,6 +37,7 @@
 #      TeemConfig.cmake.in
 #      CheckAirExists.cmake   (new for Teem v2)
 #      CheckLibmNeeded.cmake  (new for Teem v2)
+#      DumpTarget.cmake       (new for Teem v2)
 #  - src/bin/CMakeLists.txt
 #  - src/{air,biff,...}/CMakeLists.txt
 #  - CTestConfig.cmake
@@ -617,7 +618,8 @@ endif()
 
 if(0)
   include(DumpTarget)
-  dump_target(Teem)
-  dump_target(unu)
-  dump_target(PNG::PNG)
+  dump_targets_all()
+  #dump_target(Teem)
+  #dump_target(unu)
+  #dump_target(PNG::PNG)
 endif()
