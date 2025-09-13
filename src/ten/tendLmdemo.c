@@ -36,9 +36,9 @@ static const char *_tend_lmdemoInfoL
 // like these C++-style comments, and variables declared as you go, and __func__
 // which makes writing C a little less annoying
 #else
-#  define INFO "(no levmar => cannot run) Demo of levmar"
+#  define INFO "(no LEVMAR => cannot run) Demo of levmar"
 static const char *_tend_lmdemoInfoL
-  = (INFO ". Because this Teem was built without the "
+  = (INFO ". Because this Teem was built withOUT the "
           "https://users.ics.forth.gr/~lourakis/levmar/ implementation of "
           "Levenberg-Marquardt (LM), this demo does not do anything useful. Try "
           "CMake-configuring with Teem_USE_LEVMAR, or "
@@ -74,22 +74,22 @@ extern int dlevmar_bc_dif(
 */
 
 static double
-polyEval(const double *pc, unsigned int M, double xx) {
+polyEval(const double *parmCurr, unsigned int M, double xx) {
   double ret = 0;
   for (unsigned int ci = M; ci-- > 0;) { // ci = coefficient index, with "-->" operator
-    ret = ret * xx + pc[ci];
+    ret = ret * xx + parmCurr[ci];
   }
   return ret;
 }
 
 // the bag-of-state struct passed via "adata" arg for additional data
 typedef struct {
-  double *tp;     // ground truth polynomial coefficients (should really be const)
-  unsigned int M, // # parameters to estimate = length of tp[]
-    N;            // # of samples in interval
-  double xmm[2];  // interval in which we do N cell-centered samples
-  int verb;       // verbosity
-  double *pf;     // the polynomial as currently being fitted
+  double *tp;       // ground truth polynomial coefficients (should really be const)
+  unsigned int M,   // # parameters to estimate = length of tp[]
+    N;              // # of samples in interval
+  double xmm[2];    // interval in which we do N cell-centered samples
+  int verb;         // verbosity
+  double *parmCurr; // the polynomial as currently being fitted
 } bagOstate;
 
 /*
@@ -97,20 +97,20 @@ funcPredict: the "func" callback for levmar functions
 Forward modeling or prediction callback for both dlevmar_der and dlevmar_dif, which
 the https://users.ics.forth.gr/~lourakis/levmar/ docs describe as:
    functional relation describing measurements.
-   A pf[] \in R^mm yields a \hat{y} \in  R^nn
+   A pc[] \in R^mm yields a \hat{y} \in  R^nn
 except that we've done some renaming:
-   "p"  (parameter vector) --> "pf" current polynomial we're trying
+   "p"  (parameter vector) --> "pc" = parmCurr = current polynomial we're trying
    "m"  (# parameters)     --> "mm" to be less annoying
-   "hx" (predicted data)   --> "hy" predicted y=pf(x) polynomial values
+   "hx" (predicted data)   --> "hy" predicted y=pc(x) polynomial values
    "n"  (# data points)    --> "nn" to be less annoying
 */
 static void
-funcPredict(double *pf, double *hy, int mm, int nn, void *adata) {
+funcPredict(double *parmCurr, double *hy, int mm, int nn, void *adata) {
   bagOstate *bag = (bagOstate *)adata;
   if (bag->verb > 2) {
-    printf("%s: called at pf =", __func__);
+    printf("%s: called at parmCurr =", __func__);
     for (int pi = 0; pi < mm; pi++) {
-      printf(" %g", pf[pi]);
+      printf(" %g", parmCurr[pi]);
     }
     printf("\n");
   }
@@ -118,7 +118,7 @@ funcPredict(double *pf, double *hy, int mm, int nn, void *adata) {
   assert(AIR_UINT(nn) == bag->N);
   for (int si = 0; si < nn; si++) { // si = sample index
     double sx = NRRD_CELL_POS(bag->xmm[0], bag->xmm[1], nn, si);
-    hy[si] = polyEval(pf, mm, sx);
+    hy[si] = polyEval(parmCurr, mm, sx);
   }
   return;
 }
@@ -153,29 +153,98 @@ dataSynth(Nrrd *ndata, const bagOstate *bag, double rnStdv, unsigned int rnSeed,
   return;
 }
 
+/*
+To be instructive, this levmar wrapper function is trying to be general purpose;
+the fact that funcPredict is evaluating a polynomial and that we're here to fit a
+polynomial should not be exposed by this function.
+*/
 static void
-doLM(Nrrd *ndata, int itmax, bagOstate *bag) {
+doLM(Nrrd *ndata, int itmax, /* const */ double opts[5], bagOstate *bag) {
   int iters = -1;
   AIR_UNUSED(ndata);
   AIR_UNUSED(itmax);
+  double info[LM_INFO_SZ];
+  for (unsigned int ii = 0; ii < LM_INFO_SZ; ii++) {
+    info[ii] = AIR_NAN;
+  }
 #if TEEM_LEVMAR
   double *ym = (double *)(ndata->data); // measured y values
-  double info[LM_INFO_SZ];
   /* extern int dlevmar_dif(
       void (*func)(double *p, double *hx, int m, int n, void *adata),
       double *p, double *x, int m, int n, int itmax, double *opts,
       double *info, double *work, double *covar, void *adata); */
-  iters = dlevmar_dif(funcPredict,                                            //
-                      bag->pf, ym, (int)(bag->M), (int)(bag->N), itmax, NULL, //
+  iters = dlevmar_dif(funcPredict,                                                  //
+                      bag->parmCurr, ym, (int)(bag->M), (int)(bag->N), itmax, opts, //
                       info, NULL, NULL, AIR_VOIDP(bag));
 #else
   printf("%s: not calling dlevmar_dif() because we don't have TEEM_LEVMAR\n", __func__);
 #endif
-  printf("%s: after %d iters, ended up at pf =", __func__, iters);
+  printf("%s: after %d iters, ended at parmCurr =", __func__, iters);
   for (unsigned int pi = 0; pi < bag->M; pi++) {
-    printf(" %g", bag->pf[pi]);
+    printf(" %g", bag->parmCurr[pi]);
   }
   printf("\n");
+  if (bag->verb) {
+    /*
+    Summary of info from from https://users.ics.forth.gr/~lourakis/levmar/
+    and https://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
+    e in R^n = epsilon vector = given data - predicted data
+    p in R^m = parameter vector
+    dp in R^m = delta p = last step taken in parameter space
+    J nxm matrix = Jacobian; J_ij = d hx_i / d p_j
+    mu in R = damping term added to diagonal of [J^T J] to normalize it
+       (mu set to tau * max[J^T J]_ii)
+
+    double opts[5] for controlling levmar functions:
+    opts[0-4] =  [\tau, \epsilon1, \epsilon2, \epsilon3, \delta]. Respectively
+    opts[0] = (\tau) the scale factor for initial \mu,
+    opts[1] = (\epsilon1) stopping threshold for ||J^T e||_inf,
+    opts[2] = (\epsilon2) stopping threshold for ||Dp||_2
+    opts[3] = (\epsilon3) stopping threshold for ||e||_2
+    opts[4] = (\delta) stopping thresh for step used in difference approximation of
+    Jacobian. If \delta<0, the Jacobian is approximated with central differences which
+    are more accurate (but slower!) compared to the forward differences employed by
+    default. Set to opts=NULL for defaults to be used.
+    */
+    printf("info[0]: Error at initial p (||e||^2): %g\n", info[0]);
+    printf("info[1]: Error at final p (||e||^2): %g\n", info[1]);
+    printf("info[2]: Gradient norm at final p (||J^T e||_inf): %g\n", info[2]);
+    printf("info[3]: Norm of last step (||dp||_2): %g\n", info[3]);
+    printf("info[4]: Final damping scaling tau (mu/max[J^T J]_ii): %g\n", info[4]);
+    printf("info[5]: # of iterations: %.0f\n", info[5]);
+    printf("info[6]: Termination reason: ");
+    switch ((int)(info[6] + 0.5)) { // round to nearest int
+    case 1:
+      printf("(1) stopped by small gradient J^T e\n");
+      break;
+    case 2:
+      printf("(2) stopped by small dp\n");
+      break;
+    case 3:
+      printf("(3) stopped by itmax %d\n", itmax);
+      break;
+    case 4:
+      printf("(4) singular (augmented normal) matrix. Restart from current p with "
+             "increased mu\n");
+      break;
+    case 5:
+      printf("(5) no further error reduction is possible. Restart with increased mu\n");
+      break;
+    case 6:
+      printf("(6) stopped by small ||e||_2\n");
+      break;
+    case 7:
+      printf("(7) stopped by invalid (i.e. NaN or Inf) func values; a user error\n");
+      break;
+    default:
+      printf("Unknown code %.0f\n", info[6]);
+    }
+    printf("info[7]: # of function evals: %.0f\n", info[7]);
+    printf("info[8]: # of Jacobian evals: %.0f\n", info[8]);
+    printf(
+      "info[9]: # linear systems solved, i.e. # attempts for reducing error: %.0f\n",
+      info[9]);
+  }
   return;
 }
 
@@ -186,7 +255,7 @@ tend_lmdemoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *perr, *err;
 
   bagOstate bag[1]; // allocate one bag-o-state; can access member m with bag->m
-  hestOptAdd_Nv_Double(&hopt, "tp", "true poly coeffs", 1, 10, &(bag->tp), "1",
+  hestOptAdd_Nv_Double(&hopt, "tp", "true poly coeffs", 1, -1, &(bag->tp), "1",
                        "coefficients of (ground-truth) polynomial to sample, to "
                        "synthsize the data to later fit. \"-tp A B C\" means "
                        "A + Bx + Cx^2.  These coefficients are the _M_ "
@@ -253,15 +322,15 @@ tend_lmdemoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   }
 
   // prepare for LM call
-  bag->pf = AIR_MALLOC(bag->M, double);
-  assert(bag->pf);
-  airMopAdd(mop, bag->pf, airFree, airMopAlways);
+  bag->parmCurr = AIR_MALLOC(bag->M, double);
+  assert(bag->parmCurr);
+  airMopAdd(mop, bag->parmCurr, airFree, airMopAlways);
   // initialize parms that will be fitted
   for (unsigned int pi = 0; pi < bag->M; pi++) {
-    bag->pf[pi] = 0;
+    bag->parmCurr[pi] = 0;
   }
   AIR_UNUSED(funcPredict); // to quiet warnings if not levmar
-  doLM(ndata, itmax, bag);
+  doLM(ndata, itmax, /* opts */ NULL, bag);
 
   airMopOkay(mop);
   return 0;
