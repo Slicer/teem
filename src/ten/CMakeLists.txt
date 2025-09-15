@@ -64,6 +64,7 @@ set(TEN_SOURCES
   tendTconv.c
   tendTriple.c
   tendUnmf.c
+  tendLmdemo.c
   tensor.c
   triple.c
   experSpec.c
