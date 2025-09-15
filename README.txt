@@ -89,7 +89,7 @@ turned into Python exceptions.
     Source files for Teem command-line tools, including "unu" and "tend"
 
 * UseTeemCMakeDemo/
-  An stand-alone example of how to use the Teem::Teem package, created by CMake
+  A stand-alone example of how to use the Teem::Teem package, created by CMake
   (via the new CMake files re-written Sept 2025)
 
 * include/
