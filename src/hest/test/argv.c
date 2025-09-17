@@ -53,19 +53,21 @@ main(int argc, const char **argv) {
   printf("%s: |%s|\n", argv[0], harg->str);
   hestArgAddString(harg, "bingo bob lives\n");
   printf("%s: |%s|\n", argv[0], harg->str);
+  hestArgNix(harg);
 
   hestArgVec *havec = hestArgVecNew();
-  hestArgVecPrint(havec);
+  hestArgVecPrint(argv[0], havec);
   hestArgVecAppendString(havec, "this");
-  hestArgVecPrint(havec);
+  hestArgVecPrint(argv[0], havec);
   hestArgVecAppendString(havec, "is");
-  hestArgVecPrint(havec);
+  hestArgVecPrint(argv[0], havec);
   hestArgVecAppendString(havec, "totally");
-  hestArgVecPrint(havec);
+  hestArgVecPrint(argv[0], havec);
   hestArgVecAppendString(havec, "");
-  hestArgVecPrint(havec);
+  hestArgVecPrint(argv[0], havec);
   hestArgVecAppendString(havec, "bonkers");
-  hestArgVecPrint(havec);
+  hestArgVecPrint(argv[0], havec);
+  hestArgVecNix(havec);
 
   exit(0);
 }

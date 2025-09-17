@@ -145,8 +145,7 @@ typedef struct {
   /* --------------------- Output
   Things set/allocated by hestParse. */
 
-  /* from the hestSource* enum; from whence was this information learned, else
-  hestSourceUnknown if not */
+  /* from the hestSource* enum; from whence was this information learned */
   int source;
   /* if parseStr is non-NULL: a string (freed by hestParseFree) that is a lot like the
   string (storing zero or many parameters), from which hestParse ultimately parsed
@@ -231,7 +230,7 @@ typedef struct {
 
 /* for building up a "vector" of arguments */
 typedef struct {
-  hestArg *harg;
+  hestArg *harg; /* array of hestArgs */
   unsigned int len;
   airArray *hargArr;
 } hestArgVec;
@@ -240,15 +239,21 @@ typedef struct {
 typedef struct {
   int source; /* from the hestSource* enum */
   /* ------ if source == hestSourceDefault ------ */
-  const char *dflt;
+  const char *dflt; /* we do NOT own*/
   /* ------ if source == hestSourceCommandLine ------ */
-  int argc;
-  const char **argv;
+  unsigned int argc;
+  const char **argv; /* we do NOT own */
   unsigned int argIdx;
   /* ------ if source == hestSourceResponseFile ------ */
-  char *fname;
-  FILE *file;
+  char *fname; /* we do NOT own */
+  FILE *file;  /* someone opened this for us */
 } hestInput;
+
+typedef struct {
+  hestInput *hin; /* array of hestInputs */
+  unsigned int len;
+  airArray *hinArr;
+} hestInputStack;
 
 /* defaultsHest.c */
 HEST_EXPORT int hestDefaultVerbosity;
@@ -275,9 +280,20 @@ HEST_EXPORT hestArg *hestArgNix(hestArg *harg);
 HEST_EXPORT void hestArgAddChar(hestArg *harg, char cc);
 HEST_EXPORT void hestArgAddString(hestArg *harg, const char *str);
 HEST_EXPORT hestArgVec *hestArgVecNew(void);
+HEST_EXPORT hestArgVec *hestArgVecNix(hestArgVec *havec);
 HEST_EXPORT void hestArgVecAppendString(hestArgVec *havec, const char *str);
-HEST_EXPORT void hestArgVecPrint(const hestArgVec *havec);
+HEST_EXPORT void hestArgVecPrint(const char *caller, const hestArgVec *havec);
 HEST_EXPORT hestInput *hestInputNew(void);
+HEST_EXPORT hestInput *hestInputNix(hestInput *hin);
+HEST_EXPORT hestInputStack *hestInputStackNew(void);
+HEST_EXPORT hestInputStack *hestInputStackNix(hestInputStack *hist);
+HEST_EXPORT void hestInputStackPushCommandLine(hestInputStack *hist, int argc,
+                                               const char **argv);
+HEST_EXPORT int hestInputStackProcess(hestArgVec *havec, hestInputStack *hist);
+
+/* parsest.c */
+HEST_EXPORT int hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
+                           const hestParm *hparm);
 
 /* methodsHest.c */
 HEST_EXPORT const int hestPresent;

@@ -24,6 +24,16 @@
 
 #define INCR 32
 
+/* to avoid strict aliasing warnings */
+typedef union {
+  hestArg **harg;
+  hestArgVec **havec;
+  hestInput **hin;
+  void **v;
+} hestPtrPtrUnion;
+
+/* ---------------------- hestArg = harg = hestArg = harg ------------------ */
+
 /* dereferences as char *, sets to '\0' */
 static void
 setNul(void *_c) {
@@ -34,13 +44,12 @@ setNul(void *_c) {
 
 static void
 hargInit(void *_harg) {
-  airPtrPtrUnion appu;
-  hestArg *harg;
-  harg = (hestArg *)_harg;
+  hestArg *harg = (hestArg *)_harg;
   harg->str = NULL;
   harg->len = 0;
+  airPtrPtrUnion appu;
   appu.c = &(harg->str);
-  harg->strArr = airArrayNew(appu.v, &(harg->len), 1 /* unit */, INCR);
+  harg->strArr = airArrayNew(appu.v, &(harg->len), sizeof(char), INCR);
   airArrayStructCB(harg->strArr, setNul, NULL);
   /* initialize with \0 so that harg->str is "" */
   airArrayLenIncr(harg->strArr, 1);
@@ -50,23 +59,29 @@ hargInit(void *_harg) {
 
 hestArg *
 hestArgNew(void) {
-  hestArg *harg;
-
-  harg = AIR_CALLOC(1, hestArg);
+  hestArg *harg = AIR_CALLOC(1, hestArg);
   assert(harg);
   hargInit(harg);
   return harg;
 }
 
+static void
+hargDone(void *_harg) {
+  hestArg *harg = (hestArg *)_harg;
+  if (harg->str) {
+    /* If caller wants to keep harg->str around,
+       they need to have copied it (the pointer) and set harg->str to NULL */
+    free(harg->str);
+  }
+  airArrayNix(harg->strArr); /* leave the underlying str alone */
+  return;
+}
+
 hestArg *
 hestArgNix(hestArg *harg) {
   if (harg) {
-    if (harg->str) {
-      /* If caller wants to keep harg->str around,
-         they need to have copied it (the pointer) and set harg->str to NULL */
-      free(harg->str);
-    }
-    airArrayNix(harg->strArr); /* leave the underlying str alone */
+    hargDone(harg);
+    free(harg);
   }
   return NULL;
 }
@@ -84,46 +99,46 @@ hestArgAddChar(hestArg *harg, char cc) {
 void
 hestArgAddString(hestArg *harg, const char *str) {
   assert(harg && str);
-  uint len, si;
-  len = AIR_UINT(strlen(str));
-  for (si = 0; si < len; si++) {
+  uint len = AIR_UINT(strlen(str));
+  for (uint si = 0; si < len; si++) {
     hestArgAddChar(harg, str[si]);
   }
   return;
 }
 
-typedef union {
-  hestArg **harg;
-  hestArgVec **havec;
-  void **v;
-} hestPtrPtrUnion;
+/* ------------------ hestArgVec = havec = hestArgVec = havec -------------- */
 
 hestArgVec *
 hestArgVecNew() {
-  hestPtrPtrUnion hppu;
-  hestArgVec *havec;
-  havec = AIR_CALLOC(1, hestArgVec);
+  hestArgVec *havec = AIR_CALLOC(1, hestArgVec);
   assert(havec);
   havec->harg = NULL;
   havec->len = 0;
+  hestPtrPtrUnion hppu;
   hppu.harg = &(havec->harg);
-  havec->hargArr = airArrayNew(hppu.v, &(havec->len), sizeof(hestArgVec), INCR);
-  airArrayStructCB(havec->hargArr, hargInit, NULL);
+  havec->hargArr = airArrayNew(hppu.v, &(havec->len), sizeof(hestArg), INCR);
+  airArrayStructCB(havec->hargArr, hargInit, hargDone);
   return havec;
+}
+
+hestArgVec *
+hestArgVecNix(hestArgVec *havec) {
+  assert(havec);
+  airArrayNuke(havec->hargArr);
+  free(havec);
+  return NULL;
 }
 
 void
 hestArgVecAppendString(hestArgVec *havec, const char *str) {
-  uint idx;
-  idx = airArrayLenIncr(havec->hargArr, 1);
+  uint idx = airArrayLenIncr(havec->hargArr, 1);
   hestArgAddString(havec->harg + idx, str);
 }
 
 void
-hestArgVecPrint(const hestArgVec *havec) {
-  uint idx;
-  printf("hestArgVec %p has %u args:\n", havec, havec->len);
-  for (idx = 0; idx < havec->hargArr->len; idx++) {
+hestArgVecPrint(const char *caller, const hestArgVec *havec) {
+  printf("%s: hestArgVec %p has %u args:\n", caller, havec, havec->len);
+  for (uint idx = 0; idx < havec->hargArr->len; idx++) {
     const hestArg *harg;
     harg = havec->harg + idx;
     printf(" %u:<%s>", idx, harg->str);
@@ -131,11 +146,11 @@ hestArgVecPrint(const hestArgVec *havec) {
   printf("\n");
 }
 
-hestInput *
-hestInputNew(void) {
-  hestInput *hin;
-  hin = AIR_CALLOC(1, hestInput);
-  assert(hin);
+/* --------------------- hestInput = hin = hestInput = hin ----------------- */
+
+static void
+hinInit(void *_hin) {
+  hestInput *hin = (hestInput *)_hin;
   hin->source = hestSourceUnknown;
   hin->dflt = NULL;
   hin->argc = 0;
@@ -143,23 +158,97 @@ hestInputNew(void) {
   hin->argIdx = 0;
   hin->fname = NULL;
   hin->file = NULL;
+  return;
+}
+
+hestInput *
+hestInputNew(void) {
+  hestInput *hin = AIR_CALLOC(1, hestInput);
+  assert(hin);
+  hinInit(hin);
   return hin;
 }
 
-#if 0
+static void
+hinDone(void *_hin) {
+  hestInput *hin = (hestInput *)_hin;
+  /* nothing, for now*/
+  AIR_UNUSED(hin);
+  return;
+}
 
-/* what is the thing we're currently processing to build up the arg vec */
-typedef struct {
-  int source; /* from the hestSource* enum */
-  /* ------ if source == hestSourceDefault ------ */
-  const char *dflt;
-  /* ------ if source == hestSourceCommandLine ------ */
-  int argc;
-  const char **argv;
-  unsigned int argIdx;
-  /* ------ if source == hestSourceResponseFile ------ */
-  char *fname;
-  FILE *file;
-} hestInput;
+hestInput *
+hestInputNix(hestInput *hin) {
+  assert(hin);
+  hinDone(hin);
+  free(hin);
+  return NULL;
+}
 
-#endif
+hestInputStack *
+hestInputStackNew(void) {
+  hestInputStack *hist = AIR_CALLOC(1, hestInputStack);
+  assert(hist);
+  hist->hin = NULL;
+  hist->len = 0;
+  hestPtrPtrUnion hppu;
+  hppu.hin = &(hist->hin);
+  hist->hinArr = airArrayNew(hppu.v, &(hist->len), sizeof(hestInput), INCR);
+  airArrayStructCB(hist->hinArr, hinInit, hinDone);
+  return hist;
+}
+
+hestInputStack *
+hestInputStackNix(hestInputStack *hist) {
+  assert(hist);
+  airArrayNuke(hist->hinArr);
+  free(hist);
+  return NULL;
+}
+
+void
+hestInputStackPushCommandLine(hestInputStack *hist, int argc, const char **argv) {
+  assert(hist);
+  uint idx = airArrayLenIncr(hist->hinArr, 1);
+  hist->hin[idx].source = hestSourceCommandLine;
+  hist->hin[idx].argc = argc;
+  hist->hin[idx].argv = argv;
+  hist->hin[idx].argIdx = 0;
+  return;
+}
+
+static int
+histProc(hestArgVec *havec, hestInputStack *hist) {
+  hestInput *hinTop = hist->hin + (hist->len - 1);
+  int done = AIR_FALSE;
+  switch (hinTop->source) {
+  case hestSourceDefault:
+    fprintf(stderr, "%s: sorry hestSourceDefault not implemented\n", __func__);
+    done = AIR_TRUE;
+    break;
+  case hestSourceCommandLine:
+    /* argv[] 0   1     2    3  (argc=4) */
+    /*       cmd arg1 arg2 arg3 */
+    if (hinTop->argIdx < hinTop->argc) {
+      /* there are args left to parse */
+      hestArgVecAppendString(havec, hinTop->argv[hinTop->argIdx]);
+      hinTop->argIdx++;
+    }
+    done = (hinTop->argIdx == hinTop->argc);
+    break;
+  case hestSourceResponseFile:
+    fprintf(stderr, "%s: sorry hestSourceResponseFile not implemented\n", __func__);
+    done = AIR_TRUE;
+    break;
+  }
+  return done;
+}
+
+int
+hestInputStackProcess(hestArgVec *havec, hestInputStack *hist) {
+  int done;
+  do {
+    done = histProc(havec, hist);
+  } while (!done);
+  return 0;
+}
