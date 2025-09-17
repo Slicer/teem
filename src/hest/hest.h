@@ -241,16 +241,6 @@ HEST_EXPORT char hestDefaultRespFileComment;
 HEST_EXPORT char hestDefaultVarParamStopFlag;
 HEST_EXPORT char hestDefaultMultiFlagSep;
 
-/* argvHest.c */
-HEST_EXPORT hestArg *hestArgNew(void);
-HEST_EXPORT hestArg *hestArgNix(hestArg *harg);
-HEST_EXPORT void hestArgAddChar(hestArg *harg, char cc);
-HEST_EXPORT void hestArgAddString(hestArg *harg, const char *str);
-HEST_EXPORT hestArgVec *hestArgVecNew(void);
-HEST_EXPORT void hestArgVecAppendString(hestArgVec *havec, const char *str);
-HEST_EXPORT void hestArgVecPrint(const hestArgVec *havec);
-HEST_EXPORT hestInput *hestInputNew(void);
-
 /* methodsHest.c */
 HEST_EXPORT const int hestPresent;
 HEST_EXPORT int hestSourceUser(int src);

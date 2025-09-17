@@ -1143,7 +1143,6 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
       /* 2023 GLK is really curious why "if (optParms[op] && vP) {" is (​repeatedly)
       guarding all the work in these blocks, and why that wasn't factored out */
       if (optParms[op] && vP) {
-        int pret;
         switch (type) {
         case airTypeEnum:
           if (1 != airParseStrE((int *)vP, optParms[op], " ", 1, opt[op].enm)) {
@@ -1273,6 +1272,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
     case 4:
       /* -------- optional single variables -------- */
       if (optParms[op] && vP) {
+        int pret;
         switch (type) {
         case airTypeChar:
           /* no "inversion" for chars: using the flag with no parameter is the same as
