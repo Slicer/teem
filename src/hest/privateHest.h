@@ -21,6 +21,8 @@
 extern "C" {
 #endif
 
+#include <assert.h>
+
 typedef unsigned int uint;
 
 /* methodsHest.c */
@@ -29,7 +31,7 @@ extern int _hestMax(int max);
 
 /* parseHest.c */
 extern int _hestOptCheck(const hestOpt *opt, char *err, const hestParm *parm);
-extern int _hestErrStrlen(const hestOpt *opt, int argc, const char **argv);
+extern uint _hestErrStrlen(const hestOpt *opt, int argc, const char **argv);
 
 #ifdef __cplusplus
 }

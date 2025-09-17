@@ -443,25 +443,23 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
   return 0;
 }
 
-int
+uint
 _hestErrStrlen(const hestOpt *opt, int argc, const char **argv) {
-  int ai, optNum, ret, other;
-
-  ret = 0;
-  optNum = hestOptNum(opt);
-  other = AIR_FALSE;
+  uint ret = 0;
+  uint optNum = hestOptNum(opt);
+  int other = AIR_FALSE;
   if (argv) {
-    for (ai = 0; ai < argc; ai++) {
-      ret = AIR_MAX(ret, (int)airStrlen(argv[ai]));
+    for (uint ai = 0; ai < (uint)argc; ai++) {
+      ret = AIR_MAX(ret, airStrlen(argv[ai]));
     }
   }
-  for (ai = 0; ai < optNum; ai++) {
-    ret = AIR_MAX(ret, (int)airStrlen(opt[ai].flag));
-    ret = AIR_MAX(ret, (int)airStrlen(opt[ai].name));
+  for (uint ai = 0; ai < optNum; ai++) {
+    ret = AIR_MAX(ret, airStrlen(opt[ai].flag));
+    ret = AIR_MAX(ret, airStrlen(opt[ai].name));
     other |= opt[ai].type == airTypeOther;
   }
-  for (ai = airTypeUnknown + 1; ai < airTypeLast; ai++) {
-    ret = AIR_MAX(ret, (int)airStrlen(airTypeStr[ai]));
+  for (uint ai = airTypeUnknown + 1; ai < airTypeLast; ai++) {
+    ret = AIR_MAX(ret, airStrlen(airTypeStr[ai]));
   }
   if (other) {
     /* the callback's error() function may sprintf an error message
