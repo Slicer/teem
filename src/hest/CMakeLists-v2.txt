@@ -1,6 +1,6 @@
 _Teem_add_library(${CMAKE_CURRENT_SOURCE_DIR}
   SOURCES
-    adders.c defaultsHest.c methodsHest.c parseHest.c usage.c
+    adders.c argvHest.c defaultsHest.c methodsHest.c parseHest.c usage.c
     # private header
     privateHest.h
   PUBLIC_HEADERS

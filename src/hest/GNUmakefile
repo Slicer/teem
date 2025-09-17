@@ -46,9 +46,9 @@ $(L).Depends = air
 $(L).PublicHdr = hest.h
 $(L).PrivateHdr = privateHest.h
 $(L).Obj = $(patsubst %.c,%.o, \
-    adders.c defaultsHest.c methodsHest.c parseHest.c usage.c \
+    adders.c argvHest.c defaultsHest.c methodsHest.c parseHest.c usage.c \
   )
-$(L).Test = ex1 ex2 ex3 ex4 ex5 ex6 strings bday tmpl
+$(L).Test = argv ex1 ex2 ex3 ex4 ex5 ex6 strings bday tmpl
 ####
 ####
 ####

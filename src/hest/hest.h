@@ -222,6 +222,34 @@ typedef struct {
                          disable this behavior entirely. */
 } hestParm;
 
+/* for building up and representing one argument */
+typedef struct {
+  char *str;
+  unsigned int len; /* NOT strlen; this includes '\0'-termination */
+  airArray *strArr;
+} hestArg;
+
+/* for building up a "vector" of arguments */
+typedef struct {
+  hestArg *harg;
+  unsigned int len;
+  airArray *hargArr;
+} hestArgVec;
+
+/* what is the thing we're currently processing to build up the arg vec */
+typedef struct {
+  int source; /* from the hestSource* enum */
+  /* ------ if source == hestSourceDefault ------ */
+  const char *dflt;
+  /* ------ if source == hestSourceCommandLine ------ */
+  int argc;
+  const char **argv;
+  unsigned int argIdx;
+  /* ------ if source == hestSourceResponseFile ------ */
+  char *fname;
+  FILE *file;
+} hestInput;
+
 /* defaultsHest.c */
 HEST_EXPORT int hestDefaultVerbosity;
 HEST_EXPORT int hestDefaultRespFileEnable;
@@ -240,6 +268,16 @@ HEST_EXPORT char hestDefaultRespFileFlag;
 HEST_EXPORT char hestDefaultRespFileComment;
 HEST_EXPORT char hestDefaultVarParamStopFlag;
 HEST_EXPORT char hestDefaultMultiFlagSep;
+
+/* argvHest.c */
+HEST_EXPORT hestArg *hestArgNew(void);
+HEST_EXPORT hestArg *hestArgNix(hestArg *harg);
+HEST_EXPORT void hestArgAddChar(hestArg *harg, char cc);
+HEST_EXPORT void hestArgAddString(hestArg *harg, const char *str);
+HEST_EXPORT hestArgVec *hestArgVecNew(void);
+HEST_EXPORT void hestArgVecAppendString(hestArgVec *havec, const char *str);
+HEST_EXPORT void hestArgVecPrint(const hestArgVec *havec);
+HEST_EXPORT hestInput *hestInputNew(void);
 
 /* methodsHest.c */
 HEST_EXPORT const int hestPresent;
