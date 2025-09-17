@@ -27,5 +27,6 @@ main(int argc, const char **argv) {
   hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");
   hestParse2(opt, argc - 1, argv + 1, NULL, NULL);
 
+  hestOptFree(opt);
   exit(0);
 }
