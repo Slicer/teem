@@ -19,8 +19,9 @@
 
 #### See NOTE in ../GNUMakefile about the big simplification to the non-CMake build
 #### process made for TeemV2.  This new file contains all the architecture-specific
-#### details about how to compile (on a non-Windows machine).
-#### Whatever is in this file is GLK needed to get Teem compiling; edit as you need.
+#### details about how to compile (on a non-Windows machine). Here there is only the
+#### most bare-bones platform-specific logic: some variables are differently for
+#### Mac vs Linux
 
 # yes, we should probably be using ?= instead = for the assingments below, but
 # the intent here is to be clear and explicit.  The assignment "AR ?= libtool"
@@ -31,15 +32,21 @@
 # CC = scan-build clang # to run static analyzer https://clang.llvm.org/docs/ClangStaticAnalyzer.html
 CC := cc
 LD := ld
-# historically `ar`
-AR := libtool
-# historically `ru`
-ARFLAGS := -static -o
+ifeq ($(shell uname -s),Darwin)
+  # on mac
+  AR := libtool
+  ARFLAGS := -static -o
+  # if non-empty: also delete X$(LITTER) when deleting executable X with "make clean"
+  LITTER := .dSYM
+else
+  # assume on linux
+  AR := ar
+  ARFLAGS := ru
+  LITTER :=
+endif
 # sometimes needed after `ar` to store index in library
 RANLIB :=
 RM := rm -f
-# if non-empty: also delete X$(LITTER) when deleting executable X with "make clean"
-LITTER := .dSYM
 CP := cp
 CHMOD := chmod
 
