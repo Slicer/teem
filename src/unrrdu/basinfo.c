@@ -121,7 +121,7 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me, hestParm *hparm)
       free(nout->content);
     }
     nout->content = airStrdup(content);
-  } else if (hestSourceUser == opt[cIdx].source) {
+  } else if (hestSourceUser(opt[cIdx].source)) {
     /* else user actually said: -c "" */
     nout->content = (char *)airFree(nout->content);
   } /* else option not used */

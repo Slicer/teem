@@ -438,7 +438,7 @@ main(int argc, const char *argv[]) {
       /* we got the whole stack blar parm here */
       gotOld = AIR_FALSE;
       for (nsi = 0; nsi < NON_SBP_OPT_NUM; nsi++) {
-        gotOld |= (hestSourceUser == hopt[nonSbpOpi[nsi]].source);
+        gotOld |= hestSourceUser(hopt[nonSbpOpi[nsi]].source);
       }
       if (gotOld) {
         fprintf(stderr,
@@ -446,7 +446,7 @@ main(int argc, const char *argv[]) {
                 "scale-space options (used",
                 me);
         for (nsi = 0; nsi < NON_SBP_OPT_NUM; nsi++) {
-          if (hestSourceUser == hopt[nonSbpOpi[nsi]].source) {
+          if (hestSourceUser(hopt[nonSbpOpi[nsi]].source)) {
             fprintf(stderr, " -%s", hopt[nonSbpOpi[nsi]].flag);
           }
         }

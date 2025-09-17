@@ -137,52 +137,49 @@ _hestPrintStr(FILE *f, unsigned int indent, unsigned int already, unsigned int w
 
 /*
 ******** hestMinNumArgs
-**
-** The idea is that this helps quickly determine if the options given
-** on the command line are insufficient, in order to produce general
-** usage information instead of some specific parse error.
-**
-** Because hest is strictly agnostic with respect to how many command-line
-** arguments actually constitute the command itself ("rmdir": one argument,
-** "cvs checkout": two arguments), it only concerns itself with the
-** command-line arguments following the command.
-**
-** Thus, hestMinMinArgs() returns the minimum number of command-line
-** arguments (following the command) that could be valid.  If your
-** command is only one argument (like "rmdir"), then you might use
-** the true argc passed by the OS to main() as such:
-**
-**   if (argc-1 < hestMinNumArgs(opt)) {
-**     ... usage ...
-**   }
-**
-** But if your command is two arguments (like "cvs checkout"):
-**
-**   if (argc-2 < hestMinNumArgs(opt)) {
-**     ... usage ...
-**   }
-**
-** HOWEVER! don't forget the response files can complicate all this:
-** in one argument a response file can provide information for any
-** number of arguments, and the argc itself is kind of meaningless.
-** The code examples above only really apply when
-** hparm->respFileEnable is false.  For example, in unrrdu (private.h)
-** we find:
-**
-**   if ( (hparm->respFileEnable && !argc) ||
-**        (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) {
-**     ... usage ...
-**   }
-**
+
+The idea is that this helps quickly determine if the options given on the command line
+are insufficient, in order to produce general usage information instead of some specific
+parse error.
+
+Because hest is strictly agnostic with respect to how many command-line arguments
+actually constitute the command itself ("rmdir": one argument, "svn checkout": two
+arguments), it only concerns itself with the command-line arguments following the
+command aka argv[0].
+
+Thus, hestMinMinArgs() returns the minimum number of command-line arguments (following
+the command) that could be valid.  If your command is only one argument (like "rmdir"),
+then you might use the true argc passed by the OS to main() as such:
+
+   if (argc-1 < hestMinNumArgs(opt)) {
+     ... usage ...
+   }
+
+But if your command is two arguments (like "svn checkout"):
+
+   if (argc-2 < hestMinNumArgs(opt)) {
+     ... usage ...
+   }
+
+HOWEVER! don't forget the response files can complicate all this: in one argument a
+response file can provide information for any number of arguments, and the argc itself is
+kind of meaningless. The code examples above only really apply when hparm->respFileEnable
+is false.  For example, in unrrdu (private.h) we find:
+
+   if ( (hparm->respFileEnable && !argc) ||
+        (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) {
+     ... usage ...
+   }
+
 */
 int
-hestMinNumArgs(hestOpt *opt) {
-  hestParm *parm;
+hestMinNumArgs(const hestOpt *opt) {
+  hestParm *hparm;
   int i, count, numOpts;
 
-  parm = hestParmNew();
-  if (_hestPanic(opt, NULL, parm)) {
-    hestParmFree(parm);
+  hparm = hestParmNew();
+  if (_hestOptCheck(opt, NULL, hparm)) {
+    hestParmFree(hparm);
     return _hestMax(-1);
   }
   count = 0;
@@ -195,24 +192,24 @@ hestMinNumArgs(hestOpt *opt) {
       }
     }
   }
-  hestParmFree(parm);
+  hestParmFree(hparm);
   return count;
 }
 
+#define HPARM (_hparm ? _hparm : hparm)
+
 void
-hestInfo(FILE *file, const char *argv0, const char *info, const hestParm *_parm) {
-  hestParm *parm;
+hestInfo(FILE *file, const char *argv0, const char *info, const hestParm *_hparm) {
+  hestParm *hparm;
 
-  parm = _parm ? NULL : hestParmNew();
-  /* how to const-correctly use parm or _parm in an expression */
-#define PARM (_parm ? _parm : parm)
-
+  hparm = _hparm ? NULL : hestParmNew();
+  /* how to const-correctly use hparm or _hparm in an expression */
   if (info) {
     if (argv0) {
       fprintf(file, "\n%s: ", argv0);
-      _hestPrintStr(file, 0, AIR_UINT(strlen(argv0)) + 2, PARM->columns, info,
+      _hestPrintStr(file, 0, AIR_UINT(strlen(argv0)) + 2, HPARM->columns, info,
                     AIR_FALSE);
-      if (PARM->noBlankLineBeforeUsage) {
+      if (HPARM->noBlankLineBeforeUsage) {
         /* we still want a blank line to separate info and usage */
         fprintf(file, "\n");
       }
@@ -220,68 +217,68 @@ hestInfo(FILE *file, const char *argv0, const char *info, const hestParm *_parm)
       fprintf(file, "ERROR: hestInfo got NULL argv0\n");
     }
   }
-  if (parm) {
-    hestParmFree(parm);
+  if (hparm) {
+    hestParmFree(hparm);
   }
 }
 
 void
-hestUsage(FILE *f, hestOpt *opt, const char *argv0, const hestParm *_parm) {
+hestUsage(FILE *f, const hestOpt *opt, const char *argv0, const hestParm *_hparm) {
   int i, numOpts;
   /* with a very large number of options, it is possible to overflow buff[].
   Previous to the 2023 revisit, it was for max lenth 2*AIR_STRLEN_HUGE, but
   test/ex6.c blew past that.  May have to increment again in the future :) */
   char buff[64 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_SMALL + 1];
-  hestParm *parm;
+  hestParm *hparm;
 
-  parm = _parm ? NULL : hestParmNew();
+  hparm = _hparm ? NULL : hestParmNew();
 
-  if (_hestPanic(opt, NULL, PARM)) {
+  if (_hestOptCheck(opt, NULL, HPARM)) {
     /* we can't continue; the opt array is botched */
-    if (parm) {
-      hestParmFree(parm);
+    if (hparm) {
+      hestParmFree(hparm);
     }
     return;
   }
 
   numOpts = hestOptNum(opt);
-  if (!(PARM->noBlankLineBeforeUsage)) {
+  if (!(HPARM->noBlankLineBeforeUsage)) {
     fprintf(f, "\n");
   }
   strcpy(buff, "Usage: ");
   strcat(buff, argv0 ? argv0 : "");
-  if (PARM->respFileEnable) {
-    sprintf(tmpS, " [%cfile\t...]", PARM->respFileFlag);
+  if (HPARM->respFileEnable) {
+    sprintf(tmpS, " [%cfile\t...]", HPARM->respFileFlag);
     strcat(buff, tmpS);
   }
   for (i = 0; i < numOpts; i++) {
     strcat(buff, " ");
     if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt)) strcat(buff, "[");
-    _hestSetBuff(buff, opt + i, PARM, AIR_TRUE, AIR_TRUE);
+    _hestSetBuff(buff, opt + i, HPARM, AIR_TRUE, AIR_TRUE);
     if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt)) strcat(buff, "]");
   }
 
-  _hestPrintStr(f, AIR_UINT(strlen("Usage: ")), 0, PARM->columns, buff, AIR_TRUE);
-  if (parm) {
-    hestParmFree(parm);
+  _hestPrintStr(f, AIR_UINT(strlen("Usage: ")), 0, HPARM->columns, buff, AIR_TRUE);
+  if (hparm) {
+    hestParmFree(hparm);
   }
   return;
 }
 
 void
-hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
+hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
   int i, j, maxlen, numOpts;
   unsigned int len;
   /* See note above about overflowing buff[] */
   char buff[64 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_HUGE + 1];
-  hestParm *parm;
+  hestParm *hparm;
 
-  parm = _parm ? NULL : hestParmNew();
+  hparm = _hparm ? NULL : hestParmNew();
 
-  if (_hestPanic(opt, NULL, PARM)) {
+  if (_hestOptCheck(opt, NULL, HPARM)) {
     /* we can't continue; the opt array is botched */
-    if (parm) {
-      hestParmFree(parm);
+    if (hparm) {
+      hestParmFree(hparm);
     }
     return;
   }
@@ -294,22 +291,22 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
   }
   for (i = 0; i < numOpts; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, PARM, AIR_TRUE, AIR_FALSE);
+    _hestSetBuff(buff, opt + i, HPARM, AIR_TRUE, AIR_FALSE);
     maxlen = AIR_MAX((int)strlen(buff), maxlen);
   }
-  if (PARM->respFileEnable) {
-    sprintf(buff, "%cfile ...", PARM->respFileFlag);
+  if (HPARM->respFileEnable) {
+    sprintf(buff, "%cfile ...", HPARM->respFileFlag);
     len = AIR_UINT(strlen(buff));
     for (j = len; j < maxlen; j++) {
       fprintf(f, " ");
     }
     fprintf(f, "%s = ", buff);
     strcpy(buff, "response file(s) containing command-line arguments");
-    _hestPrintStr(f, maxlen + 3, maxlen + 3, PARM->columns, buff, AIR_FALSE);
+    _hestPrintStr(f, maxlen + 3, maxlen + 3, HPARM->columns, buff, AIR_FALSE);
   }
   for (i = 0; i < numOpts; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, PARM, AIR_TRUE, AIR_FALSE);
+    _hestSetBuff(buff, opt + i, HPARM, AIR_TRUE, AIR_FALSE);
     airOneLinify(buff);
     len = AIR_UINT(strlen(buff));
     for (j = len; j < maxlen; j++) {
@@ -318,9 +315,9 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
     fprintf(f, "%s", buff);
     strcpy(buff, "");
 #if 1
-    if (opt[i].flag && strchr(opt[i].flag, PARM->multiFlagSep)) {
+    if (opt[i].flag && strchr(opt[i].flag, HPARM->multiFlagSep)) {
       /* there is a long-form flag as well as short */
-      _hestSetBuff(buff, opt + i, PARM, AIR_FALSE, AIR_TRUE);
+      _hestSetBuff(buff, opt + i, HPARM, AIR_FALSE, AIR_TRUE);
       strcat(buff, " = ");
       fprintf(f, " , ");
     } else {
@@ -335,9 +332,9 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
     }
     if ((opt[i].min || _hestMax(opt[i].max))
         && (!(2 == opt[i].kind && airTypeEnum == opt[i].type
-              && PARM->elideSingleEnumType))
+              && HPARM->elideSingleEnumType))
         && (!(2 == opt[i].kind && airTypeOther == opt[i].type
-              && PARM->elideSingleOtherType))) {
+              && HPARM->elideSingleOtherType))) {
       /* if there are newlines in the info, then we want to clarify the
          type by printing it on its own line */
       if (opt[i].info && strchr(opt[i].info, '\n')) {
@@ -370,7 +367,7 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
               (_hestMax(opt[i].max) > 1
                  ? (airTypeOther == opt[i].type
                         && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type) - 1]
-                        && PARM->cleverPluralizeOtherY
+                        && HPARM->cleverPluralizeOtherY
                       ? "\bies"
                       : "s")
                  : ""));
@@ -378,24 +375,24 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
       strcat(buff, ")");
     }
     /*
-    fprintf(stderr, "!%s: PARM->elideSingleOtherDefault = %d\n",
-            "hestGlossary", PARM->elideSingleOtherDefault);
+    fprintf(stderr, "!%s: HPARM->elideSingleOtherDefault = %d\n",
+            "hestGlossary", HPARM->elideSingleOtherDefault);
     */
     if (opt[i].dflt && (opt[i].min || _hestMax(opt[i].max))
         && (!(2 == opt[i].kind
               && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
               && !AIR_EXISTS(airAtod(opt[i].dflt))
-              && PARM->elideSingleNonExistFloatDefault))
+              && HPARM->elideSingleNonExistFloatDefault))
         && (!((3 == opt[i].kind || 5 == opt[i].kind)
               && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
               && !AIR_EXISTS(airAtod(opt[i].dflt))
-              && PARM->elideMultipleNonExistFloatDefault))
+              && HPARM->elideMultipleNonExistFloatDefault))
         && (!(2 == opt[i].kind && airTypeOther == opt[i].type
-              && PARM->elideSingleOtherDefault))
+              && HPARM->elideSingleOtherDefault))
         && (!(2 == opt[i].kind && airTypeString == opt[i].type
-              && PARM->elideSingleEmptyStringDefault && 0 == airStrlen(opt[i].dflt)))
+              && HPARM->elideSingleEmptyStringDefault && 0 == airStrlen(opt[i].dflt)))
         && (!((3 == opt[i].kind || 5 == opt[i].kind) && airTypeString == opt[i].type
-              && PARM->elideMultipleEmptyStringDefault
+              && HPARM->elideMultipleEmptyStringDefault
               && 0 == airStrlen(opt[i].dflt)))) {
       /* if there are newlines in the info, then we want to clarify the
          default by printing it on its own line */
@@ -411,13 +408,13 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
       strcat(buff, tmpS);
       strcat(buff, "\"");
     }
-    _hestPrintStr(f, maxlen + 3, maxlen + 3, PARM->columns, buff, AIR_FALSE);
+    _hestPrintStr(f, maxlen + 3, maxlen + 3, HPARM->columns, buff, AIR_FALSE);
   }
-  if (parm) {
-    hestParmFree(parm);
+  if (hparm) {
+    hestParmFree(hparm);
   }
 
   return;
 }
 
-#undef PARM
+#undef HPARM

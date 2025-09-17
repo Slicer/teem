@@ -132,7 +132,7 @@ main(int argc, const char *argv[]) {
     return 1;
   }
 
-  if (hestSourceUser == hopt[srgbIdx].source && !nrrdFormatPNG->available()) {
+  if (hestSourceUser(hopt[srgbIdx].source) && !nrrdFormatPNG->available()) {
     fprintf(stderr,
             "%s: wanted to store sRGB intent \"%s\" in PNG output, but "
             "this Teem build does not support the PNG file format.",
@@ -254,7 +254,7 @@ main(int argc, const char *argv[]) {
     rgbaD += 4;
   }
 
-  if (hestSourceUser == hopt[srgbIdx].source) {
+  if (hestSourceUser(hopt[srgbIdx].source)) {
     /* HEY copied to unrrdu/quantize.c */
     nio = nrrdIoStateNew();
     airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);

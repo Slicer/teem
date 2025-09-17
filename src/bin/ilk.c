@@ -151,7 +151,7 @@ main(int argc, const char *argv[]) {
       bkg = _bkg;
     }
   } else {
-    if (hestSourceUser == hopt[bkgIdx].source) {
+    if (hestSourceUser(hopt[bkgIdx].source)) {
       fprintf(stderr,
               "%s: WARNING: got %u background colors, but with boundary %s, "
               "they will not be used\n",

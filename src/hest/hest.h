@@ -45,13 +45,13 @@ extern "C" {
 ******** hestSource* enum
 **
 ** records whether the info to satisfy a particular option came from the default or from
-** the user (command-line or response file). Distinguishing command-line from response
-** file would take a much more significant code restructuring
+** the user: command-line or response file.
 */
 enum {
-  hestSourceUnknown, /* 0 */
-  hestSourceDefault, /* 1 */
-  hestSourceUser,    /* 2 */
+  hestSourceUnknown,      /* 0 */
+  hestSourceDefault,      /* 1 */
+  hestSourceCommandLine,  /* 2 (formerly called hestSourceUser) */
+  hestSourceResponseFile, /* 3 */
   hestSourceLast
 };
 
@@ -74,17 +74,16 @@ typedef struct {
      multiple parameter options.  A non-zero return value is considered an error.  Error
      message goes in the err string */
   void *(*destroy)(void *ptr);
-  /* if non-NULL, this is the destructor that will be called by hestParseFree() (or by
-     hestParse() if there is an error midway through parsing).  The argument is NOT the
-     same as passed to parse(): it is the result of dereferencing the argument to parse()
-   */
+  /* if non-NULL, the destructor that will be called by hestParseFree() (or by
+     hestParse() if there is an error during parsing). The argument is NOT the same as
+     passed to parse(): it is the result of dereferencing the argument to parse() */
 } hestCB;
 
 /*
 ******** hestOpt struct
 **
-** information which specifies one command-line option,
-** and describes it how it was parsed
+** information which specifies one command-line option, records state used during
+** parsing, and provides summary output info following parsing.
 */
 typedef struct {
   /* --------------------- "input" fields
@@ -97,7 +96,7 @@ typedef struct {
   int max;            /* max # of parameters for option,
                          or -1 for "there is no max; # parms is unbounded" */
   void *valueP;       /* storage of parsed values */
-  char *dflt,         /* default value written out as string */
+  char *dflt,         /* default value(s) written out as string */
     *info;            /* description to be printed with "glossary" info */
   unsigned int *sawP; /* used ONLY for multiple variable parameter options
                          (min < max >= 2): storage of # of parsed values */
@@ -128,46 +127,50 @@ typedef struct {
                   array of strings
                3: free((*valueP)[i]) and free(*valueP), because it is a dynamically
                   allocated array of strings */
-  /* Since hest's beginning, the basic container for a set of options was an array of
-  hestOpt structs (not pointers to them, which rules out argv-style NULL-termination of
-  the array), also unfortunately with no other top-level container (which is why
-  helpWanted below is set only in the first hestOpt of the array). hestOptAdd has
-  historically reallocated the entire array, incrementing the length only by one with
-  each call, while maintaining a single terminating hestOpt, wherein some fields were set
-  to special values to indicate termination. With the 2023 code revisit, that was deemed
-  even uglier than this hack: the first hestOpt now stores here in arrAlloc the allocated
-  length of the hestOpt array, and in arrLen the number of hestOpts actually used and
-  set. This facilitates implementing something much like an airArray, but without the
-  burden of extra calls for the user (like airArrayLenIncr), nor new kinds of containers
-  for hest and its users to manage: it is just the same array of hestOpt structs */
+  /* Since hest's beginning in 2002, the basic container for a set of options was an
+  array of hestOpt structs (not pointers to them, which rules out argv-style
+  NULL-termination of the array), also unfortunately with no other top-level container
+  or hestContext (which is why helpWanted below is set only in the first hestOpt of the
+  array). hestOptAdd has historically reallocated the entire array, incrementing the
+  length only by one with each call, while maintaining a single terminating hestOpt,
+  wherein some fields were set to special values to indicate termination. With the 2023
+  code revisit, that was deemed even uglier than the new and current hack: the first
+  hestOpt now stores here in arrAlloc the allocated length of the hestOpt array, and in
+  arrLen the number of hestOpts actually used and set. This facilitates implementing
+  something much like an airArray, but without the burden of extra calls for the user
+  (like airArrayLenIncr), nor new kinds of containers for hest and its users to manage:
+  it is just the same array of hestOpt structs */
   unsigned int arrAlloc, arrLen;
 
   /* --------------------- Output
   Things set/allocated by hestParse. */
 
-  int source;     /* from the hestSource* enum; from whence was this information learned,
-                  else hestSourceUnknown if not */
-  char *parmStr;  /* if non-NULL: a string (freed by hestParseFree) from which hestParse
-                  ultimately parsed whatever values were set in *valueP. All the
-                  parameters associated with this option are joined (with " " separation)
-                  into this single string. hestParse has always formed this string
-                  internally as part of its operation, but only belatedly (in 2023) is a
-                  copy of that string being made available here to the caller. Note that
-                  in the case of single variable parameter options used without a
-                  parameter, the value stored will be "inverted" from the string here. */
-  int helpWanted; /* hestParse() saw something (like "--help") in one of the given
-                  arguments that looks like a call for help (and respectDashDashHelp is
-                  set in the hestParm), so it recorded that here. There is unfortunately
-                  no other top-level output container for info generated by hestParse(),
-                  so this field is going to be set only in the *first* hestOpt passed to
-                  hestParse(), even though that hestOpt has no particular relation to
-                  where hestParse() saw the call for help. */
+  /* from the hestSource* enum; from whence was this information learned, else
+  hestSourceUnknown if not */
+  int source;
+  /* if parseStr is non-NULL: a string (freed by hestParseFree) that is a lot like the
+  string (storing zero or many parameters), from which hestParse ultimately parsed
+  whatever values were set in *valueP above. Internally, hest maintains an argc,argv-like
+  representation of the info to parse, but here it is joined back together into a
+  space-delimited single string. Note that in the case of single variable parameter
+  options used without a parameter, the value stored will be "inverted" from the string
+  here. */
+  char *parmStr;
+  /* helpWanted indicates that hestParse() saw something (like "--help") in one of the
+  given arguments that looks like a call for help, and that respectDashDashHelp is set in
+  the hestParm. There is unfortunately no other top-level output container for info
+  generated by hestParse(), so this field is going to be set only in the *first* hestOpt
+  passed to hestParse(), even though that hestOpt has no particular relation to where
+  hestParse() saw the call for help. */
+  int helpWanted;
 } hestOpt;
 
 /*
 ******** hestParm struct
 **
-** parameters to control behavior of hest functions.
+** parameters to control behavior of hest functions. Not to be confused with the
+** "parameters" to a hestOpt from which it parses values. Code should use "hparm" for
+** the pointer to this struct.
 **
 ** GK: Don't even think about storing per-parse state in here.
 */
@@ -175,7 +178,7 @@ typedef struct {
   int verbosity,          /* verbose diagnostic messages to stdout */
     respFileEnable,       /* whether or not to use response files */
     elideSingleEnumType,  /* if type is airTypeEnum, and if it's a single fixed parameter
-                             option, then don't bother printing the  type information as
+                             option, then don't bother printing the type information as
                              part of hestGlossary() */
     elideSingleOtherType, /* like above, but for airTypeOther */
     elideSingleOtherDefault, /* don't display default for single fixed airTypeOther
@@ -238,11 +241,22 @@ HEST_EXPORT char hestDefaultRespFileComment;
 HEST_EXPORT char hestDefaultVarParamStopFlag;
 HEST_EXPORT char hestDefaultMultiFlagSep;
 
+/* argvHest.c */
+HEST_EXPORT hestArg *hestArgNew(void);
+HEST_EXPORT hestArg *hestArgNix(hestArg *harg);
+HEST_EXPORT void hestArgAddChar(hestArg *harg, char cc);
+HEST_EXPORT void hestArgAddString(hestArg *harg, const char *str);
+HEST_EXPORT hestArgVec *hestArgVecNew(void);
+HEST_EXPORT void hestArgVecAppendString(hestArgVec *havec, const char *str);
+HEST_EXPORT void hestArgVecPrint(const hestArgVec *havec);
+HEST_EXPORT hestInput *hestInputNew(void);
+
 /* methodsHest.c */
 HEST_EXPORT const int hestPresent;
+HEST_EXPORT int hestSourceUser(int src);
 HEST_EXPORT hestParm *hestParmNew(void);
-HEST_EXPORT hestParm *hestParmFree(hestParm *parm);
-HEST_EXPORT void *hestParmFree_vp(void *parm);
+HEST_EXPORT hestParm *hestParmFree(hestParm *hparm);
+HEST_EXPORT void *hestParmFree_vp(void *hparm);
 HEST_EXPORT int hestParmColumnsIoctl(hestParm *hparm, unsigned int nonIoctlColumns);
 HEST_EXPORT void hestOptSingleSet(hestOpt *opt, const char *flag, const char *name,
                                   int type, unsigned int min, int max, void *valueP,
@@ -269,34 +283,35 @@ HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);
 
 /* parseHest.c */
 HEST_EXPORT int hestParse(hestOpt *opt, int argc, const char **argv, char **errP,
-                          const hestParm *parm);
+                          const hestParm *hparm);
 HEST_EXPORT void *hestParseFree(hestOpt *opt);
 HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, const char **argv,
-                                hestParm *parm, const char *me, const char *info,
+                                hestParm *hparm, const char *me, const char *info,
                                 int doInfo, int doUsage, int doGlossary);
 
 /* usage.c */
 HEST_EXPORT void _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
                                unsigned int width, const char *_str, int bslash);
-HEST_EXPORT int hestMinNumArgs(hestOpt *opt);
-HEST_EXPORT void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
-                           const hestParm *parm);
-HEST_EXPORT void hestGlossary(FILE *file, hestOpt *opt, const hestParm *parm);
+HEST_EXPORT int hestMinNumArgs(const hestOpt *opt);
+HEST_EXPORT void hestUsage(FILE *file, const hestOpt *opt, const char *argv0,
+                           const hestParm *hparm);
+HEST_EXPORT void hestGlossary(FILE *file, const hestOpt *opt, const hestParm *hparm);
 HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
-                          const hestParm *parm);
+                          const hestParm *hparm);
 
 /* adders.c */
 HEST_EXPORT void hestOptAddDeclsPrint(FILE *f);
 /* Many many non-var-args alternatives to hestOptAdd, also usefully type-specific for the
 type of value to be parsed in a way that hestOptAdd_nva cannot match. These capture all
-the common uses (and then some) of hest within Teem. They can be categorized, like
-hestOpt->kind, in terms of the min, max number of (type T) parameters to the option:
+the common uses (and then some) of hest within Teem. They are named according
+to kind, and according to the type T parameters to the option:
 
-  min == max == 0       hestOptAdd_Flag         (stand-alone flag; no parameters)
-  min == max == 1       hestOptAdd_1_T          single fixed parameter
-  min == max >= 2       hestOptAdd_{2,3,4,N}_T  multiple fixed parameters
-  min == 0; max == 1    hestOptAdd_1v_T         single variable parameter
-  min < max; max >= 2   hestOptAdd_Nv_T         multiple variable parameters
+min, max             function family       kind  description
+min == max == 0      hestOptAdd_Flag         1   (stand-alone flag; no parameters)
+min == max == 1      hestOptAdd_1_T          2   single fixed parameter
+min == max >= 2      hestOptAdd_{2,3,4,N}_T  3   multiple fixed parameters
+min == 0; max == 1   hestOptAdd_1v_T         4   single variable parameter
+min < max; max >= 2  hestOptAdd_Nv_T         5   multiple variable parameters
 
 An airEnum* is passed for _Enum options; or a hestCB* for _Other options. The number of
 parameters *sawP that hestParm saw on the command-line is passed for the _Nv_ options.

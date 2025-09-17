@@ -399,7 +399,7 @@ main(int argc, const char **argv) {
       printf("  name=%s\n", opt[opi].name ? opt[opi].name : "(null)");
       printf("  source=%s; ", hestSourceDefault == opt[opi].source
                                 ? "default"
-                                : (hestSourceUser == opt[opi].source ? "user" : "???"));
+                                : (hestSourceUser(opt[opi].source) ? "user" : "???"));
       printf("  parmStr=|%s|\n", opt[opi].parmStr ? opt[opi].parmStr : "(null)");
     }
   }

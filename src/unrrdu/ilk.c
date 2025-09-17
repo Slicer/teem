@@ -325,7 +325,7 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
       bkg = _bkg;
     }
   } else {
-    if (hestSourceUser == opt[bkgIdx].source) {
+    if (hestSourceUser(opt[bkgIdx].source)) {
       fprintf(stderr,
               "%s: WARNING: got %u background colors, but with boundary %s, "
               "they will not be used\n",

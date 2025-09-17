@@ -45,14 +45,12 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) 
                               "min and max values along axis");
   spIdx = hestOptAdd_1_Double(&opt, "sp,spacing", "spacing", &spc, "nan",
                               "spacing between samples along axis");
-  /* There used to be a complaint here about how hest doesn't allow
-     you to learn whether the option was parsed from the supplied
-     default versus from the command-line itself.  That issue has been
-     solved: opt[oi].source now takes on values from the hestSource*
-     enum; axinsert.c now provides an example of this. However,
-     parsing from a string here is still needed here, because here we
-     need to allow the string that represents "no centering"; this
-     is a current weakness of airEnumStr.
+  /* There used to be a complaint here about how hest doesn't allow you to learn whether
+  the option was parsed from the supplied default versus from the command-line itself.
+  That issue has been solved: opt[oi].source now takes on values from the hestSource*
+  enum; axinsert.c now provides an example of this. However, parsing from a string is
+  still needed here, because here we need to allow the string that represents "no
+  centering"; this is a current weakness of airEnumStr.
   hestOptAdd_1_Enum(&opt, "c,center", "center", &cent, "unknown",
                     "centering of axis: \"cell\" or \"node\"",
                     nrrdCenter);
@@ -141,7 +139,7 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) 
       nout->axis[axis].units = (char *)airFree(nout->axis[axis].units);
       nout->axis[axis].units = airStrdup(units);
     }
-    if (hestSourceUser == opt[mmIdx].source) {
+    if (hestSourceUser(opt[mmIdx].source)) {
       /* if it came from user, set the value, even if its nan. Actually,
          especially if its nan: that is the purpose of this extra logic */
       nout->axis[axis].min = mm[0];
@@ -154,7 +152,7 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) 
         nout->axis[axis].max = mm[1];
       }
     }
-    if (hestSourceUser == opt[spIdx].source) {
+    if (hestSourceUser(opt[spIdx].source)) {
       /* same logic as with min,max above */
       nout->axis[axis].spacing = spc;
     } else {

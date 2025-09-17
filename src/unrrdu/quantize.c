@@ -154,7 +154,7 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me, hestParm *hparm
     return 1;
   }
 
-  if (hestSourceUser == opt[srgbIdx].source) {
+  if (hestSourceUser(opt[srgbIdx].source)) {
     /* HEY copied from overrgb.c */
     nio = nrrdIoStateNew();
     airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);

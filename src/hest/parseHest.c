@@ -22,21 +22,32 @@
 
 #include <string.h>
 
-#define ME ((parm && parm->verbosity) ? me : "")
+/* A little trickery for error reporting.  For many of the functions here, if they hit an
+error and hparm->verbosity is set, then we should reveal the current function name (set
+by convention in `me`). But without verbosity, we hide that function name, so it appears
+that the error is coming from the caller (probably identified as argv[0]).  However, that
+means that functions using this `ME` macro should (in defiance of convention) set to `me`
+to `functionname: ` (NOTE the `: `) so that all of that goes away without verbosity. And,
+that means that error message generation here should also defy convention and instead of
+being "%s: what happened" it should just be "%swhat happened" */
+#define ME ((hparm && hparm->verbosity) ? me : "")
 
 /*
 argsInResponseFiles()
 
-returns the number of "args" (i.e. the number of space-separated strings) that will be
-parsed from the response files. The role of this function is solely to simplify the task
-of avoiding memory leaks.  By knowing exactly how many args we'll get in the response
-file, then hestParse() can allocate its local argv[] for exactly as long as it needs to
-be, and we can avoid using an airArray.  The drawback is that we open and read through
-the response files twice.  Alas.
+returns the number of "args" (i.e. the number of AIR_WHITESPACE-separated strings) that
+will be parsed from the response files. The role of this function is solely to simplify
+the task of avoiding memory leaks.  By knowing exactly how many args we'll get in the
+response file, then hestParse() can allocate its local argv[] for exactly as long as it
+needs to be, and we can avoid using an airArray.  The drawback is that we open and read
+through the response files twice.  Alas.
+
+NOTE: Currently, this makes no effort to interpreted quoted strings "like this one" as a
+single arg, and we do not do any VTAB-separating of args here.
 */
 static int
 argsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, char *err,
-                    const hestParm *parm) {
+                    const hestParm *hparm) {
   FILE *file;
   static const char me[] = "argsInResponseFiles: ";
   char line[AIR_STRLEN_HUGE + 1], *pound;
@@ -44,14 +55,14 @@ argsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, char *e
 
   *argsNumP = 0;
   *respFileNumP = 0;
-  if (!parm->respFileEnable) {
+  if (!hparm->respFileEnable) {
     /* don't do response files; we're done */
     return 0;
   }
 
   argIdx = 0;
   while (argv /* can be NULL for testing */ && argv[argIdx]) {
-    if (parm->respFileFlag == argv[argIdx][0]) {
+    if (hparm->respFileFlag == argv[argIdx][0]) {
       /* argv[argIdx] looks like its naming a response file */
       /* NOTE: despite the repeated temptation: "-" aka stdin cannot be a response file,
          because it is going to be read in twice: once by argsInResponseFiles, and then
@@ -68,7 +79,7 @@ argsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, char *e
       len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
       while (len > 0) {
         /* first # (or #-alike char) is turned into line end */
-        if ((pound = strchr(line, parm->respFileComment))) {
+        if ((pound = strchr(line, hparm->respFileComment))) {
           *pound = '\0';
         }
         /* count words in line */
@@ -85,14 +96,14 @@ argsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, char *e
   return 0;
 }
 
-/* printArgv prints (for debugging) the given non-const argv array */
+/* prints (for debugging) the given non-const argv array */
 static void
 printArgv(int argc, char **argv, const char *pfx) {
-  int a;
+  int ai;
 
   printf("%sargc=%d : ", pfx ? pfx : "", argc);
-  for (a = 0; a < argc; a++) {
-    printf("%s%s ", pfx ? pfx : "", argv[a]);
+  for (ai = 0; ai < argc; ai++) {
+    printf("%s%s ", pfx ? pfx : "", argv[ai]);
   }
   printf("%s\n", pfx ? pfx : "");
 }
@@ -101,14 +112,21 @@ printArgv(int argc, char **argv, const char *pfx) {
 copyArgv()
 
 Copies given oldArgv to newArgv, including (if they are enabled) injecting the contents
-of response files.  BUT: this stops upon seeing "--help" if parm->respectDashDashHelp.
+of response files.  Returns the number of AIR_WHITESPACE-separated arguments in newArgv.
 Allocations of the strings in newArgv are remembered (to be airFree'd later) in the given
-pmop. Returns the number of args set in newArgv, and sets sawHelp if saw "--help".
+pmop. Returns the number of args set in newArgv. BUT: upon seeing "--help" if
+parm->respectDashDashHelp, this sets *sawHelp=AIR_TRUE, and then finishes early.
 
-For a brief moment prior to the 2.0.0 release, this also stopped if it saw "--" (or
-whatever parm->varParamStopFlag implies), but that meant "--" is a brick wall that
-hestParse could never see past. But that misunderstands the relationship between how
-hestParse works and how the world uses "--".  According to POSIX guidelines:
+NOTE: like argsInResponseFiles, this is totally naive about quoted strings that appear in
+response files! So "multiple words like this" would be processed as four args, the first
+one starting with '"', and the last one ending with '"'. The same naivety means that the
+'#' character is considered to mark the beginning of a comment, EVEN IF THAT '#' is
+inside a string.  Sorry.  (This is why hest parsing is being re-written ...)
+
+For a brief moment in 2023, this also stopped if it saw "--" (or whatever
+parm->varParamStopFlag implies), but that meant "--" is a brick wall that hestParse could
+never see past. But that misunderstands the relationship between how hestParse works and
+how the world uses "--".  According to POSIX guidelines:
 https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html#tag_12_01
 the elements of argv can be first "options" and then "operands", where "options" are
 indicated by something starting with '-', and may have 0 or more "option-arguments".
@@ -131,7 +149,7 @@ have their arguments be optional), but those guidelines are used here to help do
 what "--" should mean.
 */
 static int
-copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *parm,
+copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *hparm,
          airArray *pmop) {
   static const char me[] = "copyArgv";
   char line[AIR_STRLEN_HUGE + 1], *pound;
@@ -144,7 +162,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
     oldArgc++;
   }
 
-  if (parm->verbosity > 1) {
+  if (hparm->verbosity > 1) {
     printf("%s: hello, oldArgc (number of input args) = %u:\n", me, oldArgc);
     for (argIdx = 0; argIdx < oldArgc; argIdx++) {
       printf("    oldArgv[%u] == |%s|\n", argIdx, oldArgv[argIdx]);
@@ -154,17 +172,17 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
   newArgc = 0;
   *sawHelp = AIR_FALSE;
   for (argIdx = 0; argIdx < oldArgc; argIdx++) {
-    if (parm->respectDashDashHelp && !strcmp("--help", oldArgv[argIdx])) {
+    if (hparm->respectDashDashHelp && !strcmp("--help", oldArgv[argIdx])) {
       *sawHelp = AIR_TRUE;
       break;
     }
     /* else not a show-stopper argument */
-    if (parm->verbosity) {
+    if (hparm->verbosity) {
       printf("%s:________ newArgc = %u, argIdx = %u -> \"%s\"\n", me, newArgc, argIdx,
              oldArgv[argIdx]);
       printArgv(newArgc, newArgv, "     ");
     }
-    if (!parm->respFileEnable || parm->respFileFlag != oldArgv[argIdx][0]) {
+    if (!hparm->respFileEnable || hparm->respFileFlag != oldArgv[argIdx][0]) {
       /* either ignoring response files, or its not a response file:
       we copy the arg, remember to free it, and increment the new arg idx */
       newArgv[newArgc] = airStrdup(oldArgv[argIdx]);
@@ -178,13 +196,13 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
       len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
       while (len > 0) {
         unsigned rgi;
-        if (parm->verbosity) printf("%s: line: |%s|\n", me, line);
+        if (hparm->verbosity) printf("%s: line: |%s|\n", me, line);
         /* HEY HEY too bad for you if you put # inside a string */
-        if ((pound = strchr(line, parm->respFileComment))) *pound = '\0';
-        if (parm->verbosity) printf("%s: -0-> line: |%s|\n", me, line);
+        if ((pound = strchr(line, hparm->respFileComment))) *pound = '\0';
+        if (hparm->verbosity) printf("%s: -0-> line: |%s|\n", me, line);
         airOneLinify(line);
         incr = airStrntok(line, AIR_WHITESPACE);
-        if (parm->verbosity) printf("%s: -1-> line: |%s|, incr=%d\n", me, line, incr);
+        if (hparm->verbosity) printf("%s: -1-> line: |%s|, incr=%d\n", me, line, incr);
         airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE, incr, AIR_FALSE);
         for (rgi = 0; rgi < incr; rgi++) {
           /* This time, we did allocate memory.  We can use airFree and
@@ -196,7 +214,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
       }
       fclose(file);
     }
-    if (parm->verbosity) {
+    if (hparm->verbosity) {
       printArgv(newArgc, newArgv, "     ");
       printf("%s: ^^^^^^^ newArgc = %d, argIdx = %d\n", me, newArgc, argIdx);
     }
@@ -208,48 +226,50 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
 }
 
 /*
-** _hestPanic()
-**
-** all error checking on the given hest array itself (not the
-** command line to be parsed).
-**
-** Prior to 2023 code revisit; this used to set the "kind" in all the opts
-** but now that is more appropriately done at the time the option is added
-** (by hestOptAdd, hestOptAdd_nva, hestOptSingleSet, or hestOptAdd_*_*)
+_hestOptCheck()   (formerly _hestPanic)
+
+This performs the validation of the given hestOpt array itself (not the command line to
+be parsed), with descriptive error messages sprintf'ed into err, if given. hestOptCheck()
+is the expected way for users to access this.
+
+Prior to 2023 code revisit; this used to set the "kind" in all the opts but now that is
+more appropriately done at the time the option is added (by hestOptAdd, hestOptAdd_nva,
+hestOptSingleSet, or hestOptAdd_*_*)
 */
 int
-_hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
-  static const char me[] = "_hestPanic: ";
+_hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
+  /* see note on ME (at top) for why me[] ends with ": " */
+  static const char me[] = "_hestOptCheck: ";
   char tbuff[AIR_STRLEN_HUGE + 1], *sep;
-  int numvar, op, numOpts;
+  int numvar, opi, optNum;
 
-  numOpts = hestOptNum(opt);
+  optNum = hestOptNum(opt);
   numvar = 0;
-  for (op = 0; op < numOpts; op++) {
-    if (!(AIR_IN_OP(airTypeUnknown, opt[op].type, airTypeLast))) {
+  for (opi = 0; opi < optNum; opi++) {
+    if (!(AIR_IN_OP(airTypeUnknown, opt[opi].type, airTypeLast))) {
       if (err)
-        sprintf(err, "%s!!!!!! opt[%d].type (%d) not in valid range [%d,%d]", ME, op,
-                opt[op].type, airTypeUnknown + 1, airTypeLast - 1);
+        sprintf(err, "%s!!!!!! opt[%d].type (%d) not in valid range [%d,%d]", ME, opi,
+                opt[opi].type, airTypeUnknown + 1, airTypeLast - 1);
       else
         fprintf(stderr, "%s: panic 0\n", me);
       return 1;
     }
-    if (!(opt[op].valueP)) {
+    if (!(opt[opi].valueP)) {
       if (err)
-        sprintf(err, "%s!!!!!! opt[%d]'s valueP is NULL!", ME, op);
+        sprintf(err, "%s!!!!!! opt[%d]'s valueP is NULL!", ME, opi);
       else
         fprintf(stderr, "%s: panic 0.5\n", me);
       return 1;
     }
-    if (-1 == opt[op].kind) {
+    if (-1 == opt[opi].kind) {
       if (err)
-        sprintf(err, "%s!!!!!! opt[%d]'s min (%d) and max (%d) incompatible", ME, op,
-                opt[op].min, opt[op].max);
+        sprintf(err, "%s!!!!!! opt[%d]'s min (%d) and max (%d) incompatible", ME, opi,
+                opt[opi].min, opt[opi].max);
       else
         fprintf(stderr, "%s: panic 1\n", me);
       return 1;
     }
-    if (5 == opt[op].kind && !(opt[op].sawP)) {
+    if (5 == opt[opi].kind && !(opt[opi].sawP)) {
       if (err)
         sprintf(err,
                 "%s!!!!!! have multiple variable parameters, "
@@ -259,99 +279,99 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
         fprintf(stderr, "%s: panic 2\n", me);
       return 1;
     }
-    if (airTypeEnum == opt[op].type) {
-      if (!(opt[op].enm)) {
+    if (airTypeEnum == opt[opi].type) {
+      if (!(opt[opi].enm)) {
         if (err) {
           sprintf(err,
                   "%s!!!!!! opt[%d] (%s) is type \"enum\", but no "
                   "airEnum pointer given",
-                  ME, op, opt[op].flag ? opt[op].flag : "?");
+                  ME, opi, opt[opi].flag ? opt[opi].flag : "?");
         } else {
           fprintf(stderr, "%s: panic 3\n", me);
         }
         return 1;
       }
     }
-    if (airTypeOther == opt[op].type) {
-      if (!(opt[op].CB)) {
+    if (airTypeOther == opt[opi].type) {
+      if (!(opt[opi].CB)) {
         if (err) {
           sprintf(err,
                   "%s!!!!!! opt[%d] (%s) is type \"other\", but no "
                   "callbacks given",
-                  ME, op, opt[op].flag ? opt[op].flag : "?");
+                  ME, opi, opt[opi].flag ? opt[opi].flag : "?");
         } else {
           fprintf(stderr, "%s: panic 4\n", me);
         }
         return 1;
       }
-      if (!(opt[op].CB->size > 0)) {
+      if (!(opt[opi].CB->size > 0)) {
         if (err)
-          sprintf(err, "%s!!!!!! opt[%d]'s \"size\" (%d) invalid", ME, op,
-                  (int)(opt[op].CB->size));
+          sprintf(err, "%s!!!!!! opt[%d]'s \"size\" (%d) invalid", ME, opi,
+                  (int)(opt[opi].CB->size));
         else
           fprintf(stderr, "%s: panic 5\n", me);
         return 1;
       }
-      if (!(opt[op].CB->type)) {
+      if (!(opt[opi].CB->type)) {
         if (err)
-          sprintf(err, "%s!!!!!! opt[%d]'s \"type\" is NULL", ME, op);
+          sprintf(err, "%s!!!!!! opt[%d]'s \"type\" is NULL", ME, opi);
         else
           fprintf(stderr, "%s: panic 6\n", me);
         return 1;
       }
-      if (!(opt[op].CB->parse)) {
+      if (!(opt[opi].CB->parse)) {
         if (err)
-          sprintf(err, "%s!!!!!! opt[%d]'s \"parse\" callback NULL", ME, op);
+          sprintf(err, "%s!!!!!! opt[%d]'s \"parse\" callback NULL", ME, opi);
         else
           fprintf(stderr, "%s: panic 7\n", me);
         return 1;
       }
-      if (opt[op].CB->destroy && (sizeof(void *) != opt[op].CB->size)) {
+      if (opt[opi].CB->destroy && (sizeof(void *) != opt[opi].CB->size)) {
         if (err)
           sprintf(err,
                   "%s!!!!!! opt[%d] has a \"destroy\", but size %lu isn't "
                   "sizeof(void*)",
-                  ME, op, (unsigned long)(opt[op].CB->size));
+                  ME, opi, (unsigned long)(opt[opi].CB->size));
         else
           fprintf(stderr, "%s: panic 8\n", me);
         return 1;
       }
     }
-    if (opt[op].flag) {
-      strcpy(tbuff, opt[op].flag);
-      if ((sep = strchr(tbuff, parm->multiFlagSep))) {
+    if (opt[opi].flag) {
+      strcpy(tbuff, opt[opi].flag);
+      if ((sep = strchr(tbuff, hparm->multiFlagSep))) {
         *sep = '\0';
         if (!(strlen(tbuff) && strlen(sep + 1))) {
           if (err)
             sprintf(err,
                     "%s!!!!!! either short (\"%s\") or long (\"%s\") flag"
                     " of opt[%d] is zero length",
-                    ME, tbuff, sep + 1, op);
+                    ME, tbuff, sep + 1, opi);
           else
             fprintf(stderr, "%s: panic 9\n", me);
           return 1;
         }
-        if (parm->respectDashDashHelp && !strcmp("help", sep + 1)) {
+        if (hparm->respectDashDashHelp && !strcmp("help", sep + 1)) {
           if (err)
             sprintf(err,
                     "%s!!!!!! long \"--%s\" flag of opt[%d] is same as \"--help\" "
                     "that requested hparm->respectDashDashHelp handles separately",
-                    ME, sep + 1, op);
+                    ME, sep + 1, opi);
           else
             fprintf(stderr, "%s: panic 9.5\n", me);
           return 1;
         }
       } else {
-        if (!strlen(opt[op].flag)) {
+        if (!strlen(opt[opi].flag)) {
           if (err)
-            sprintf(err, "%s!!!!!! opt[%d].flag is zero length", ME, op);
+            sprintf(err, "%s!!!!!! opt[%d].flag is zero length", ME, opi);
           else
             fprintf(stderr, "%s: panic 10\n", me);
           return 1;
         }
       }
-      if (4 == opt[op].kind) {
-        if (!opt[op].dflt) {
+      if (4 == opt[opi].kind) {
+        if (!opt[opi].dflt) {
           if (err)
             sprintf(err,
                     "%s!!!!!! flagged single variable parameter must "
@@ -361,7 +381,7 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
             fprintf(stderr, "%s: panic 11\n", me);
           return 1;
         }
-        if (!strlen(opt[op].dflt)) {
+        if (!strlen(opt[opi].dflt)) {
           if (err)
             sprintf(err,
                     "%s!!!!!! flagged single variable parameter default "
@@ -382,8 +402,8 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
       }
       */
     }
-    if (1 == opt[op].kind) {
-      if (!opt[op].flag) {
+    if (1 == opt[opi].kind) {
+      if (!opt[opi].flag) {
         if (err)
           sprintf(err, "%s!!!!!! flags must have flags", ME);
         else
@@ -391,26 +411,26 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
         return 1;
       }
     } else {
-      if (!opt[op].name) {
+      if (!opt[opi].name) {
         if (err)
-          sprintf(err, "%s!!!!!! opt[%d] isn't a flag: must have \"name\"", ME, op);
+          sprintf(err, "%s!!!!!! opt[%d] isn't a flag: must have \"name\"", ME, opi);
         else
           fprintf(stderr, "%s: panic 14\n", me);
         return 1;
       }
     }
-    if (4 == opt[op].kind && !opt[op].dflt) {
+    if (4 == opt[opi].kind && !opt[opi].dflt) {
       if (err)
         sprintf(err,
                 "%s!!!!!! opt[%d] is single variable parameter, but "
                 "no default set",
-                ME, op);
+                ME, opi);
       else
         fprintf(stderr, "%s: panic 15\n", me);
       return 1;
     }
-    numvar += ((int)opt[op].min < _hestMax(opt[op].max)
-               && (NULL == opt[op].flag)); /* HEY scrutinize casts */
+    numvar += ((int)opt[opi].min < _hestMax(opt[opi].max)
+               && (NULL == opt[opi].flag)); /* HEY scrutinize casts */
   }
   if (numvar > 1) {
     if (err)
@@ -425,23 +445,23 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
 
 int
 _hestErrStrlen(const hestOpt *opt, int argc, const char **argv) {
-  int a, numOpts, ret, other;
+  int ai, optNum, ret, other;
 
   ret = 0;
-  numOpts = hestOptNum(opt);
+  optNum = hestOptNum(opt);
   other = AIR_FALSE;
   if (argv) {
-    for (a = 0; a < argc; a++) {
-      ret = AIR_MAX(ret, (int)airStrlen(argv[a]));
+    for (ai = 0; ai < argc; ai++) {
+      ret = AIR_MAX(ret, (int)airStrlen(argv[ai]));
     }
   }
-  for (a = 0; a < numOpts; a++) {
-    ret = AIR_MAX(ret, (int)airStrlen(opt[a].flag));
-    ret = AIR_MAX(ret, (int)airStrlen(opt[a].name));
-    other |= opt[a].type == airTypeOther;
+  for (ai = 0; ai < optNum; ai++) {
+    ret = AIR_MAX(ret, (int)airStrlen(opt[ai].flag));
+    ret = AIR_MAX(ret, (int)airStrlen(opt[ai].name));
+    other |= opt[ai].type == airTypeOther;
   }
-  for (a = airTypeUnknown + 1; a < airTypeLast; a++) {
-    ret = AIR_MAX(ret, (int)airStrlen(airTypeStr[a]));
+  for (ai = airTypeUnknown + 1; ai < airTypeLast; ai++) {
+    ret = AIR_MAX(ret, (int)airStrlen(airTypeStr[ai]));
   }
   if (other) {
     /* the callback's error() function may sprintf an error message
@@ -459,15 +479,15 @@ identStr()
 copies into ident a string for identifying an option in error and usage messages
 */
 static char *
-identStr(char *ident, hestOpt *opt, const hestParm *parm, int brief) {
+identStr(char *ident, const hestOpt *opt, const hestParm *hparm, int brief) {
   char copy[AIR_STRLEN_HUGE + 1], *sep;
 
-  if (opt->flag && (sep = strchr(opt->flag, parm->multiFlagSep))) {
+  if (opt->flag && (sep = strchr(opt->flag, hparm->multiFlagSep))) {
     strcpy(copy, opt->flag);
-    sep = strchr(copy, parm->multiFlagSep);
+    sep = strchr(copy, hparm->multiFlagSep);
     *sep = '\0';
     if (brief)
-      sprintf(ident, "-%s%c--%s option", copy, parm->multiFlagSep, sep + 1);
+      sprintf(ident, "-%s%c--%s option", copy, hparm->multiFlagSep, sep + 1);
     else
       sprintf(ident, "-%s option", copy);
   } else {
@@ -478,72 +498,81 @@ identStr(char *ident, hestOpt *opt, const hestParm *parm, int brief) {
 }
 
 /*
-whichFlag()
+whichOptFlag()
 
-given a string in "flag" (with the hypen prefix) finds which of the flags in the given
-array of options matches that.  Returns the index of the matching option, or -1 if
-there is no match, but returns -2 if the flag is the end-of-parameters
-marker "--" (or whatever parm->varParamStopFlag implies)
+given a string in "flag" (with the hypen prefix) finds which of the options in the given
+array of options has the matching flag. Returns the index of the matching option, or -1
+if there is no match, but returns -2 if the flag is the end-of-parameters marker "--" (or
+whatever parm->varParamStopFlag implies)
 */
 static int
-whichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
-  static const char me[] = "whichFlag";
+whichOptFlag(const hestOpt *opt, const char *flag, const hestParm *hparm) {
+  static const char me[] = "whichOptFlag";
   char buff[2 * AIR_STRLEN_HUGE + 1], copy[AIR_STRLEN_HUGE + 1], *sep;
-  int op, numOpts;
+  int optIdx, optNum;
 
-  numOpts = hestOptNum(opt);
-  if (parm->verbosity)
-    printf("%s: (a) looking for flag |%s| in numOpts=%d options\n", me, flag, numOpts);
-  for (op = 0; op < numOpts; op++) {
-    if (parm->verbosity) printf("%s:      op = %d\n", me, op);
-    if (!opt[op].flag) continue;
-    if (strchr(opt[op].flag, parm->multiFlagSep)) {
-      strcpy(copy, opt[op].flag);
-      sep = strchr(copy, parm->multiFlagSep);
+  optNum = hestOptNum(opt);
+  if (hparm->verbosity)
+    printf("%s: (a) looking for maybe-is-flag |%s| in optNum=%d options\n", me, flag,
+           optNum);
+  for (optIdx = 0; optIdx < optNum; optIdx++) {
+    if (hparm->verbosity)
+      printf("%s:      optIdx %d |%s| ?\n", me, optIdx,
+             opt[optIdx].flag ? opt[optIdx].flag : "(nullflag)");
+    if (!opt[optIdx].flag) continue;
+    if (strchr(opt[optIdx].flag, hparm->multiFlagSep)) {
+      strcpy(copy, opt[optIdx].flag);
+      sep = strchr(copy, hparm->multiFlagSep);
       *sep = '\0';
       /* first try the short version */
       sprintf(buff, "-%s", copy);
-      if (!strcmp(flag, buff)) return op;
+      if (!strcmp(flag, buff)) return optIdx;
       /* then try the long version */
       sprintf(buff, "--%s", sep + 1);
-      if (!strcmp(flag, buff)) return op;
+      if (!strcmp(flag, buff)) return optIdx;
     } else {
       /* flag has only the short version */
-      sprintf(buff, "-%s", opt[op].flag);
-      if (!strcmp(flag, buff)) return op;
+      sprintf(buff, "-%s", opt[optIdx].flag);
+      if (!strcmp(flag, buff)) return optIdx;
     }
   }
-  if (parm->verbosity) printf("%s: (b) numOpts = %d\n", me, numOpts);
-  if (parm->varParamStopFlag) {
-    sprintf(buff, "-%c", parm->varParamStopFlag);
-    if (parm->verbosity)
-      printf("%s: does flag |%s| == -parm->varParamStopFlag |%s| ?\n", me, flag, buff);
+  if (hparm->verbosity) printf("%s: (b) optNum = %d\n", me, optNum);
+  if (hparm->varParamStopFlag) {
+    sprintf(buff, "-%c", hparm->varParamStopFlag);
+    if (hparm->verbosity)
+      printf("%s: does maybe-is-flag |%s| == -parm->varParamStopFlag |%s| ?\n", me, flag,
+             buff);
     if (!strcmp(flag, buff)) {
-      if (parm->verbosity) printf("%s: yes, it does! returning -2\n", me);
+      if (hparm->verbosity) printf("%s: yes, it does! returning -2\n", me);
       return -2;
     }
   }
-  if (parm->verbosity) printf("%s: (c) returning -1\n", me);
+  if (hparm->verbosity) printf("%s: (c) returning -1\n", me);
   return -1;
 }
 
 /*
-extractToStr: takes "pnum" parameters, starting at "base", out of the given argv, and
-puts them into a string WHICH THIS FUNCTION ALLOCATES, and also adjusts the argc value
-given as "*argcP".
+extractToStr: from the given *argcP,argv description of args, starting at arg index
+`base`, takes *UP TO* `pnum` parameters out of argv, and puts them into a new
+VTAB-separated qstring WHICH THIS FUNCTION ALLOCATES, and accordingly decreases `*argcP`.
+
+***** This is the function where VTAB starts being used.
+
+The number of parameters so extracted is stored in `*pnumGot` (if `pnumGot` non-NULL).
+`*pnumGot` can be less than `pnum` if we hit "--" (or the equivalent)
 */
 static char *
 extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
-             unsigned int *pnumGot, const hestParm *parm) {
+             unsigned int *pnumGot, const hestParm *hparm) {
   unsigned int len, pidx, true_pnum;
   char *ret;
   char stops[3] = "";
 
   if (!pnum) return NULL;
 
-  if (parm) {
+  if (hparm) {
     stops[0] = '-';
-    stops[1] = parm->varParamStopFlag;
+    stops[1] = hparm->varParamStopFlag;
     stops[2] = '\0';
   } /* else stops stays as empty string */
 
@@ -551,7 +580,7 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
   len = 0;
   for (pidx = 0; pidx < pnum; pidx++) {
     if (base + pidx == AIR_UINT(*argcP)) {
-      /* ran up against end of argv array */
+      /* ran up against end of argv array; game over */
       return NULL;
     }
     if (!strcmp(argv[base + pidx], stops)) {
@@ -560,7 +589,7 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
     }
     /* increment by strlen of current arg */
     len += AIR_UINT(strlen(argv[base + pidx]));
-    /* and by 2, for 2 '"'s around quoted parm */
+    /* and then increment by 2, for 2 '"'s around quoted parm */
     if (strstr(argv[base + pidx], " ")) {
       len += 2;
     }
@@ -584,9 +613,11 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
     if (strstr(argv[base + pidx], " ")) {
       strcat(ret, "\"");
     }
-    /* add space prior to anticipated next parm */
+    /* add space prior to anticipated next parm
+     HEY this needs to be re-written to extend an argv */
     if (pidx < true_pnum - 1) strcat(ret, " ");
   }
+  /* shuffle down later argv pointers */
   for (pidx = base + true_pnum; pidx <= AIR_UINT(*argcP); pidx++) {
     argv[pidx - true_pnum] = argv[pidx];
   }
@@ -597,112 +628,129 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
 /*
 extractFlagged()
 
-extracts the parameters associated with all flagged options from the given argc and argv,
-storing them in prms[], recording the number of parameters in nprm[], and whether or not
-the flagged option appeared in appr[].
+extracts the parameters associated with all flagged options from the given *argcP and
+argv (wherein the flag and subsequent parms were all separate strings), and here stores
+them in optParms[] as a single VTAB-separated string (VTABs originating in extractToStr),
+recording the number of parameters in optParmNum[], and whether or not the flagged option
+appeared in optAprd[].
 
 The sawP information is not set here, since it is better set at value parsing time, which
 happens after defaults are enstated.
 
-This is where, thanks to the action of whichFlag(), "--" (or whatever
+This is where, thanks to the action of whichOptFlag(), "--" (or whatever
 parm->varParamStopFlag implies) is used as a marker for the end of a *flagged* variable
 parameter option.  AND, the "--" marker is removed from the argv.
 */
 static int
-extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **argv,
-               hestOpt *opt, char *err, const hestParm *parm, airArray *pmop) {
+extractFlagged(char **optParms, unsigned int *optParmNum, int *optAprd, int *argcP,
+               char **argv, hestOpt *opt, char *err, const hestParm *hparm,
+               airArray *pmop) {
+  /* see note on ME (at top) for why me[] ends with ": " */
   static const char me[] = "extractFlagged: ";
   char ident1[AIR_STRLEN_HUGE + 1], ident2[AIR_STRLEN_HUGE + 1];
-  int a, np, flag, endflag, numOpts, op;
+  int argIdx, parmNum, optIdx, nextOptIdx, optNum, op;
 
-  a = 0;
-  if (parm->verbosity) printf("%s: *argcP = %d\n", me, *argcP);
-  while (a <= *argcP - 1) {
-    if (parm->verbosity) {
-      printf("%s: ----------------- a = %d -> argv[a] = %s\n", me, a, argv[a]);
+  if (hparm->verbosity) printf("%s: *argcP = %d\n", me, *argcP);
+  argIdx = 0;
+  while (argIdx <= *argcP - 1) {
+    if (hparm->verbosity) {
+      printf("%s----------------- argIdx = %d -> argv[argIdx] = %s\n", me, argIdx,
+             argv[argIdx]);
     }
-    flag = whichFlag(opt, argv[a], parm);
-    if (parm->verbosity) printf("%s: A: a = %d -> flag = %d\n", me, a, flag);
-    if (!(0 <= flag)) {
+    optIdx = whichOptFlag(opt, argv[argIdx], hparm);
+    if (hparm->verbosity)
+      printf("%sA: argv[%d]=|%s| is flag of opt %d\n", me, argIdx, argv[argIdx], optIdx);
+    if (!(0 <= optIdx)) {
       /* not a flag, move on */
-      a++;
-      if (parm->verbosity) printf("%s: !(0 <= %d), so: continue\n", me, flag);
+      argIdx++;
+      if (hparm->verbosity) printf("%s: !(0 <= %d), so: continue\n", me, optIdx);
       continue;
     }
     /* see if we can associate some parameters with the flag */
-    if (parm->verbosity) printf("%s: flag = %d; any parms?\n", me, flag);
-    np = 0;
-    endflag = 0;
-    while (np < _hestMax(opt[flag].max) /* */
-           && a + np + 1 <= *argcP - 1  /* */
-           && -1 == (endflag = whichFlag(opt, argv[a + np + 1], parm))) {
-      np++;
-      if (parm->verbosity)
-        printf("%s: np --> %d with flag = %d; endflag = %d\n", me, np, flag, endflag);
+    if (hparm->verbosity)
+      printf("%soptIdx %d |%s|: any parms?\n", me, optIdx, opt[optIdx].flag);
+    parmNum = 0;
+    nextOptIdx = 0; // what is index of option who's flag we see next
+    while (parmNum < _hestMax(opt[optIdx].max)   /* */
+           && argIdx + parmNum + 1 <= *argcP - 1 /* */
+           && -1
+                == (nextOptIdx = whichOptFlag(opt,                        /* */
+                                              argv[argIdx + parmNum + 1], /* */
+                                              hparm))) {
+      parmNum++;
+      if (hparm->verbosity)
+        printf("%soptIdx %d |%s|: parmNum --> %d nextOptIdx = %d\n", me, optIdx,
+               opt[optIdx].flag, parmNum, nextOptIdx);
     }
     /* we stopped because we got the max number of parameters, or
        because we hit the end of the command line, or
-       because whichFlag() returned something other than -1,
-       which means it returned -2, or a valid option index.  If
-       we stopped because of whichFlag()'s return value,
-       endflag has been set to that return value */
-    if (parm->verbosity)
-      printf("%s: B: stopped with np = %d; flag = %d; endflag = %d\n", me, np, flag,
-             endflag);
-    if (np < (int)opt[flag].min) { /* HEY scrutinize casts */
+       because whichOptFlag() returned something other than -1,
+       which means it returned -2, or a valid option index.
+       If we stopped because of whichOptFlag()'s return value,
+       nextOptIdx has been set to that return value */
+    if (hparm->verbosity)
+      printf("%sB: optIdx %d |%s|: stopped with parmNum = %d nextOptIdx = %d\n", me,
+             optIdx, opt[optIdx].flag, parmNum, nextOptIdx);
+    if (parmNum < (int)opt[optIdx].min) { /* HEY scrutinize casts */
       /* didn't get minimum number of parameters */
-      if (!(a + np + 1 <= *argcP - 1)) {
+      if (!(argIdx + parmNum + 1 <= *argcP - 1)) {
         sprintf(err,
-                "%shit end of line before getting %d parameter%s "
+                "%sgot to end of line before getting %d parameter%s "
                 "for %s (got %d)",
-                ME, opt[flag].min, opt[flag].min > 1 ? "s" : "",
-                identStr(ident1, opt + flag, parm, AIR_TRUE), np);
-      } else if (-2 != endflag) {
-        sprintf(err, "%shit %s before getting %d parameter%s for %s (got %d)", ME,
-                identStr(ident1, opt + endflag, parm, AIR_FALSE), opt[flag].min,
-                opt[flag].min > 1 ? "s" : "",
-                identStr(ident2, opt + flag, parm, AIR_FALSE), np);
+                ME, opt[optIdx].min, opt[optIdx].min > 1 ? "s" : "",
+                identStr(ident1, opt + optIdx, hparm, AIR_TRUE), parmNum);
+      } else if (-2 != nextOptIdx) {
+        sprintf(err, "%ssaw %s before getting %d parameter%s for %s (got %d)", ME,
+                identStr(ident1, opt + nextOptIdx, hparm, AIR_FALSE), opt[optIdx].min,
+                opt[optIdx].min > 1 ? "s" : "",
+                identStr(ident2, opt + optIdx, hparm, AIR_FALSE), parmNum);
       } else {
         sprintf(err,
-                "%shit \"-%c\" (option-parameter-stop flag) before getting %d "
+                "%ssaw \"-%c\" (option-parameter-stop flag) before getting %d "
                 "parameter%s for %s (got %d)",
-                ME, parm->varParamStopFlag, opt[flag].min, opt[flag].min > 1 ? "s" : "",
-                identStr(ident2, opt + flag, parm, AIR_FALSE), np);
+                ME, hparm->varParamStopFlag, opt[optIdx].min,
+                opt[optIdx].min > 1 ? "s" : "",
+                identStr(ident2, opt + optIdx, hparm, AIR_FALSE), parmNum);
       }
       return 1;
     }
-    nprm[flag] = np;
-    if (parm->verbosity) {
-      printf("%s:________ a=%d, *argcP = %d -> flag = %d\n", me, a, *argcP, flag);
+    /* record number of parameters seen for this option */
+    optParmNum[optIdx] = parmNum;
+    if (hparm->verbosity) {
+      printf("%s________ argv[%d]=|%s|: *argcP = %d -> optIdx = %d\n", me, argIdx,
+             argv[argIdx], *argcP, optIdx);
       printArgv(*argcP, argv, "     ");
     }
     /* lose the flag argument */
-    free(extractToStr(argcP, argv, a, 1, NULL, NULL));
+    free(extractToStr(argcP, argv, argIdx, 1, NULL, NULL));
     /* extract the args after the flag */
-    if (appr[flag]) {
-      airMopSub(pmop, prms[flag], airFree);
-      prms[flag] = (char *)airFree(prms[flag]);
+    if (optAprd[optIdx]) {
+      /* oh so this is not the first time we've seen this option;
+      so now forget everything triggered by having seen it already */
+      airMopSub(pmop, optParms[optIdx], airFree);
+      optParms[optIdx] = (char *)airFree(optParms[optIdx]);
     }
-    prms[flag] = extractToStr(argcP, argv, a, nprm[flag], NULL, NULL);
-    airMopAdd(pmop, prms[flag], airFree, airMopAlways);
-    appr[flag] = AIR_TRUE;
-    if (-2 == endflag) {
+    optParms[optIdx] = extractToStr(argcP, argv, argIdx, optParmNum[optIdx], NULL, NULL);
+    airMopAdd(pmop, optParms[optIdx], airFree, airMopAlways);
+    optAprd[optIdx] = AIR_TRUE;
+    if (-2 == nextOptIdx) {
       /* we drop the option-parameter-stop flag */
-      free(extractToStr(argcP, argv, a, 1, NULL, NULL));
+      free(extractToStr(argcP, argv, argIdx, 1, NULL, NULL));
     }
-    if (parm->verbosity) {
+    if (hparm->verbosity) {
       printArgv(*argcP, argv, "     ");
-      printf("%s:^^^^^^^^ *argcP = %d\n", me, *argcP);
-      printf("%s: prms[%d] = %s\n", me, flag, prms[flag] ? prms[flag] : "(null)");
+      printf("%s^^^^^^^^ *argcP = %d\n", me, *argcP);
+      printf("%soptParms[%d] = |%s|\n", me, optIdx,
+             optParms[optIdx] ? optParms[optIdx] : "(null)");
     }
   }
 
   /* make sure that flagged options without default were given */
-  numOpts = hestOptNum(opt);
-  for (op = 0; op < numOpts; op++) {
-    if (1 != opt[op].kind && opt[op].flag && !opt[op].dflt && !appr[op]) {
+  optNum = hestOptNum(opt);
+  for (op = 0; op < optNum; op++) {
+    if (1 != opt[op].kind && opt[op].flag && !opt[op].dflt && !optAprd[op]) {
       sprintf(err, "%sdidn't get required %s", ME,
-              identStr(ident1, opt + op, parm, AIR_FALSE));
+              identStr(ident1, opt + op, hparm, AIR_FALSE));
       return 1;
     }
   }
@@ -711,95 +759,108 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
 }
 
 static int
-_hestNextUnflagged(int op, hestOpt *opt, int numOpts) {
+nextUnflagged(int op, hestOpt *opt, int optNum) {
 
-  for (; op <= numOpts - 1; op++) {
+  for (; op <= optNum - 1; op++) {
     if (!opt[op].flag) break;
   }
   return op;
 }
 
+/*
+extractUnflagged()
+
+extracts the parameters associated with all unflagged options from the given *argcP and
+argv (wherein the flag and subsequent parms were all separate strings), and here stores
+them in optParms[] as a single VTAB-separated string (VTABs originating in extractToStr),
+recording the number of parameters in optParmNum[].
+
+This is the function that has to handle the trickly logic of allowing there to be
+multiple unflagged options, one of which may have a variable number of parms; that
+one has to be extracted last.
+*/
 static int
-extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv, hestOpt *opt,
-                 char *err, const hestParm *parm, airArray *pmop) {
+extractUnflagged(char **optParms, unsigned int *optParmNum, int *argcP, char **argv,
+                 hestOpt *opt, char *err, const hestParm *hparm, airArray *pmop) {
+  /* see note on ME (at top) for why me[] ends with ": " */
   static const char me[] = "extractUnflagged: ";
   char ident[AIR_STRLEN_HUGE + 1];
-  int nvp, np, op, unflag1st, unflagVar, numOpts;
+  int nvp, np, op, unflag1st, unflagVar, optNum;
 
-  numOpts = hestOptNum(opt);
-  unflag1st = _hestNextUnflagged(0, opt, numOpts);
-  if (numOpts == unflag1st) {
+  optNum = hestOptNum(opt);
+  unflag1st = nextUnflagged(0, opt, optNum);
+  if (optNum == unflag1st) {
     /* no unflagged options; we're done */
     return 0;
   }
-  if (parm->verbosity) {
-    printf("%s numOpts %d != unflag1st %d: have some (of %d) unflagged options\n", me,
-           numOpts, unflag1st, numOpts);
+  if (hparm->verbosity) {
+    printf("%soptNum %d != unflag1st %d: have some (of %d) unflagged options\n", me,
+           optNum, unflag1st, optNum);
   }
 
-  for (unflagVar = unflag1st; unflagVar != numOpts;
-       unflagVar = _hestNextUnflagged(unflagVar + 1, opt, numOpts)) {
+  for (unflagVar = unflag1st; unflagVar != optNum;
+       unflagVar = nextUnflagged(unflagVar + 1, opt, optNum)) {
     if (AIR_INT(opt[unflagVar].min) < _hestMax(opt[unflagVar].max)) {
       break;
     }
   }
   /* now, if there is a variable parameter unflagged opt, unflagVar is its
-     index in opt[], or else unflagVar is numOpts */
-  if (parm->verbosity) {
-    printf("%s unflagVar %d\n", me, unflagVar);
+     index in opt[], or else unflagVar is optNum */
+  if (hparm->verbosity) {
+    printf("%sunflagVar %d\n", me, unflagVar);
   }
 
-  /* grab parameters for all unflagged opts before opt[t] */
-  for (op = _hestNextUnflagged(0, opt, numOpts); op < unflagVar;
-       op = _hestNextUnflagged(op + 1, opt, numOpts)) {
-    if (parm->verbosity) {
-      printf("%s op = %d; unflagVar = %d\n", me, op, unflagVar);
+  /* grab parameters for all unflagged opts before opt[unflagVar] */
+  for (op = nextUnflagged(0, opt, optNum); op < unflagVar;
+       op = nextUnflagged(op + 1, opt, optNum)) {
+    if (hparm->verbosity) {
+      printf("%sop = %d; unflagVar = %d\n", me, op, unflagVar);
     }
-    np = opt[op].min; /* min == max */
+    np = opt[op].min; /* min == max, as implied by how unflagVar was set */
     if (!(np <= *argcP)) {
       sprintf(err, "%sdon't have %d parameter%s %s%s%sfor %s", ME, np, np > 1 ? "s" : "",
               argv[0] ? "starting at \"" : "", argv[0] ? argv[0] : "",
-              argv[0] ? "\" " : "", identStr(ident, opt + op, parm, AIR_TRUE));
+              argv[0] ? "\" " : "", identStr(ident, opt + op, hparm, AIR_TRUE));
       return 1;
     }
-    prms[op] = extractToStr(argcP, argv, 0, np, NULL, NULL);
-    airMopAdd(pmop, prms[op], airFree, airMopAlways);
-    nprm[op] = np;
+    optParms[op] = extractToStr(argcP, argv, 0, np, NULL, NULL);
+    airMopAdd(pmop, optParms[op], airFree, airMopAlways);
+    optParmNum[op] = np;
   }
-  /* we skip over the variable parameter unflagged option, subtract from *argcP
-     the number of parameters in all the opts which follow it, in order to get
-     the number of parameters in the sole variable parameter option,
-     store this in nvp */
+  /* we skip over the variable parameter unflagged option,
+  subtract from *argcP the number of parameters in all the opts which follow it,
+  in order to get the number of parameters in the sole variable parameter option,
+  store this in nvp */
   nvp = *argcP;
-  for (op = _hestNextUnflagged(unflagVar + 1, opt, numOpts); op < numOpts;
-       op = _hestNextUnflagged(op + 1, opt, numOpts)) {
+  for (op = nextUnflagged(unflagVar + 1, opt, optNum); op < optNum;
+       op = nextUnflagged(op + 1, opt, optNum)) {
     nvp -= opt[op].min; /* min == max */
   }
   if (nvp < 0) {
-    op = _hestNextUnflagged(unflagVar + 1, opt, numOpts);
+    op = nextUnflagged(unflagVar + 1, opt, optNum);
     np = opt[op].min;
     sprintf(err, "%sdon't have %d parameter%s for %s", ME, np, np > 1 ? "s" : "",
-            identStr(ident, opt + op, parm, AIR_FALSE));
+            identStr(ident, opt + op, hparm, AIR_FALSE));
     return 1;
   }
   /* else we had enough args for all the unflagged options following
      the sole variable parameter unflagged option, so snarf them up */
-  for (op = _hestNextUnflagged(unflagVar + 1, opt, numOpts); op < numOpts;
-       op = _hestNextUnflagged(op + 1, opt, numOpts)) {
+  for (op = nextUnflagged(unflagVar + 1, opt, optNum); op < optNum;
+       op = nextUnflagged(op + 1, opt, optNum)) {
     np = opt[op].min;
-    prms[op] = extractToStr(argcP, argv, nvp, np, NULL, NULL);
-    airMopAdd(pmop, prms[op], airFree, airMopAlways);
-    nprm[op] = np;
+    optParms[op] = extractToStr(argcP, argv, nvp, np, NULL, NULL);
+    airMopAdd(pmop, optParms[op], airFree, airMopAlways);
+    optParmNum[op] = np;
   }
 
   /* now we grab the parameters of the sole variable parameter unflagged opt,
-     if it exists (unflagVar < numOpts) */
-  if (parm->verbosity) {
-    printf("%s (still here) unflagVar %d vs numOpts %d (nvp %d)\n", me, unflagVar,
-           numOpts, nvp);
+     if it exists (unflagVar < optNum) */
+  if (hparm->verbosity) {
+    printf("%s (still here) unflagVar %d vs optNum %d (nvp %d)\n", me, unflagVar, optNum,
+           nvp);
   }
-  if (unflagVar < numOpts) {
-    if (parm->verbosity) {
+  if (unflagVar < optNum) {
+    if (hparm->verbosity) {
       printf("%s unflagVar=%d: min, nvp, max = %d %d %d\n", me, unflagVar,
              opt[unflagVar].min, nvp, _hestMax(opt[unflagVar].max));
     }
@@ -813,108 +874,117 @@ extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv, hestO
       if (nvp < AIR_INT(opt[unflagVar].min)) {
         sprintf(err, "%sdidn't get minimum of %d arg%s for %s (got %d)", ME,
                 opt[unflagVar].min, opt[unflagVar].min > 1 ? "s" : "",
-                identStr(ident, opt + unflagVar, parm, AIR_TRUE), nvp);
+                identStr(ident, opt + unflagVar, hparm, AIR_TRUE), nvp);
         return 1;
       }
-      prms[unflagVar] = extractToStr(argcP, argv, 0, nvp, &gotp, parm);
-      if (parm->verbosity) {
+      optParms[unflagVar] = extractToStr(argcP, argv, 0, nvp, &gotp, hparm);
+      if (hparm->verbosity) {
         printf("%s extracted %u to new string |%s| (*argcP now %d)\n", me, gotp,
-               prms[unflagVar], *argcP);
+               optParms[unflagVar], *argcP);
       }
-      airMopAdd(pmop, prms[unflagVar], airFree, airMopAlways);
-      nprm[unflagVar] = gotp; /* which is < nvp in case of "--" */
+      airMopAdd(pmop, optParms[unflagVar], airFree, airMopAlways);
+      optParmNum[unflagVar] = gotp; /* which is < nvp in case of "--" */
     } else {
-      prms[unflagVar] = NULL;
-      nprm[unflagVar] = 0;
+      optParms[unflagVar] = NULL;
+      optParmNum[unflagVar] = 0;
     }
   }
   return 0;
 }
 
 static int
-_hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
-              char *err, const hestParm *parm, airArray *mop) {
+_hestDefaults(char **optParms, int *optDfltd, unsigned int *optParmNum,
+              const int *optAprd, const hestOpt *opt, char *err, const hestParm *hparm,
+              airArray *mop) {
+  /* see note on ME (at top) for why me[] ends with ": " */
   static const char me[] = "_hestDefaults: ";
   char *tmpS, ident[AIR_STRLEN_HUGE + 1];
-  int op, numOpts;
+  int optIdx, optNum;
 
-  numOpts = hestOptNum(opt);
-  for (op = 0; op < numOpts; op++) {
-    if (parm->verbosity)
-      printf("%s op=%d/%d: \"%s\" --> kind=%d, nprm=%u, appr=%d\n", me, op, numOpts - 1,
-             prms[op], opt[op].kind, nprm[op], appr[op]);
-    switch (opt[op].kind) {
+  optNum = hestOptNum(opt);
+  for (optIdx = 0; optIdx < optNum; optIdx++) {
+    if (hparm->verbosity)
+      printf("%soptIdx=%d/%d (kind=%d): parms=\"%s\" optParmNum=%u, optAprd=%d\n", me,
+             optIdx, optNum, opt[optIdx].kind, optParms[optIdx], optParmNum[optIdx],
+             optAprd[optIdx]);
+    switch (opt[optIdx].kind) {
     case 1:
       /* -------- (no-parameter) boolean flags -------- */
-      /* default is indeed always ignored for the sake of setting the
-         option's value, but udflt is used downstream to set
-         the option's source. The info came from the user if
-         the flag appears, otherwise it is from the default. */
-      udflt[op] = !appr[op];
+      /* default is indeed always ignored for the sake of setting the option's value, but
+         optDfltd is used downstream to set the option's source. The info came from
+         the user if the flag appears, otherwise it is from the default. */
+      optDfltd[optIdx] = !optAprd[optIdx];
       break;
     case 2:
-    case 3:
       /* -------- one required parameter -------- */
+    case 3:
       /* -------- multiple required parameters -------- */
       /* we'll used defaults if the flag didn't appear */
-      udflt[op] = opt[op].flag && !appr[op];
+      optDfltd[optIdx] = opt[optIdx].flag && !optAprd[optIdx];
       break;
     case 4:
       /* -------- optional single variables -------- */
-      /* if the flag appeared (if there is a flag) but the parameter didn't,
-         we'll "invert" the default; if the flag didn't appear (or if there
-         isn't a flag) and the parameter also didn't appear, we'll use the
-         default.  In either case, nprm[op] will be zero, and in both cases,
-         we need to use the default information. */
-      udflt[op] = (0 == nprm[op]);
-      /* fprintf(stderr, "%s nprm[%d] = %u --> udflt[%d] = %d\n", me,
-       *       op, nprm[op], op, udflt[op]); */
+      /* if the flag appeared (if there is a flag) but the parameter didn't, we'll
+         "invert" the default; if the flag didn't appear (or if there isn't a flag) and
+         the parameter also didn't appear, we'll use the default.  In either case,
+         optParmNum[op] will be zero, and in both cases, we need to use the default
+         information. */
+      optDfltd[optIdx] = (0 == optParmNum[optIdx]);
+      /* fprintf(stderr, "%s optParmNum[%d] = %u --> optDfltd[%d] = %d\n", me,
+       *       op, optParmNum[op], op, optDfltd[op]); */
       break;
     case 5:
       /* -------- multiple optional parameters -------- */
-      /* we'll use the default if there is a flag and it didn't appear,
-         Otherwise (with a flagged option), if nprm[op] is zero, we'll use the default
-         if user has given zero parameters, yet the the option requires at least one.
-         If an unflagged option can have zero parms, and user has given zero parms,
-         then we don't use the default */
-      udflt[op] = (opt[op].flag
-                     ? !appr[op] /* option is flagged and flag didn't appear */
-                     /* else: option is unflagged, and there were no given parms,
-                     and yet the option requires at least one parm */
-                     : !nprm[op] && opt[op].min >= 1);
+      /* we'll use the default if there is a flag and it didn't appear. Otherwise (with a
+         flagged option), if optParmNum[op] is zero, we'll use the default if user has
+         given zero parameters, yet the the option requires at least one. If an unflagged
+         option can have zero parms, and user has given zero parms, then we don't use the
+         default */
+      optDfltd[optIdx]
+        = (opt[optIdx].flag
+             ? !optAprd[optIdx] /* option is flagged and flag didn't appear */
+             /* else: option is unflagged, and there were no given parms,
+             and yet the option requires at least one parm */
+             : !optParmNum[optIdx] && opt[optIdx].min >= 1);
       /* fprintf(stderr,
-       *       "!%s: opt[%d].flag = %d; appr[op] = %d; nprm[op] = %d; opt[op].min = %d "
-       *       "--> udflt[op] = %d\n",
-       *       me, op, !!opt[op].flag, appr[op], nprm[op], opt[op].min, udflt[op]); */
+       *       "!%s: opt[%d].flag = %d; optAprd[op] = %d; optParmNum[op] = %d;
+       * opt[op].min = %d "
+       *       "--> optDfltd[op] = %d\n",
+       *       me, op, !!opt[op].flag, optAprd[op], optParmNum[op], opt[op].min,
+       * optDfltd[op]);
+       */
       break;
     }
-    /* if not using the default, we're done with this option */
-    if (!udflt[op]) continue;
-    prms[op] = airStrdup(opt[op].dflt);
-    if (parm->verbosity) {
-      printf("%s: prms[%d] = |%s|\n", me, op, prms[op]);
+    /* if not using the default, we're done with this option; continue to next one */
+    if (!optDfltd[optIdx]) continue;
+    /* HEY NO: need to do VTAB delimiting here! */
+    optParms[optIdx] = airStrdup(opt[optIdx].dflt);
+    if (hparm->verbosity) {
+      printf("%soptParms[%d] = |%s|\n", me, optIdx, optParms[optIdx]);
     }
-    if (prms[op]) {
-      airMopAdd(mop, prms[op], airFree, airMopAlways);
-      airOneLinify(prms[op]);
-      tmpS = airStrdup(prms[op]);
-      nprm[op] = airStrntok(tmpS, " ");
+    if (optParms[optIdx]) {
+      airMopAdd(mop, optParms[optIdx], airFree, airMopAlways);
+      airOneLinify(optParms[optIdx]);
+      tmpS = airStrdup(optParms[optIdx]);
+      optParmNum[optIdx] = airStrntok(tmpS, " ");
       airFree(tmpS);
     }
     /* fprintf(stderr,
-     *       "!%s: after default; nprm[%d] = %u; varparm = %d (min %d vs max %d)\n", me,
-     *       op, nprm[op], AIR_INT(opt[op].min) < _hestMax(opt[op].max),
+     *       "!%s: after default; optParmNum[%d] = %u; varparm = %d (min %d vs max
+     * %d)\n", me, op, optParmNum[op], AIR_INT(opt[op].min) < _hestMax(opt[op].max),
      *       ((int)opt[op].min), _hestMax(opt[op].max)); */
-    if (AIR_INT(opt[op].min) < _hestMax(opt[op].max)) {
-      if (!AIR_IN_CL(AIR_INT(opt[op].min), AIR_INT(nprm[op]), _hestMax(opt[op].max))) {
-        if (-1 == opt[op].max) {
+    if (AIR_INT(opt[optIdx].min) < _hestMax(opt[optIdx].max)) {
+      if (!AIR_IN_CL(AIR_INT(opt[optIdx].min), AIR_INT(optParmNum[optIdx]),
+                     _hestMax(opt[optIdx].max))) {
+        if (-1 == opt[optIdx].max) {
           sprintf(err, "%s# parameters (in default) for %s is %d, but need %d or more",
-                  ME, identStr(ident, opt + op, parm, AIR_TRUE), nprm[op], opt[op].min);
+                  ME, identStr(ident, opt + optIdx, hparm, AIR_TRUE), optParmNum[optIdx],
+                  opt[optIdx].min);
         } else {
           sprintf(err,
                   "%s# parameters (in default) for %s is %d, but need between %d and %d",
-                  ME, identStr(ident, opt + op, parm, AIR_TRUE), nprm[op], opt[op].min,
-                  _hestMax(opt[op].max));
+                  ME, identStr(ident, opt + optIdx, hparm, AIR_TRUE), optParmNum[optIdx],
+                  opt[optIdx].min, _hestMax(opt[optIdx].max));
         }
         return 1;
       }
@@ -924,8 +994,8 @@ _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *o
 }
 
 /*
-** this function moved from air/miscAir; the usage below
-** is its only usage in Teem
+This function moved from air/miscAir;
+the usage below is its only usage in Teem
 */
 static int
 airIStore(void *v, int t, int i) {
@@ -965,8 +1035,8 @@ airIStore(void *v, int t, int i) {
 }
 
 /*
-** this function moved from air/miscAir; the usage below
-** is its only usage in Teem
+this function moved from air/miscAir; the usage below
+is its only usage in Teem
 */
 static double
 airDLoad(void *v, int t) {
@@ -1008,11 +1078,13 @@ airDLoad(void *v, int t) {
 /* whichCase() helps figure out logic of interpreting parameters and defaults
    for kind 4 and kind 5 options. (formerly "private" _hestCase) */
 static int
-whichCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
+whichCase(hestOpt *opt, const int *optDfltd, const unsigned int *optParmNum,
+          const int *optAprd, int op) {
 
-  if (opt[op].flag && !appr[op]) {
+  if (opt[op].flag && !optAprd[op]) {
     return 0;
-  } else if ((4 == opt[op].kind && udflt[op]) || (5 == opt[op].kind && !nprm[op])) {
+  } else if ((4 == opt[op].kind && optDfltd[op])
+             || (5 == opt[op].kind && !optParmNum[op])) {
     return 1;
   } else {
     return 2;
@@ -1020,20 +1092,22 @@ whichCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
 }
 
 static int
-setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
-          char *err, const hestParm *parm, airArray *pmop) {
+setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
+          hestOpt *opt, char *err, const hestParm *hparm, airArray *pmop) {
+  /* see note on ME (at top) for why me[] ends with ": " */
   static const char me[] = "setValues: ";
-  char ident[AIR_STRLEN_HUGE + 1], cberr[AIR_STRLEN_HUGE + 1], *tok, *last, *prmsCopy;
+  char ident[AIR_STRLEN_HUGE + 1], cberr[AIR_STRLEN_HUGE + 1], *tok, *last,
+    *optParmsCopy;
   double tmpD;
-  int op, type, numOpts, p, ret;
+  int op, type, optNum, p, ret;
   void *vP;
   char *cP;
   size_t size;
 
-  numOpts = hestOptNum(opt);
-  for (op = 0; op < numOpts; op++) {
-    identStr(ident, opt + op, parm, AIR_TRUE);
-    opt[op].source = udflt[op] ? hestSourceDefault : hestSourceUser;
+  optNum = hestOptNum(opt);
+  for (op = 0; op < optNum; op++) {
+    identStr(ident, opt + op, hparm, AIR_TRUE);
+    opt[op].source = optDfltd[op] ? hestSourceDefault : hestSourceCommandLine;
     /* 2023 GLK notes that r6388 2020-05-14 GLK was asking:
         How is it that, once the command-line has been parsed, there isn't an
         easy way to see (or print, for an error message) the parameter (or
@@ -1041,7 +1115,7 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
     and it turns out that adding this was as simple as adding this one following
     line. The inscrutability of the hest code (or really the self-reinforcing
     learned fear of working with the hest code) seems to have been the barrier. */
-    opt[op].parmStr = airStrdup(prms[op]);
+    opt[op].parmStr = airStrdup(optParms[op]);
     type = opt[op].type;
     size = (airTypeEnum == type /* */
               ? sizeof(int)
@@ -1049,9 +1123,9 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
                    ? opt[op].CB->size
                    : airTypeSize[type]));
     cP = (char *)(vP = opt[op].valueP);
-    if (parm->verbosity) {
+    if (hparm->verbosity) {
       printf("%s %d of %d: \"%s\": |%s| --> kind=%d, type=%d, size=%u\n", me, op,
-             numOpts - 1, prms[op], ident, opt[op].kind, type, (unsigned int)size);
+             optNum - 1, optParms[op], ident, opt[op].kind, type, (unsigned int)size);
     }
     /* we may over-write these */
     opt[op].alloc = 0;
@@ -1066,27 +1140,29 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
       break;
     case 2:
       /* -------- one required parameter -------- */
-      /* 2023 GLK is really curious why "if (prms[op] && vP) {" is (​repeatedly)
+      /* 2023 GLK is really curious why "if (optParms[op] && vP) {" is (​repeatedly)
       guarding all the work in these blocks, and why that wasn't factored out */
-      if (prms[op] && vP) {
+      if (optParms[op] && vP) {
+        int pret;
         switch (type) {
         case airTypeEnum:
-          if (1 != airParseStrE((int *)vP, prms[op], " ", 1, opt[op].enm)) {
+          if (1 != airParseStrE((int *)vP, optParms[op], " ", 1, opt[op].enm)) {
             sprintf(err, "%scouldn\'t parse %s\"%s\" as %s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], opt[op].enm->name, ident);
+                    optDfltd[op] ? "(default) " : "", optParms[op], opt[op].enm->name,
+                    ident);
             return 1;
           }
           break;
         case airTypeOther:
           strcpy(cberr, "");
-          ret = opt[op].CB->parse(vP, prms[op], cberr);
+          ret = opt[op].CB->parse(vP, optParms[op], cberr);
           if (ret) {
             if (strlen(cberr)) {
-              sprintf(err, "%serror parsing \"%s\" as %s for %s:\n%s", ME, prms[op],
+              sprintf(err, "%serror parsing \"%s\" as %s for %s:\n%s", ME, optParms[op],
                       opt[op].CB->type, ident, cberr);
             } else {
               sprintf(err, "%serror parsing \"%s\" as %s for %s: returned %d", ME,
-                      prms[op], opt[op].CB->type, ident, ret);
+                      optParms[op], opt[op].CB->type, ident, ret);
             }
             return ret;
           }
@@ -1099,9 +1175,11 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
           break;
         case airTypeString:
           if (1
-              != airParseStrS((char **)vP, prms[op], " ", 1, parm->greedySingleString)) {
+              != airParseStrS((char **)vP, optParms[op], " ", 1,
+                              hparm->greedySingleString)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], airTypeStr[type], ident);
+                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    ident);
             return 1;
           }
           /* vP is the address of a char* (a char **), but what we
@@ -1111,9 +1189,10 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
           break;
         default:
           /* type isn't string or enum, so no last arg to airParseStr[type] */
-          if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
+          if (1 != airParseStr[type](vP, optParms[op], " ", 1)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], airTypeStr[type], ident);
+                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    ident);
             return 1;
           }
           break;
@@ -1122,21 +1201,21 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
       break;
     case 3:
       /* -------- multiple required parameters -------- */
-      if (prms[op] && vP) {
+      if (optParms[op] && vP) {
         switch (type) {
         case airTypeEnum:
           if (opt[op].min != /* min == max */
-              airParseStrE((int *)vP, prms[op], " ", opt[op].min, opt[op].enm)) {
+              airParseStrE((int *)vP, optParms[op], " ", opt[op].min, opt[op].enm)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], opt[op].min,
+                    optDfltd[op] ? "(default) " : "", optParms[op], opt[op].min,
                     opt[op].enm->name, opt[op].min > 1 ? "s" : "", ident);
             return 1;
           }
           break;
         case airTypeOther:
-          prmsCopy = airStrdup(prms[op]);
+          optParmsCopy = airStrdup(optParms[op]);
           for (p = 0; p < (int)opt[op].min; p++) { /* HEY scrutinize casts */
-            tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
+            tok = airStrtok(!p ? optParmsCopy : NULL, " ", &last);
             strcpy(cberr, "");
             ret = opt[op].CB->parse(cP + p * size, tok, cberr);
             if (ret) {
@@ -1144,17 +1223,17 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
                 sprintf(err,
                         "%serror parsing \"%s\" (in \"%s\") as %s "
                         "for %s:\n%s",
-                        ME, tok, prms[op], opt[op].CB->type, ident, cberr);
+                        ME, tok, optParms[op], opt[op].CB->type, ident, cberr);
               else
                 sprintf(err,
                         "%serror parsing \"%s\" (in \"%s\") as %s "
                         "for %s: returned %d",
-                        ME, tok, prms[op], opt[op].CB->type, ident, ret);
-              free(prmsCopy);
+                        ME, tok, optParms[op], opt[op].CB->type, ident, ret);
+              free(optParmsCopy);
               return 1;
             }
           }
-          free(prmsCopy);
+          free(optParmsCopy);
           if (opt[op].CB->destroy) {
             /* vP is an array of void*s, we manage the individual void*s */
             opt[op].alloc = 2;
@@ -1166,9 +1245,9 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
           break;
         case airTypeString:
           if (opt[op].min != /* min == max */
-              airParseStr[type](vP, prms[op], " ", opt[op].min, AIR_FALSE)) {
+              airParseStr[type](vP, optParms[op], " ", opt[op].min, AIR_FALSE)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], opt[op].min,
+                    optDfltd[op] ? "(default) " : "", optParms[op], opt[op].min,
                     airTypeStr[type], opt[op].min > 1 ? "s" : "", ident);
             return 1;
           }
@@ -1181,9 +1260,9 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
           break;
         default:
           if (opt[op].min != /* min == max */
-              airParseStr[type](vP, prms[op], " ", opt[op].min)) {
+              airParseStr[type](vP, optParms[op], " ", opt[op].min)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], opt[op].min,
+                    optDfltd[op] ? "(default) " : "", optParms[op], opt[op].min,
                     airTypeStr[type], opt[op].min > 1 ? "s" : "", ident);
             return 1;
           }
@@ -1193,14 +1272,15 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
       break;
     case 4:
       /* -------- optional single variables -------- */
-      if (prms[op] && vP) {
+      if (optParms[op] && vP) {
         switch (type) {
         case airTypeChar:
           /* no "inversion" for chars: using the flag with no parameter is the same as
           not using the flag i.e. we just parse from the default string */
-          if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
+          if (1 != airParseStr[type](vP, optParms[op], " ", 1)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], airTypeStr[type], ident);
+                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    ident);
             return 1;
           }
           opt[op].alloc = 0;
@@ -1212,14 +1292,16 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
           a non-empty default string to a NULL string value, when the flag is used
           without a parameter, was implemented from the early days of hest.  Assuming
           that a younger GLK long ago had a reason for that, that functionality now
-          persists.*/
-          if (1 != airParseStr[type](vP, prms[op], " ", 1, parm->greedySingleString)) {
+          persists. */
+          pret = airParseStr[type](vP, optParms[op], " ", 1, hparm->greedySingleString);
+          if (1 != pret) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], airTypeStr[type], ident);
+                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    ident);
             return 1;
           }
           opt[op].alloc = 1;
-          if (opt[op].flag && 1 == whichCase(opt, udflt, nprm, appr, op)) {
+          if (opt[op].flag && 1 == whichCase(opt, optDfltd, optParmNum, appr, op)) {
             /* we just parsed the default, but now we want to "invert" it */
             *((char **)vP) = (char *)airFree(*((char **)vP));
             opt[op].alloc = 0;
@@ -1229,29 +1311,29 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
           airMopMem(pmop, vP, airMopOnError);
           break;
         case airTypeEnum:
-          if (1 != airParseStrE((int *)vP, prms[op], " ", 1, opt[op].enm)) {
+          if (1 != airParseStrE((int *)vP, optParms[op], " ", 1, opt[op].enm)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], opt[op].enm->name, ident);
+                    optDfltd[op] ? "(default) " : "", optParms[op], opt[op].enm->name,
+                    ident);
             return 1;
           }
           break;
         case airTypeOther:
-          /* we're parsing an single single "other".  We will not perform the special
-             flagged single variable parameter games as done above, so
-             whether this option is flagged or unflagged, we're going
-             to treat it like an unflagged single variable parameter option:
-             if the parameter didn't appear, we'll parse it from the default,
-             if it did appear, we'll parse it from the command line.  Setting
-             up prms[op] thusly has already been done by _hestDefaults() */
+          /* we're parsing an single "other".  We will not perform the special flagged
+          single variable parameter games as done above, so whether this option is
+          flagged or unflagged, we're going to treat it like an unflagged single variable
+          parameter option: if the parameter didn't appear, we'll parse it from the
+          default, if it did appear, we'll parse it from the command line.  Setting up
+          optParms[op] thusly has already been done by _hestDefaults() */
           strcpy(cberr, "");
-          ret = opt[op].CB->parse(vP, prms[op], cberr);
+          ret = opt[op].CB->parse(vP, optParms[op], cberr);
           if (ret) {
             if (strlen(cberr))
-              sprintf(err, "%serror parsing \"%s\" as %s for %s:\n%s", ME, prms[op],
+              sprintf(err, "%serror parsing \"%s\" as %s for %s:\n%s", ME, optParms[op],
                       opt[op].CB->type, ident, cberr);
             else
               sprintf(err, "%serror parsing \"%s\" as %s for %s: returned %d", ME,
-                      prms[op], opt[op].CB->type, ident, ret);
+                      optParms[op], opt[op].CB->type, ident, ret);
             return 1;
           }
           if (opt[op].CB->destroy) {
@@ -1262,15 +1344,16 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
           }
           break;
         default:
-          if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
+          if (1 != airParseStr[type](vP, optParms[op], " ", 1)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], airTypeStr[type], ident);
+                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    ident);
             return 1;
           }
           opt[op].alloc = 0;
           /* HEY sorry about confusion about hestOpt->parmStr versus the value set
           here, due to this "inversion" */
-          if (1 == whichCase(opt, udflt, nprm, appr, op)) {
+          if (1 == whichCase(opt, optDfltd, optParmNum, appr, op)) {
             /* we just parsed the default, but now we want to "invert" it */
             tmpD = airDLoad(vP, type);
             airIStore(vP, type, tmpD ? 0 : 1);
@@ -1281,51 +1364,51 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
       break;
     case 5:
       /* -------- multiple variable parameters -------- */
-      if (prms[op] && vP) {
-        if (1 == whichCase(opt, udflt, nprm, appr, op)) {
+      if (optParms[op] && vP) {
+        if (1 == whichCase(opt, optDfltd, optParmNum, appr, op)) {
           *((void **)vP) = NULL;
           /* alloc and sawP set above */
         } else {
           if (airTypeString == type) {
             /* this is sneakiness: we allocate one more element so that
                the resulting char** is, like argv, NULL-terminated */
-            *((void **)vP) = calloc(nprm[op] + 1, size);
+            *((void **)vP) = calloc(optParmNum[op] + 1, size);
           } else {
-            if (nprm[op]) {
+            if (optParmNum[op]) {
               /* only allocate if there's something to allocate */
-              *((void **)vP) = calloc(nprm[op], size);
+              *((void **)vP) = calloc(optParmNum[op], size);
             } else {
               *((void **)vP) = NULL;
             }
           }
-          if (parm->verbosity) {
-            printf("%s: nprm[%d] = %u\n", me, op, nprm[op]);
-            printf("%s: new array (size %u*%u) is at 0x%p\n", me, nprm[op],
+          if (hparm->verbosity) {
+            printf("%s: optParmNum[%d] = %u\n", me, op, optParmNum[op]);
+            printf("%s: new array (size %u*%u) is at 0x%p\n", me, optParmNum[op],
                    (unsigned int)size, *((void **)vP));
           }
           if (*((void **)vP)) {
             airMopMem(pmop, vP, airMopOnError);
           }
-          *(opt[op].sawP) = nprm[op];
+          *(opt[op].sawP) = optParmNum[op];
           /* so far everything we've done is regardless of type */
           switch (type) {
           case airTypeEnum:
             opt[op].alloc = 1;
-            if (nprm[op]
-                != airParseStrE((int *)(*((void **)vP)), prms[op], " ", nprm[op],
-                                opt[op].enm)) {
+            if (optParmNum[op]
+                != airParseStrE((int *)(*((void **)vP)), optParms[op], " ",
+                                optParmNum[op], opt[op].enm)) {
               sprintf(err, "%scouldn't parse %s\"%s\" as %u %s%s for %s", ME,
-                      udflt[op] ? "(default) " : "", prms[op], nprm[op],
-                      opt[op].enm->name, nprm[op] > 1 ? "s" : "", ident);
+                      optDfltd[op] ? "(default) " : "", optParms[op], optParmNum[op],
+                      opt[op].enm->name, optParmNum[op] > 1 ? "s" : "", ident);
               return 1;
             }
             break;
           case airTypeOther:
             cP = (char *)(*((void **)vP));
-            prmsCopy = airStrdup(prms[op]);
+            optParmsCopy = airStrdup(optParms[op]);
             opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);
-            for (p = 0; p < (int)nprm[op]; p++) { /* HEY scrutinize casts */
-              tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
+            for (p = 0; p < (int)optParmNum[op]; p++) { /* HEY scrutinize casts */
+              tok = airStrtok(!p ? optParmsCopy : NULL, " ", &last);
               /* (Note from 2023-06-24: "hammerhead" was hammerhead.ucsd.edu, an Intel
               Itanium ("IA-64") machine that GLK had access to in 2003, presumably with
               an Intel compiler, providing a different debugging opportunity for this
@@ -1344,20 +1427,20 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
                   sprintf(err,
                           "%serror parsing \"%s\" (in \"%s\") as %s "
                           "for %s:\n%s",
-                          ME, tok, prms[op], opt[op].CB->type, ident, cberr);
+                          ME, tok, optParms[op], opt[op].CB->type, ident, cberr);
 
                 else
                   sprintf(err,
                           "%serror parsing \"%s\" (in \"%s\") as %s "
                           "for %s: returned %d",
-                          ME, tok, prms[op], opt[op].CB->type, ident, ret);
-                free(prmsCopy);
+                          ME, tok, optParms[op], opt[op].CB->type, ident, ret);
+                free(optParmsCopy);
                 return 1;
               }
             }
-            free(prmsCopy);
+            free(optParmsCopy);
             if (opt[op].CB->destroy) {
-              for (p = 0; p < (int)nprm[op]; p++) { /* HEY scrutinize casts */
+              for (p = 0; p < (int)optParmNum[op]; p++) { /* HEY scrutinize casts */
                 /* avert your eyes.  vP is the address of an array of void*s.
                    We manage the void*s */
                 airMopAdd(pmop, (*((void ***)vP)) + p, (airMopper)airSetNull,
@@ -1369,29 +1452,31 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
             break;
           case airTypeString:
             opt[op].alloc = 3;
-            if (nprm[op]
-                != airParseStrS((char **)(*((void **)vP)), prms[op], " ", nprm[op],
-                                parm->greedySingleString)) {
+            if (optParmNum[op]
+                != airParseStrS((char **)(*((void **)vP)), optParms[op], " ",
+                                optParmNum[op], hparm->greedySingleString)) {
               sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s", ME,
-                      udflt[op] ? "(default) " : "", prms[op], nprm[op],
-                      airTypeStr[type], nprm[op] > 1 ? "s" : "", ident);
+                      optDfltd[op] ? "(default) " : "", optParms[op], optParmNum[op],
+                      airTypeStr[type], optParmNum[op] > 1 ? "s" : "", ident);
               return 1;
             }
             /* vP is the address of an array of char*s (a char ***), and
                what we manage with airMop is the individual (*vP)[p],
                as well as vP itself (above). */
-            for (p = 0; p < (int)nprm[op]; p++) { /* HEY scrutinize casts */
+            for (p = 0; p < (int)optParmNum[op]; p++) { /* HEY scrutinize casts */
               airMopAdd(pmop, (*((char ***)vP))[p], airFree, airMopOnError);
             }
             /* do the NULL-termination described above */
-            (*((char ***)vP))[nprm[op]] = NULL;
+            (*((char ***)vP))[optParmNum[op]] = NULL;
             break;
           default:
             opt[op].alloc = 1;
-            if (nprm[op] != airParseStr[type](*((void **)vP), prms[op], " ", nprm[op])) {
+            if (optParmNum[op]
+                != airParseStr[type](*((void **)vP), optParms[op], " ",
+                                     optParmNum[op])) {
               sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s", ME,
-                      udflt[op] ? "(default) " : "", prms[op], nprm[op],
-                      airTypeStr[type], nprm[op] > 1 ? "s" : "", ident);
+                      optDfltd[op] ? "(default) " : "", optParms[op], optParmNum[op],
+                      airTypeStr[type], optParmNum[op] > 1 ? "s" : "", ident);
               return 1;
             }
             break;
@@ -1411,31 +1496,32 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
 */
 int
 hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
-          const hestParm *_parm) {
+          const hestParm *_hparm) {
+  /* see note on ME (at top) for why me[] ends with ": " */
   static const char me[] = "hestParse: ";
   char *param, *param_copy;
-  char **argv, **prms, *err;
-  int a, argc, argc_used, respArgNum, *appr, *udflt, respFileNum, numOpts, big, ret, i,
-    sawHelp;
-  unsigned int *nprm;
+  char **argv, **optParms, *err;
+  int a, argc, argc_used, respArgNum, *optAprd, *optDfltd, respFileNum, optNum, big, ret,
+    i, sawHelp;
+  unsigned int *optParmNum;
   airArray *mop;
-  hestParm *parm;
+  hestParm *hparm;
   size_t start_index, end_index;
 
-  numOpts = hestOptNum(opt);
+  optNum = hestOptNum(opt);
 
   /* -------- initialize the mop! */
   mop = airMopNew();
 
-  /* -------- either copy given _parm, or allocate one */
-  if (_parm) {
-    parm = NULL;
+  /* -------- exactly one of (given) _hparm and (our) hparm is non-NULL */
+  if (_hparm) {
+    hparm = NULL;
   } else {
-    parm = hestParmNew();
-    airMopAdd(mop, parm, (airMopper)hestParmFree, airMopAlways);
+    hparm = hestParmNew();
+    airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   }
-  /* how to const-correctly use parm or _parm in an expression */
-#define PARM (_parm ? _parm : parm)
+  /* how to const-correctly use hparm or _hparm in an expression */
+#define HPARM (_hparm ? _hparm : hparm)
 
   /* -------- allocate the err string.  To determine its size with total
      ridiculous safety we have to find the biggest things which can appear
@@ -1461,30 +1547,30 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   }
 
   /* -------- check on validity of the hestOpt array */
-  if (_hestPanic(opt, err, PARM)) {
+  if (_hestOptCheck(opt, err, HPARM)) {
     airMopError(mop);
     return 1;
   }
 
   /* -------- Create all the local arrays used to save state during
      the processing of all the different options */
-  nprm = AIR_CALLOC(numOpts, unsigned int);
-  airMopMem(mop, &nprm, airMopAlways);
-  appr = AIR_CALLOC(numOpts, int);
-  airMopMem(mop, &appr, airMopAlways);
-  udflt = AIR_CALLOC(numOpts, int);
-  airMopMem(mop, &udflt, airMopAlways);
-  prms = AIR_CALLOC(numOpts, char *);
-  airMopMem(mop, &prms, airMopAlways);
-  for (a = 0; a < numOpts; a++) {
-    prms[a] = NULL;
+  optParmNum = AIR_CALLOC(optNum, unsigned int);
+  airMopMem(mop, &optParmNum, airMopAlways);
+  optAprd = AIR_CALLOC(optNum, int);
+  airMopMem(mop, &optAprd, airMopAlways);
+  optDfltd = AIR_CALLOC(optNum, int);
+  airMopMem(mop, &optDfltd, airMopAlways);
+  optParms = AIR_CALLOC(optNum, char *);
+  airMopMem(mop, &optParms, airMopAlways);
+  for (a = 0; a < optNum; a++) {
+    optParms[a] = NULL;
   }
 
   /* -------- find out how big the argv array needs to be, first
      by seeing how many args are in the response files, and then adding
      on the args from the actual argv (getting this right the first time
      greatly simplifies the problem of eliminating memory leaks) */
-  if (argsInResponseFiles(&respArgNum, &respFileNum, _argv, err, PARM)) {
+  if (argsInResponseFiles(&respArgNum, &respFileNum, _argv, err, HPARM)) {
     airMopError(mop);
     return 1;
   }
@@ -1492,7 +1578,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
      is effectively removed and then replace by its contents */
   argc = _argc + respArgNum - respFileNum;
 
-  if (PARM->verbosity) {
+  if (HPARM->verbosity) {
     printf("%s: respFileNum = %d; respArgNum = %d; _argc = %d --> argc = %d\n", me,
            respFileNum, respArgNum, _argc, argc);
   }
@@ -1502,9 +1588,9 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   /* -------- process response files (if any) and set the remaining
      elements of argv */
   opt->helpWanted = AIR_FALSE;
-  if (PARM->verbosity) printf("%s: #### calling copyArgv\n", me);
-  argc_used = copyArgv(&sawHelp, argv, _argv, PARM, mop);
-  if (PARM->verbosity) {
+  if (HPARM->verbosity) printf("%s: #### calling copyArgv\n", me);
+  argc_used = copyArgv(&sawHelp, argv, _argv, HPARM, mop);
+  if (HPARM->verbosity) {
     printf("%s: #### copyArgv done (%d args copied; sawHelp=%d)\n", me, argc_used,
            sawHelp);
   }
@@ -1523,27 +1609,28 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   }
 
   /* -------- extract flags and their associated parameters from argv */
-  if (PARM->verbosity) printf("%s: #### calling extractFlagged\n", me);
-  if (extractFlagged(prms, nprm, appr, &argc_used, argv, opt, err, PARM, mop)) {
+  if (HPARM->verbosity) printf("%s: #### calling extractFlagged\n", me);
+  if (extractFlagged(optParms, optParmNum, optAprd, &argc_used, argv, opt, err, HPARM,
+                     mop)) {
     airMopError(mop);
     return 1;
   }
-  if (PARM->verbosity) printf("%s: #### extractFlagged done!\n", me);
+  if (HPARM->verbosity) printf("%s: #### extractFlagged done!\n", me);
 
   /* -------- extract args for unflagged options */
-  if (PARM->verbosity) printf("%s: #### calling extractUnflagged\n", me);
-  if (extractUnflagged(prms, nprm, &argc_used, argv, opt, err, PARM, mop)) {
+  if (HPARM->verbosity) printf("%s: #### calling extractUnflagged\n", me);
+  if (extractUnflagged(optParms, optParmNum, &argc_used, argv, opt, err, HPARM, mop)) {
     airMopError(mop);
     return 1;
   }
-  if (PARM->verbosity) printf("%s: #### extractUnflagged done!\n", me);
+  if (HPARM->verbosity) printf("%s: #### extractUnflagged done!\n", me);
 
   /* currently, any left-over arguments indicate error */
   if (argc_used) {
-    /* char stops[3] = {'-', PARM->varParamStopFlag, '\0'}; triggers warning:
+    /* char stops[3] = {'-', HPARM->varParamStopFlag, '\0'}; triggers warning:
     initializer element is not computable at load time */
     char stops[3] = "-X";
-    stops[1] = PARM->varParamStopFlag;
+    stops[1] = HPARM->varParamStopFlag;
     if (strcmp(stops, argv[0])) {
       sprintf(err, "%sunexpected arg%s: \"%s\"", ME,
               ('-' == argv[0][0] ? " (or unrecognized flag)" : ""), argv[0]);
@@ -1558,19 +1645,19 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   }
 
   /* -------- learn defaults */
-  if (PARM->verbosity) printf("%s: #### calling hestDefaults\n", me);
-  if (_hestDefaults(prms, udflt, nprm, appr, opt, err, PARM, mop)) {
+  if (HPARM->verbosity) printf("%s: #### calling hestDefaults\n", me);
+  if (_hestDefaults(optParms, optDfltd, optParmNum, optAprd, opt, err, HPARM, mop)) {
     airMopError(mop);
     return 1;
   }
-  if (PARM->verbosity) printf("%s: #### hestDefaults done!\n", me);
+  if (HPARM->verbosity) printf("%s: #### hestDefaults done!\n", me);
 
   /* remove quotes from strings
          if greedy wasn't turned on for strings, then we have no hope
          of capturing filenames with spaces. */
-  if (PARM->greedySingleString) {
-    for (i = 0; i < numOpts; i++) {
-      param = prms[i];
+  if (HPARM->greedySingleString) {
+    for (i = 0; i < optNum; i++) {
+      param = optParms[i];
       param_copy = NULL;
       if (param && strstr(param, " ")) {
         start_index = 0;
@@ -1587,16 +1674,16 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   }
 
   /* -------- now, the actual parsing of values */
-  if (PARM->verbosity) printf("%s: #### calling setValues\n", me);
+  if (HPARM->verbosity) printf("%s: #### calling setValues\n", me);
   /* this will also set hestOpt->parmStr */
-  ret = setValues(prms, udflt, nprm, appr, opt, err, PARM, mop);
+  ret = setValues(optParms, optDfltd, optParmNum, optAprd, opt, err, HPARM, mop);
   if (ret) {
     airMopError(mop);
     return ret;
   }
 
-  if (PARM->verbosity) printf("%s: #### setValues done!\n", me);
-#undef PARM
+  if (HPARM->verbosity) printf("%s: #### setValues done!\n", me);
+#undef HPARM
 
 parseEnd:
   airMopOkay(mop);
@@ -1613,19 +1700,19 @@ parseEnd:
 */
 void *
 hestParseFree(hestOpt *opt) {
-  int op, i, numOpts;
+  int op, i, optNum;
   unsigned int ui;
   void **vP;
   void ***vAP;
   char **str;
   char ***strP;
 
-  numOpts = hestOptNum(opt);
-  for (op = 0; op < numOpts; op++) {
+  optNum = hestOptNum(opt);
+  for (op = 0; op < optNum; op++) {
     opt[op].parmStr = airFree(opt[op].parmStr);
     /*
     printf("!hestParseFree: op = %d/%d -> kind = %d; type = %d; alloc = %d\n",
-           op, numOpts-1, opt[op].kind, opt[op].type, opt[op].alloc);
+           op, optNum-1, opt[op].kind, opt[op].type, opt[op].alloc);
     */
     vP = (void **)opt[op].valueP;
     vAP = (void ***)opt[op].valueP;
@@ -1684,7 +1771,7 @@ hestParseOrDie()
 Pre-June 2023 account:
 ** dumb little function which encapsulate a common usage of hest:
 ** first, make sure hestOpt is valid with hestOptCheck().  Then,
-** if argc is 0 (and !parm->noArgsIsNoProblem): maybe show
+** if argc is 0 (and !hparm->noArgsIsNoProblem): maybe show
 **    info, usage, and glossary, all according to given flags, then exit(1)
 ** if parsing failed: show error message, and maybe usage and glossary,
 **    again according to boolean flags, then exit(1)
@@ -1694,12 +1781,13 @@ In June 2023 this function was completely re-written, but the description above 
 still be true, if not the whole truth.  Long prior to re-write, "--version" and "--help"
 had been usefully responded to as the sole argument, but only after a hestParse error
 (which then sometimes leaked memory by not freeing errS). Now these are checked for prior
-to calling hestParse, and (with parm->respectDashDashHelp), "--help" is recognized
+to calling hestParse, and (with hparm->respectDashDashHelp), "--help" is recognized
 anywhere in the command-line.
 */
 void
-hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const char *me,
-               const char *info, int doInfo, int doUsage, int doGlossary) {
+hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *hparm,
+               const char *me, const char *info, int doInfo, int doUsage,
+               int doGlossary) {
   int argcWanting, parseErr, wantHelp;
   char *errS = NULL;
 
@@ -1726,7 +1814,7 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const 
     char vbuff[AIR_STRLEN_LARGE + 1];
     airTeemVersionSprint(vbuff);
     printf("%s\n", vbuff);
-    hestParmFree(parm);
+    hestParmFree(hparm);
     hestOptFree(opt);
     exit(0);
   }
@@ -1738,9 +1826,9 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const 
     wantHelp = AIR_TRUE;
   } else {
     /* we call hestParse if there are args, or (else) having no args is ok */
-    if (argc || (parm && parm->noArgsIsNoProblem)) {
+    if (argc || (hparm && hparm->noArgsIsNoProblem)) {
       argcWanting = AIR_FALSE;
-      parseErr = hestParse(opt, argc, argv, &errS, parm);
+      parseErr = hestParse(opt, argc, argv, &errS, hparm);
       wantHelp = opt->helpWanted;
       if (wantHelp && parseErr) {
         /* should not happen at the same time */
@@ -1772,12 +1860,12 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const 
     /* but no return or exit; there's more to say */
   }
 #define STDWUT (parseErr ? stderr : stdout)
-  if (parm && parm->dieLessVerbose) {
+  if (hparm && hparm->dieLessVerbose) {
     /* newer logic for when to print which things */
-    if (wantHelp && info) hestInfo(STDWUT, me ? me : "", info, parm);
-    if (doUsage) hestUsage(STDWUT, opt, me ? me : "", parm);
+    if (wantHelp && info) hestInfo(STDWUT, me ? me : "", info, hparm);
+    if (doUsage) hestUsage(STDWUT, opt, me ? me : "", hparm);
     if (wantHelp && doGlossary) {
-      hestGlossary(STDWUT, opt, parm);
+      hestGlossary(STDWUT, opt, hparm);
     } else if ((!argc || parseErr) && me) {
       fprintf(STDWUT, "\"%s --help\" for more information\n", me);
     }
@@ -1785,13 +1873,13 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const 
     /* leave older (pre-dieLessVerbose) logic as is */
     if (!parseErr) {
       /* no error, just !argc */
-      if (doInfo && info) hestInfo(stdout, me ? me : "", info, parm);
+      if (doInfo && info) hestInfo(stdout, me ? me : "", info, hparm);
     }
-    if (doUsage) hestUsage(STDWUT, opt, me ? me : "", parm);
-    if (doGlossary) hestGlossary(STDWUT, opt, parm);
+    if (doUsage) hestUsage(STDWUT, opt, me ? me : "", hparm);
+    if (doGlossary) hestGlossary(STDWUT, opt, hparm);
   }
 #undef STDWUT
-  hestParmFree(parm);
+  hestParmFree(hparm);
   hestOptFree(opt);
   exit(!!parseErr);
 }

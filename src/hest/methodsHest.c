@@ -27,6 +27,11 @@
 
 const int hestPresent = 42;
 
+int
+hestSourceUser(int src) {
+  return (hestSourceCommandLine == src || hestSourceResponseFile == src);
+}
+
 /* INCR is like airArray->incr: granularity with which we (linearly) reallocate the
 hestOpt array. Very few uses of hest within Teem use more than 32 options. Hopefully
 this avoids all the reallocations in the past action of hestOptAdd and the like. */
@@ -34,33 +39,24 @@ this avoids all the reallocations in the past action of hestOptAdd and the like.
 
 hestParm *
 hestParmNew() {
-  hestParm *parm;
+  hestParm *hparm;
 
-  parm = AIR_CALLOC(1, hestParm);
-  assert(parm);
-  parm->verbosity = hestDefaultVerbosity;
-  parm->respFileEnable = hestDefaultRespFileEnable;
-  parm->elideSingleEnumType = hestDefaultElideSingleEnumType;
-  parm->elideSingleOtherType = hestDefaultElideSingleOtherType;
-  parm->elideSingleOtherDefault = hestDefaultElideSingleOtherDefault;
-  parm->greedySingleString = hestDefaultGreedySingleString;
-  parm->elideSingleNonExistFloatDefault = hestDefaultElideSingleNonExistFloatDefault;
-  parm->elideMultipleNonExistFloatDefault = hestDefaultElideMultipleNonExistFloatDefault;
-  parm->elideSingleEmptyStringDefault = hestDefaultElideSingleEmptyStringDefault;
-  parm->elideMultipleEmptyStringDefault = hestDefaultElideMultipleEmptyStringDefault;
-  parm->cleverPluralizeOtherY = hestDefaultCleverPluralizeOtherY;
-  parm->columns = hestDefaultColumns;
-  parm->respFileFlag = hestDefaultRespFileFlag;
-  parm->respFileComment = hestDefaultRespFileComment;
-  parm->varParamStopFlag = hestDefaultVarParamStopFlag;
-  parm->multiFlagSep = hestDefaultMultiFlagSep;
-  /* for these most recent addition to the hestParm,
-     abstaining from added yet another default global variable */
-  parm->dieLessVerbose = AIR_FALSE;
-  parm->noBlankLineBeforeUsage = AIR_FALSE;
+  hparm = AIR_CALLOC(1, hestParm);
+  assert(hparm);
+  hparm->verbosity = hestDefaultVerbosity;
+  hparm->respFileEnable = hestDefaultRespFileEnable;
+  hparm->elideSingleEnumType = hestDefaultElideSingleEnumType;
+  hparm->elideSingleOtherType = hestDefaultElideSingleOtherType;
+  hparm->elideSingleOtherDefault = hestDefaultElideSingleOtherDefault;
+  hparm->greedySingleString = hestDefaultGreedySingleString;
+  hparm->elideSingleNonExistFloatDefault = hestDefaultElideSingleNonExistFloatDefault;
+  hparm->elideMultipleNonExistFloatDefault
+    = hestDefaultElideMultipleNonExistFloatDefault;
+  hparm->elideSingleEmptyStringDefault = hestDefaultElideSingleEmptyStringDefault;
+  hparm->elideMultipleEmptyStringDefault = hestDefaultElideMultipleEmptyStringDefault;
   /* It would be really nice for parm->respectDashDashHelp to default to true:
   widespread conventions say what "--help" should mean e.g. https://clig.dev/#help
-  HOWEVER, the problem is with how hestParse is called and how the return
+  HOWEVER, the problem is with how hestParse is called and how its return value
   is interpreted as a boolean:
   - zero has meant that hestParse could set values for all the options (either
     from the command-line or from supplied defaults), and
@@ -70,17 +66,29 @@ hestParmNew() {
   is the precedent, so we have to work with it by default.
   Now, with parm->respectDashDashHelp, upon seeing "--help", hestParse returns 0,
   and sets helpWanted in the first hestOpt, and the caller will have to know
-  to check for that.  This logic is handled by hestParseOrDie, but maybe in
-  the future there can be a different top-level parser function that turns on
-  parm->respectDashDashHelp and knows how to check the results */
-  parm->respectDashDashHelp = AIR_FALSE;
-  return parm;
+  to check for that.  This logic is handled by hestParse but maybe in the future there
+  can be a different top-level parser function that turns on parm->respectDashDashHelp
+  and knows how to check the results */
+  hparm->respectDashDashHelp = AIR_FALSE;
+  hparm->noArgsIsNoProblem = hestDefaultNoArgsIsNoProblem;
+  hparm->greedySingleString = hestDefaultGreedySingleString;
+  hparm->cleverPluralizeOtherY = hestDefaultCleverPluralizeOtherY;
+  /* for these most recent addition to the hestParm,
+     abstaining from added yet another default global variable */
+  hparm->dieLessVerbose = AIR_FALSE;
+  hparm->noBlankLineBeforeUsage = AIR_FALSE;
+  hparm->columns = hestDefaultColumns;
+  hparm->respFileFlag = hestDefaultRespFileFlag;
+  hparm->respFileComment = hestDefaultRespFileComment;
+  hparm->varParamStopFlag = hestDefaultVarParamStopFlag;
+  hparm->multiFlagSep = hestDefaultMultiFlagSep;
+  return hparm;
 }
 
 hestParm *
-hestParmFree(hestParm *parm) {
+hestParmFree(hestParm *hparm) {
 
-  airFree(parm);
+  airFree(hparm);
   return NULL;
 }
 
@@ -387,8 +395,8 @@ hestOptFree(hestOpt *opt) {
 /* experiments in adding a nixer/free-er that exactly matches the airMopper type,
    as part of trying to avoid all "undefined behavior" */
 void *
-hestParmFree_vp(void *_parm) {
-  return AIR_VOIDP(hestParmFree((hestParm *)_parm));
+hestParmFree_vp(void *_hparm) {
+  return AIR_VOIDP(hestParmFree((hestParm *)_hparm));
 }
 void *
 hestOptFree_vp(void *_opt) {
@@ -399,7 +407,7 @@ int
 hestOptCheck(hestOpt *opt, char **errP) {
   static const char me[] = "hestOptCheck";
   char *err;
-  hestParm *parm;
+  hestParm *hparm;
   int big;
 
   big = _hestErrStrlen(opt, 0, NULL);
@@ -411,8 +419,8 @@ hestOptCheck(hestOpt *opt, char **errP) {
     if (errP) *errP = NULL;
     return 1;
   }
-  parm = hestParmNew();
-  if (_hestPanic(opt, err, parm)) {
+  hparm = hestParmNew();
+  if (_hestOptCheck(opt, err, hparm)) {
     /* problems */
     if (errP) {
       /* they did give a pointer address; they'll free it */
@@ -421,12 +429,12 @@ hestOptCheck(hestOpt *opt, char **errP) {
       /* they didn't give a pointer address; their loss */
       free(err);
     }
-    hestParmFree(parm);
+    hestParmFree(hparm);
     return 1;
   }
   /* else, no problems */
   if (errP) *errP = NULL;
   free(err);
-  hestParmFree(parm);
+  hestParmFree(hparm);
   return 0;
 }

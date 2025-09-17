@@ -87,7 +87,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   mop = airMopNew();
 
-  hestOptAdd_Flag(&opt, "h", &headerOnly,
+  hestOptAdd_Flag(&opt, "h,header", &headerOnly,
                   "Generate header ONLY: don't write out the whole nrrd, "
                   "don't even bother reading the input data, just output the "
                   "detached nrrd header file (usually with a \".nhdr\" "
@@ -240,7 +240,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   airStrtokQuoting = AIR_TRUE;
-  /* hparm->verbosity = 3; /* HEY JUST FOR DEBUGGING */
+  /* hparm->verbosity = 3; / * HEY JUST FOR DEBUGGING */
   USAGE_OR_PARSE(_unrrdu_makeInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   encoding = nrrdEncodingArray[encodingType];
@@ -270,28 +270,28 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-  gotSpacing = (opt[spacingIdx].source == hestSourceUser);
+  gotSpacing = hestSourceUser(opt[spacingIdx].source);
   if (gotSpacing && spacingLen != sizeLen) {
     fprintf(stderr, "%s: number of spacings (%u) not same as dimension (%u)\n", me,
             spacingLen, sizeLen);
     airMopError(mop);
     return 1;
   }
-  gotThickness = (opt[thicknessIdx].source == hestSourceUser);
+  gotThickness = hestSourceUser(opt[thicknessIdx].source);
   if (gotThickness && thicknessLen != sizeLen) {
     fprintf(stderr, "%s: number of thicknesses (%u) not same as dimension (%u)\n", me,
             thicknessLen, sizeLen);
     airMopError(mop);
     return 1;
   }
-  gotMin = (opt[minIdx].source == hestSourceUser);
+  gotMin = hestSourceUser(opt[minIdx].source);
   if (gotMin && minLen != sizeLen) {
     fprintf(stderr, "%s: number of mins (%u) not same as dimension (%u)\n", me, minLen,
             sizeLen);
     airMopError(mop);
     return 1;
   }
-  gotMax = (opt[maxIdx].source == hestSourceUser);
+  gotMax = hestSourceUser(opt[maxIdx].source);
   if (gotMax && maxLen != sizeLen) {
     fprintf(stderr, "%s: number of maxs (%u) not same as dimension (%u)\n", me, maxLen,
             sizeLen);

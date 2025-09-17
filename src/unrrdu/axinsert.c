@@ -77,7 +77,7 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me, hestParm *hparm
     airMopError(mop);
     return 1;
   }
-  if (hestSourceUser == opt[centOptIdx].source) {
+  if (hestSourceUser(opt[centOptIdx].source)) {
     nout->axis[axis].center = center;
   }
   if (1 < size) {
@@ -102,7 +102,7 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me, hestParm *hparm
     nout = npad;
     /* only set output kind if explicitly requested
        (since the default is not appropriate) */
-    if (hestSourceUser == opt[opi].source) {
+    if (hestSourceUser(opt[opi].source)) {
       nout->axis[axis].kind = kind;
     }
   } else {
