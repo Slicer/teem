@@ -21,16 +21,14 @@
 
 int
 main(int argc, const char *argv[]) {
-  const char *me, *info="inverts a moss transform";
-  hestOpt *hopt=NULL;
+  const char *me, *info = "inverts a moss transform";
+  hestOpt *hopt = NULL;
   double *mat, inv[6];
 
   me = argv[0];
-  hestOptAdd(&hopt, "t", "transform", airTypeOther, 1, 1, &mat, "identity",
-             "transform(s) to apply to image",
-             NULL, NULL, mossHestTransform);
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestOptAdd_1_Other(&hopt, "t", "transform", &mat, "identity",
+                     "transform(s) to apply to image", mossHestTransform);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
 
   fprintf(stderr, "%s: got transform:\n", me);
   mossMatPrint(stderr, mat);
@@ -40,4 +38,3 @@ main(int argc, const char *argv[]) {
 
   exit(0);
 }
-
