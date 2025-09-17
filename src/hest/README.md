@@ -8,7 +8,7 @@ The purpose of `hest` is to bridge the `int argc`, `char *argv[]` command-line a
 
 ## Terminology and concepts
 
-`hest` has possibly non-standard terminology for the elements of command-line parsing. Here is a bottom-up description of the command-line and what `hest` can do with it. Note that `hest` does not follow POSIX conventions (or terminology) for command-line descriptions, because those conventions don't empower the kind of expressivity and flexibility that motivated `hest`'s creation. POSIX certainly isn't determinative for the scientific visualization contexts that Teem was built for.
+`hest` has possibly non-standard terminology for the elements of command-line parsing. Here is a bottom-up description of the command-line and what `hest` can do with it:
 
 - What `main()` gets as `char *argv[]` is the vector of _arguments_ or _args_; each one is a `char*` string. An arg can contain spaces and other arbitrary characters if the user quoted strings or escaped characters; that is between the user and shell (the shell is responsible for taking the command-line and tokenizing it into `char *argv[]`). `hest` processes all the args in the `argv` you give it.
 - Arguments like `-v` and `-size`, which identify the variable to be set, are called _flags_.
@@ -20,3 +20,32 @@ The purpose of `hest` is to bridge the `int argc`, `char *argv[]` command-line a
 - An option may have no parms, one parm, a fixed number of parms, or a variable number of parms. Unflagged options must have one or more parms. With `mv *.txt dir`, the `*.txt` filenames could be parsed as a variable number of parms for an unflagged option, and `dir` would be a fixed single parm for a second unflagged option. Flagged options can appear in any order on the command-line, and the same option can be repeated: later appearances over-ride earlier appearances.
 - Sometimes multiple command-line options need to be saved and re-used together, over a time span longer than one shell or any variables set it. Command-line options can thus be stored in _response files_, and the contents of response files effecively expanded into the command-line. Response files can have comments, and response files can name other response files.
 - The main `hest` function that does the parsing is `hestParse`. Its job is to set one variable (which may have multiple components) for every `hestOpt`. Information for setting each variable can come from the command-line, or from the default string set in the `hestOpt`, but it has to come from somewhere. Essentially, if no default string is given, then the option _must_ be set on the command-line (or a response file named there). In this sense, `hest`'s "options" are badly named, because they are not really optional.
+
+Note that `hest` does not attempt to follow POSIX conventions (or terminology) for command-line descriptions, because those conventions don't empower the kind of expressivity and flexibility that motivated `hest`'s creation. POSIX does not encompass the scientific computing and visualization contexts that Teem was built for.
+
+## How `hestParse` works
+
+There are lot of moving pieces inside `hestParse`, and the description of how it works is complicated by how flexible a `hestOpt` can be. Two of the fields in the `hestOpt` are `min` and `max`: the min and max number of parameters that are parsed for the option. All the different traditional uses of the command-line can be parameterized in terms of `min` and `max`, but the full range of possibilities of `min`,`max` (which `hest` supports) include some less conventional uses. The _`kind`_ is `hest`'s term for a numeric identifier for the kind of option that a `hestOpt` describes. The following ASCII-art illustrates how `min` and `max` determine `kind`, and also give the prose name for each kind of option, which appears in the code and a description of its operation.
+
+```
+    :  (k) kind of and term for        .
+    :  different possible options;   .          /
+    :  learned by _hestKind(hopt)  .          /
+    :                            .          /
+    :       (5) multiple        : (3) multiple
+ 2--:          variable         :    fixed
+    :           parms           :    parms
+    :............................
+    :  (4) single : (2) single
+ 1--:   variable  :   fixed
+    :     parm    :   parm
+    :..............
+    : (1) stand-alone
+ 0--:      flag;
+    :    no parms
+ ^  :............................................
+max         |            |            |
+    min >   0            1            2
+```
+
+The `kind` of option is independent of whether it is flagged or unflagged, and independent of being optional (because a default is given) or required (because no default given).
