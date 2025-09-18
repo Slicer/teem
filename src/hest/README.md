@@ -23,29 +23,35 @@ The purpose of `hest` is to bridge the `int argc`, `char *argv[]` command-line a
 
 Note that `hest` does not attempt to follow POSIX conventions (or terminology) for command-line descriptions, because those conventions don't empower the kind of expressivity and flexibility that motivated `hest`'s creation. POSIX does not encompass the scientific computing and visualization contexts that Teem was built for.
 
-## How `hestParse` works
+## The different `kind`s of options, and how to `hestOptAdd` them.
 
-There are lot of moving pieces inside `hestParse`, and the description of how it works is complicated by how flexible a `hestOpt` can be. Two of the fields in the `hestOpt` are `min` and `max`: the min and max number of parameters that are parsed for the option. All the different traditional uses of the command-line can be parameterized in terms of `min` and `max`, but the full range of possibilities of `min`,`max` (which `hest` supports) include some less conventional uses. The _`kind`_ is `hest`'s term for a numeric identifier for the kind of option that a `hestOpt` describes. The following ASCII-art illustrates how `min` and `max` determine `kind`, and also give the prose name for each kind of option, which appears in the code and a description of its operation.
+There are lot of moving pieces inside `hestParse`, and the description of how it works is complicated by how flexible a `hestOpt` can be. Two of the fields in the `hestOpt` are `min` and `max`: the min and max number of parameters that may be parsed for that option. All the different traditional uses of the command-line can be parameterized in terms of `min` and `max`, but the full range of possibilities of `min`,`max` (which `hest` supports) include some less conventional uses. The _`kind`_ is `hest`'s term for a numeric identifier for the kind of option that a `hestOpt` describes. The following ASCII-art illustrates how `min` and `max` determine:
+
+- numeric `kind`, shown as `(`_n_`)`; for _n_ = 1,2,3,4,5
+- the prose name for that kind of option, which appears in the code and a description of its operation.
+- Which `hestOptAdd_` function or family of functions is used to parse that kind of option. Here, `hestOptAdd_` is abbreviated `hOA_` and the final `_T` stands for the type (eg. `_Bool`, `_Int`, `_Float`, `_Enum`, `_Other`, etc).
 
 ```
-    :  (k) kind of and term for        .
-    :  different possible options;   .          /
-    :  learned by _hestKind(hopt)  .          /
-    :                            .          /
-    :       (5) multiple        : (3) multiple
- 2--:          variable         :    fixed
-    :           parms           :    parms
-    :............................
-    :  (4) single : (2) single
- 1--:   variable  :   fixed
-    :     parm    :   parm
-    :..............
-    : (1) stand-alone
- 0--:      flag;
-    :    no parms
- ^  :............................................
-max         |            |            |
-    min >   0            1            2
+    |              .                    /       .       /
+    |              .                  /       .       /
+    |              .                /       .       /
+    |       (5) multiple           | (3) multiple
+ 2--|          variable            |    fixed
+    |           parms              |    parms
+    |         hOA_Nv_T             |  hOA_{2,3,4,N}_T
+    |.............................../
+    |  (4) single   | (2) single
+ 1--|    variable   |    fixed
+    |      parm     |    parm
+    |    hOA_1v_T   |   hOA_1_T
+    |...............|/
+    | (1) stand-alone
+ 0--|      flag;
+    |    no parms
+    |    hOA_Flag
+ ^  |/_____________________________________________
+max          |              |              |
+    min >    0              1              2
 ```
 
-The `kind` of option is independent of whether it is flagged or unflagged, and independent of being optional (because a default is given) or required (because no default given).
+The `kind` of option is independent of whether it is flagged or unflagged, and independent of being optional (because the `hestOpt` has a default string) or required (because no default is given).
