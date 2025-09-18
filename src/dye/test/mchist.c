@@ -90,7 +90,7 @@ main(int argc, const char *argv[]) {
   hopt = NULL;
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   hestOptAdd(&hopt, "i", "images", airTypeString, 1, -1, &ninStr, NULL,
              "input image sequence", &ninLen, NULL, NULL);
   hestOptAdd(&hopt, "sh", "histo size", airTypeUInt, 1, 1, &sH, "500", "histogram size");

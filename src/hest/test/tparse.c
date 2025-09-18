@@ -33,7 +33,7 @@ main(int argc, const char **argv) {
   hestOpt *opt = NULL;
   hestParm *hparm = hestParmNew();
   hparm->respectDashDashHelp = AIR_TRUE;
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   int res[2];
   hestOptAdd_2_Int(&opt, "res", "sx sy", res, NULL, "image resolution");
   int flag;

@@ -247,7 +247,7 @@ main(int argc, const char **argv) {
   nfilt = nrrdNew();
   airMopAdd(mop, nfilt, (airMopper)nrrdNuke, airMopAlways);
 
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   me = argv[0];
 
   /* these don't need to be visible on the command-line */

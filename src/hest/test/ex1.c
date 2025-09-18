@@ -65,7 +65,7 @@ main(int argc, const char **argv) {
                 "this software was written by a sleep-deprived grad student.";
 
   parm = hestParmNew();
-  parm->respFileEnable = AIR_TRUE;
+  parm->responseFileEnable = AIR_TRUE;
 
   if (1 == argc) {
     /* didn't get anything at all on command line */

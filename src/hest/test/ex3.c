@@ -33,7 +33,7 @@ main(int argc, const char **argv) {
                 "especially since this is the output of a unicyclist.";
 
   parm = hestParmNew();
-  parm->respFileEnable = AIR_TRUE;
+  parm->responseFileEnable = AIR_TRUE;
   parm->respectDashDashHelp = AIR_TRUE;
   parm->verbosity = 3;
 

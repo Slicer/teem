@@ -33,7 +33,7 @@ main(int argc, const char **argv) {
                 "especially since this is the output of a unicyclist.";
 
   parm = hestParmNew();
-  parm->respFileEnable = AIR_TRUE;
+  parm->responseFileEnable = AIR_TRUE;
 
   opt = NULL;
   hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");

@@ -20,14 +20,14 @@
 #include <teem/pull.h>
 #include "../meet.h"
 
-static const char *info =
-  ("For the simple task of generating N locations inside a volume. As "
-   "controlled by \"-m\", can be per voxel, uniform quasi-random, or "
-   "or uniform random.");
+static const char *info
+  = ("For the simple task of generating N locations inside a volume. As "
+     "controlled by \"-m\", can be per voxel, uniform quasi-random, or "
+     "or uniform random.");
 
 int
 main(int argc, const char **argv) {
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   hestParm *hparm;
   airArray *mop;
   const char *me;
@@ -38,8 +38,8 @@ main(int argc, const char **argv) {
   pullEnergySpec *enspR;
   meetPullInfo *minf[3];
   NrrdKernelSpec *k00, *k11, *k22;
-  pullContext *pctx=NULL;
-  int ret=0, verbose, method;
+  pullContext *pctx = NULL;
+  int ret = 0, verbose, method;
   unsigned int num, ss;
   double jitter;
 
@@ -50,7 +50,7 @@ main(int argc, const char **argv) {
   npos = nrrdNew();
   airMopAdd(mop, npos, (airMopper)nrrdNuke, airMopAlways);
 
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   me = argv[0];
 
   /* these don't need to be visible on the command-line */
@@ -58,8 +58,8 @@ main(int argc, const char **argv) {
   airMopAdd(mop, enspR, (airMopper)pullEnergySpecNix, airMopAlways);
   pullEnergySpecParse(enspR, "cotan");
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input volume", NULL,
+             NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, "scalar",
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
@@ -85,8 +85,8 @@ main(int argc, const char **argv) {
              "amount of jittering to do with ppv");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "out.nrrd",
              "filename for saving positions");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, info, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -102,14 +102,15 @@ main(int argc, const char **argv) {
   if (pullEnergySpecParse(enspR, "cotan")) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting up faux energies:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (nrrdKernelSpecParse(k00, "box")
-      || nrrdKernelSpecParse(k11, "zero")
+  if (nrrdKernelSpecParse(k00, "box") || nrrdKernelSpecParse(k11, "zero")
       || nrrdKernelSpecParse(k22, "zero")) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting up faux kernels:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 #define VNAME "bingo"
 
@@ -131,31 +132,32 @@ main(int argc, const char **argv) {
     if (!E) E |= pullRngSeedSet(pctx, ss);
     if (!E) E |= pullInitPointPerVoxelSet(pctx, num, 1, 0, 0, jitter);
   } else if (pullInitMethodGivenPos == method) {
-    fprintf(stderr, "%s: this utility is for making point positions; "
-            "init method %s not available", me,
-            airEnumStr(pullInitMethod, method));
-    airMopError(mop); return 1;
+    fprintf(stderr,
+            "%s: this utility is for making point positions; "
+            "init method %s not available",
+            me, airEnumStr(pullInitMethod, method));
+    airMopError(mop);
+    return 1;
   } else {
     fprintf(stderr, "%s: unsupported %s %s\n", me, pullInitMethod->name,
             airEnumStr(pullInitMethod, method));
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (E
-      || pullFlagSet(pctx, pullFlagNixAtVolumeEdgeSpaceInitRorH, AIR_TRUE)
-      || pullInterEnergySet(pctx, pullInterTypeJustR,
-                            enspR, NULL, NULL)
-      || pullVolumeSingleAdd(pctx, kind, VNAME, nin,
-                             k00, k11, k22)) {
+  if (E || pullFlagSet(pctx, pullFlagNixAtVolumeEdgeSpaceInitRorH, AIR_TRUE)
+      || pullInterEnergySet(pctx, pullInterTypeJustR, enspR, NULL, NULL)
+      || pullVolumeSingleAdd(pctx, kind, VNAME, nin, k00, k11, k22)) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble starting system:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   /* figure out how big a voxel is, so that the bins set up don't
      get overflowed.  The fact that there is binning happening
      at all is a sign that we shouldn't have to rely on so much
      pull infrastructure just to figure out this sampling ... */
   const double *spc = pctx->vol[0]->gctx->shape->spacing;
-  double vlen = (spc[0] + spc[1] + spc[2])/3;
+  double vlen = (spc[0] + spc[1] + spc[2]) / 3;
   /* "<info>[-c]:<volname>:<item>[:<zero>:<scale>]" */
   if (meetPullInfoParse(minf[0], "h:" VNAME ":val:0:1")
       || meetPullInfoParse(minf[1], "hgvec:" VNAME ":gvec")
@@ -164,24 +166,25 @@ main(int argc, const char **argv) {
       || meetPullInfoAddMulti(pctx, minf, 3)) {
     airMopAdd(mop, err = biffGetDone(MEET), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting up faux info:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (pullSysParmSet(pctx, pullSysParmRadiusSpace, vlen)
-      || pullStart(pctx)
+  if (pullSysParmSet(pctx, pullSysParmRadiusSpace, vlen) || pullStart(pctx)
       || pullOutputGet(npos, NULL, NULL, NULL, 0.0, pctx)) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble starting or getting output:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  size_t cmin[2] = {0,0};
-  size_t cmax[2] = {2,npos->axis[1].size-1};
-  if (nrrdCrop(nout, npos, cmin, cmax)
-      || nrrdSave(outS, nout, NULL)) {
+  size_t cmin[2] = {0, 0};
+  size_t cmax[2] = {2, npos->axis[1].size - 1};
+  if (nrrdCrop(nout, npos, cmin, cmax) || nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   pullFinish(pctx);
