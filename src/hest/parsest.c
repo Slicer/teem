@@ -184,8 +184,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
       airMopError(mop);
       return 1;
     }
-    /* keep going while there's something on stack and no calls for help have been seen
-     */
+    // keep going while there's something on stack and no calls for help have been seen
   } while (hist->len && !(opt->helpWanted));
 
   hestArgVecPrint(__func__, havec);

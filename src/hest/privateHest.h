@@ -28,9 +28,9 @@ typedef unsigned int uint;
 /* methodsHest.c */
 extern int _hestKind(const hestOpt *opt);
 extern int _hestMax(int max);
+extern int _hestOptCheck(const hestOpt *opt, char *err, const hestParm *parm);
 
 /* parseHest.c */
-extern int _hestOptCheck(const hestOpt *opt, char *err, const hestParm *parm);
 extern uint _hestErrStrlen(const hestOpt *opt, int argc, const char **argv);
 
 #ifdef __cplusplus
