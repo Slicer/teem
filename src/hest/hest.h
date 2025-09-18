@@ -44,8 +44,7 @@ extern "C" {
 /*
 ******** hestSource* enum
 **
-** records whether the info to satisfy a particular option came from the default or from
-** the user: command-line or response file.
+** way of identifying where the info to satisfy a particular option came from.
 */
 enum {
   hestSourceUnknown,      /* 0 */
@@ -189,15 +188,21 @@ typedef struct {
     elideSingleEmptyStringDefault, /* if default for a single string is empty
                                       (""), then don't display default */
     elideMultipleEmptyStringDefault,
-    respectDashDashHelp,   /* hestParse interprets seeing "--help" as not an
-                              error, but as a request to print usage info,
-                              so sets helpWanted in the (first) hestOpt */
-    noArgsIsNoProblem,     /* if non-zero, having no arguments to parse is not in and
-                              of itself a problem; this means that if all options have
-                              defaults, it would be *ok* to invoke the problem without
-                              any further command-line options. This is counter to
-                              pre-Teem-1.11 behavior (for which no arguments *always*
-                              meant "show me usage info"). */
+    respectDashDashHelp, /* (new with TeemV2) hestParse interprets seeing "--help" as not
+                         an error, but as a request to print usage info, so sets
+                         helpWanted in the (first) hestOpt */
+    respectDashBraceComments, /* (new with TeemV2) Sometimes in a huge command-line
+                              invocation you want to comment part of it out. With this
+                              set, hestParse recognizes hest-specific "-{" and "}-"
+                              args as comment delimiters: these args and all args they
+                              enclose are ignored. These must be stand-alone args, and
+                              cannot be touching anything else, lest brace expansion
+                              kick in. */
+    noArgsIsNoProblem,     /* if non-zero, having no arguments to parse is not in and of
+                           itself a problem; this means that if all options have defaults, it
+                           would be *ok* to invoke the problem without any further
+                           command-line options. This is counter to pre-Teem-1.11 behavior
+                           (for which no arguments *always* meant "show me usage info"). */
     greedySingleString,    /* when parsing a single string, whether or not to be greedy
                               (as per airParseStrS) */
     cleverPluralizeOtherY, /* when printing the type for airTypeOther, when the min
@@ -221,41 +226,62 @@ typedef struct {
                          disable this behavior entirely. */
 } hestParm;
 
-/* for building up and representing one argument */
+/*
+The hestArg, hestArgVec, hestInput, and hestInputStack were all created for the TeemV2
+rewrite of hestParse, to fix bugs and limits on how the code previously worked:
+- Command-line arguments containing spaces were fully never correctly handled: the
+  internal representation of one argument, amidst a space-seperated string of all
+  arguments (why?!?) put back in ""-quoting, but it was never correctly implemented.
+  Now the internal representation of argv is with an array data structure, not a single
+  string that has to be retokenized.
+- When parsing response files, ""-quoted strings were never handled at all (nor was "#"
+  appearing within a string), and response files could not invoke other response files.
+- Can now support long-wanted feature: commenting out of some span of arguments, with
+  new hest-specific "-{" "}-" delimiters.  As long as these are space-separated from
+  other args, these are left intact by sh, bash, and zsh (csh and tcsh get confused).
+  They must be kept as separate args to avoid brace expansion.
+*/
+
+// hestArg: for building up and representing one argument
 typedef struct {
   char *str;
-  unsigned int len; /* NOT strlen; this includes '\0'-termination */
+  unsigned int len; // NOT strlen; this includes '\0'-termination
   airArray *strArr;
+  int finished; // we have finished building up this string
 } hestArg;
 
-/* for building up a "vector" of arguments */
+// hestArgVec: for building up a "vector" of arguments
 typedef struct {
   hestArg *harg; /* array of hestArgs */
   unsigned int len;
   airArray *hargArr;
 } hestArgVec;
 
-/* what is the thing we're currently processing to build up the arg vec */
+// hestInput: what is the thing we're processing now to build up an arg vec
 typedef struct {
-  int source; /* from the hestSource* enum */
-  /* ------ if source == hestSourceDefault ------ */
-  const char *dflt; /* we do NOT own*/
-  /* ------ if source == hestSourceCommandLine ------ */
+  int source; // from the hestSource* enum
+  // ------ if source == hestSourceDefault ------
+  const char *dflt; // we do NOT own
+  // ------ if source == hestSourceCommandLine ------
   unsigned int argc;
-  const char **argv; /* we do NOT own */
+  const char **argv; // we do NOT own
   unsigned int argIdx;
-  /* ------ if source == hestSourceResponseFile ------ */
-  char *fname; /* we do NOT own */
-  FILE *file;  /* someone opened this for us */
+  // ------ if source == hestSourceResponseFile ------
+  char *fname; // we do NOT own
+  FILE *file;  // someone opened this for us
+  // ------ general for all inputs ------
+  unsigned int dashBraceComment; /* not a boolean: how many -{ }- comment levels
+                                    deep are we currently; tracked this way to
+                                    permit nested commenting */
 } hestInput;
 
 typedef struct {
-  hestInput *hin; /* array of hestInputs */
+  hestInput *hin; // array of hestInputs
   unsigned int len;
   airArray *hinArr;
 } hestInputStack;
 
-/* defaultsHest.c */
+// defaultsHest.c
 HEST_EXPORT int hestDefaultVerbosity;
 HEST_EXPORT int hestDefaultRespFileEnable;
 HEST_EXPORT int hestDefaultElideSingleEnumType;
@@ -274,7 +300,7 @@ HEST_EXPORT char hestDefaultRespFileComment;
 HEST_EXPORT char hestDefaultVarParamStopFlag;
 HEST_EXPORT char hestDefaultMultiFlagSep;
 
-/* argvHest.c */
+// argvHest.c
 HEST_EXPORT hestArg *hestArgNew(void);
 HEST_EXPORT hestArg *hestArgNix(hestArg *harg);
 HEST_EXPORT void hestArgAddChar(hestArg *harg, char cc);
@@ -287,16 +313,19 @@ HEST_EXPORT hestInput *hestInputNew(void);
 HEST_EXPORT hestInput *hestInputNix(hestInput *hin);
 HEST_EXPORT hestInputStack *hestInputStackNew(void);
 HEST_EXPORT hestInputStack *hestInputStackNix(hestInputStack *hist);
-HEST_EXPORT void hestInputStackPushCommandLine(hestInputStack *hist, int argc,
-                                               const char **argv);
-HEST_EXPORT int hestInputStackProcess(hestArgVec *havec, hestInputStack *hist);
+HEST_EXPORT int hestInputStackPushCommandLine(hestInputStack *hist, int argc,
+                                              const char **argv, char *err,
+                                              const hestParm *hparm);
+HEST_EXPORT int hestInputStackPop(hestInputStack *hist, char *err,
+                                  const hestParm *hparm);
 
-/* parsest.c */
+// parsest.c
 HEST_EXPORT int hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
                            const hestParm *hparm);
 
-/* methodsHest.c */
+// methodsHest.c
 HEST_EXPORT const int hestPresent;
+HEST_EXPORT const airEnum *const hestSource;
 HEST_EXPORT int hestSourceUser(int src);
 HEST_EXPORT hestParm *hestParmNew(void);
 HEST_EXPORT hestParm *hestParmFree(hestParm *hparm);
@@ -319,13 +348,13 @@ HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
                                     ... /* unsigned int *sawP,
                                            const airEnum *enm,
                                            const hestCB *CB */);
-/* see also all the special-purpose and type-checked versions in adders.c, below */
+// SEE ALSO all the special-purpose and type-checked versions in adders.c, below
 HEST_EXPORT unsigned int hestOptNum(const hestOpt *opt);
 HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
 HEST_EXPORT void *hestOptFree_vp(void *opt);
 HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);
 
-/* parseHest.c */
+// parseHest.c
 HEST_EXPORT int hestParse(hestOpt *opt, int argc, const char **argv, char **errP,
                           const hestParm *hparm);
 HEST_EXPORT void *hestParseFree(hestOpt *opt);
@@ -333,7 +362,7 @@ HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, const char **argv,
                                 hestParm *hparm, const char *me, const char *info,
                                 int doInfo, int doUsage, int doGlossary);
 
-/* usage.c */
+// usage.c
 HEST_EXPORT void _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
                                unsigned int width, const char *_str, int bslash);
 HEST_EXPORT int hestMinNumArgs(const hestOpt *opt);
@@ -343,7 +372,7 @@ HEST_EXPORT void hestGlossary(FILE *file, const hestOpt *opt, const hestParm *hp
 HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
                           const hestParm *hparm);
 
-/* adders.c */
+// adders.c
 HEST_EXPORT void hestOptAddDeclsPrint(FILE *f);
 /* Many many non-var-args alternatives to hestOptAdd, also usefully type-specific for the
 type of value to be parsed in a way that hestOptAdd_nva cannot match. These capture all

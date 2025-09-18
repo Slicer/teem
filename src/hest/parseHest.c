@@ -248,7 +248,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
   for (opi = 0; opi < optNum; opi++) {
     if (!(AIR_IN_OP(airTypeUnknown, opt[opi].type, airTypeLast))) {
       if (err)
-        sprintf(err, "%s!!!!!! opt[%d].type (%d) not in valid range [%d,%d]", ME, opi,
+        sprintf(err, "%sopt[%d].type (%d) not in valid range [%d,%d]", ME, opi,
                 opt[opi].type, airTypeUnknown + 1, airTypeLast - 1);
       else
         fprintf(stderr, "%s: panic 0\n", me);
@@ -256,14 +256,14 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
     }
     if (!(opt[opi].valueP)) {
       if (err)
-        sprintf(err, "%s!!!!!! opt[%d]'s valueP is NULL!", ME, opi);
+        sprintf(err, "%sopt[%d]'s valueP is NULL!", ME, opi);
       else
         fprintf(stderr, "%s: panic 0.5\n", me);
       return 1;
     }
     if (-1 == opt[opi].kind) {
       if (err)
-        sprintf(err, "%s!!!!!! opt[%d]'s min (%d) and max (%d) incompatible", ME, opi,
+        sprintf(err, "%sopt[%d]'s min (%d) and max (%d) incompatible", ME, opi,
                 opt[opi].min, opt[opi].max);
       else
         fprintf(stderr, "%s: panic 1\n", me);
@@ -272,7 +272,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
     if (5 == opt[opi].kind && !(opt[opi].sawP)) {
       if (err)
         sprintf(err,
-                "%s!!!!!! have multiple variable parameters, "
+                "%shave multiple variable parameters, "
                 "but sawP is NULL",
                 ME);
       else
@@ -283,7 +283,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
       if (!(opt[opi].enm)) {
         if (err) {
           sprintf(err,
-                  "%s!!!!!! opt[%d] (%s) is type \"enum\", but no "
+                  "%sopt[%d] (%s) is type \"enum\", but no "
                   "airEnum pointer given",
                   ME, opi, opt[opi].flag ? opt[opi].flag : "?");
         } else {
@@ -296,7 +296,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
       if (!(opt[opi].CB)) {
         if (err) {
           sprintf(err,
-                  "%s!!!!!! opt[%d] (%s) is type \"other\", but no "
+                  "%sopt[%d] (%s) is type \"other\", but no "
                   "callbacks given",
                   ME, opi, opt[opi].flag ? opt[opi].flag : "?");
         } else {
@@ -306,7 +306,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
       }
       if (!(opt[opi].CB->size > 0)) {
         if (err)
-          sprintf(err, "%s!!!!!! opt[%d]'s \"size\" (%d) invalid", ME, opi,
+          sprintf(err, "%sopt[%d]'s \"size\" (%d) invalid", ME, opi,
                   (int)(opt[opi].CB->size));
         else
           fprintf(stderr, "%s: panic 5\n", me);
@@ -314,14 +314,14 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
       }
       if (!(opt[opi].CB->type)) {
         if (err)
-          sprintf(err, "%s!!!!!! opt[%d]'s \"type\" is NULL", ME, opi);
+          sprintf(err, "%sopt[%d]'s \"type\" is NULL", ME, opi);
         else
           fprintf(stderr, "%s: panic 6\n", me);
         return 1;
       }
       if (!(opt[opi].CB->parse)) {
         if (err)
-          sprintf(err, "%s!!!!!! opt[%d]'s \"parse\" callback NULL", ME, opi);
+          sprintf(err, "%sopt[%d]'s \"parse\" callback NULL", ME, opi);
         else
           fprintf(stderr, "%s: panic 7\n", me);
         return 1;
@@ -329,7 +329,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
       if (opt[opi].CB->destroy && (sizeof(void *) != opt[opi].CB->size)) {
         if (err)
           sprintf(err,
-                  "%s!!!!!! opt[%d] has a \"destroy\", but size %lu isn't "
+                  "%sopt[%d] has a \"destroy\", but size %lu isn't "
                   "sizeof(void*)",
                   ME, opi, (unsigned long)(opt[opi].CB->size));
         else
@@ -344,7 +344,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
         if (!(strlen(tbuff) && strlen(sep + 1))) {
           if (err)
             sprintf(err,
-                    "%s!!!!!! either short (\"%s\") or long (\"%s\") flag"
+                    "%seither short (\"%s\") or long (\"%s\") flag"
                     " of opt[%d] is zero length",
                     ME, tbuff, sep + 1, opi);
           else
@@ -354,7 +354,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
         if (hparm->respectDashDashHelp && !strcmp("help", sep + 1)) {
           if (err)
             sprintf(err,
-                    "%s!!!!!! long \"--%s\" flag of opt[%d] is same as \"--help\" "
+                    "%slong \"--%s\" flag of opt[%d] is same as \"--help\" "
                     "that requested hparm->respectDashDashHelp handles separately",
                     ME, sep + 1, opi);
           else
@@ -364,17 +364,28 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
       } else {
         if (!strlen(opt[opi].flag)) {
           if (err)
-            sprintf(err, "%s!!!!!! opt[%d].flag is zero length", ME, opi);
+            sprintf(err, "%sopt[%d].flag is zero length", ME, opi);
           else
             fprintf(stderr, "%s: panic 10\n", me);
           return 1;
         }
       }
+      if (hparm->respectDashBraceComments
+          && (strchr(opt[opi].flag, '{') || strchr(opt[opi].flag, '}'))) {
+        if (err)
+          sprintf(err,
+                  "%srequested hparm->respectDashBraceComments but opt[%d]'s flag "
+                  "\"%s\" confusingly contains '{' or '}'",
+                  ME, opi, opt[opi].flag);
+        else
+          fprintf(stderr, "%s: panic 10.5\n", me);
+        return 1;
+      }
       if (4 == opt[opi].kind) {
         if (!opt[opi].dflt) {
           if (err)
             sprintf(err,
-                    "%s!!!!!! flagged single variable parameter must "
+                    "%sflagged single variable parameter must "
                     "specify a default",
                     ME);
           else
@@ -384,7 +395,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
         if (!strlen(opt[opi].dflt)) {
           if (err)
             sprintf(err,
-                    "%s!!!!!! flagged single variable parameter default "
+                    "%sflagged single variable parameter default "
                     "must be non-zero length",
                     ME);
           else
@@ -396,7 +407,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
       sprintf(tbuff, "-%s", opt[op].flag);
       if (1 == sscanf(tbuff, "%f", &tmpF)) {
         if (err)
-          sprintf(err, "%s!!!!!! opt[%d].flag (\"%s\") is numeric, bad news",
+          sprintf(err, "%sopt[%d].flag (\"%s\") is numeric, bad news",
                   ME, op, opt[op].flag);
         return 1;
       }
@@ -405,7 +416,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
     if (1 == opt[opi].kind) {
       if (!opt[opi].flag) {
         if (err)
-          sprintf(err, "%s!!!!!! flags must have flags", ME);
+          sprintf(err, "%sflags must have flags", ME);
         else
           fprintf(stderr, "%s: panic 13\n", me);
         return 1;
@@ -413,7 +424,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
     } else {
       if (!opt[opi].name) {
         if (err)
-          sprintf(err, "%s!!!!!! opt[%d] isn't a flag: must have \"name\"", ME, opi);
+          sprintf(err, "%sopt[%d] isn't a flag: must have \"name\"", ME, opi);
         else
           fprintf(stderr, "%s: panic 14\n", me);
         return 1;
@@ -422,7 +433,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
     if (4 == opt[opi].kind && !opt[opi].dflt) {
       if (err)
         sprintf(err,
-                "%s!!!!!! opt[%d] is single variable parameter, but "
+                "%sopt[%d] is single variable parameter, but "
                 "no default set",
                 ME, opi);
       else
@@ -434,8 +445,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
   }
   if (numvar > 1) {
     if (err)
-      sprintf(err, "%s!!!!!! can't have %d unflagged min<max opts, only one", ME,
-              numvar);
+      sprintf(err, "%scan't have %d unflagged min<max opts, only one", ME, numvar);
     else
       fprintf(stderr, "%s: panic 16\n", me);
     return 1;

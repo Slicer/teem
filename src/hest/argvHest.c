@@ -54,6 +54,7 @@ hargInit(void *_harg) {
   /* initialize with \0 so that harg->str is "" */
   airArrayLenIncr(harg->strArr, 1);
   /* now harg->str = {0:'\0'} and harg->len = 1; */
+  harg->finished = AIR_FALSE;
   return;
 }
 
@@ -103,6 +104,9 @@ hestArgAddString(hestArg *harg, const char *str) {
   for (uint si = 0; si < len; si++) {
     hestArgAddChar(harg, str[si]);
   }
+  /* The assumption is that if you have a string to put here; then you know that the
+  string is finished.  User can modify this if that's not the case. */
+  harg->finished = AIR_TRUE;
   return;
 }
 
@@ -141,7 +145,7 @@ hestArgVecPrint(const char *caller, const hestArgVec *havec) {
   for (uint idx = 0; idx < havec->hargArr->len; idx++) {
     const hestArg *harg;
     harg = havec->harg + idx;
-    printf(" %u:<%s>", idx, harg->str);
+    printf(" %u:<%s>%c", idx, harg->str, harg->finished ? '.' : '~');
   }
   printf("\n");
 }
@@ -158,6 +162,7 @@ hinInit(void *_hin) {
   hin->argIdx = 0;
   hin->fname = NULL;
   hin->file = NULL;
+  hin->dashBraceComment = 0;
   return;
 }
 
@@ -206,49 +211,39 @@ hestInputStackNix(hestInputStack *hist) {
   return NULL;
 }
 
-void
-hestInputStackPushCommandLine(hestInputStack *hist, int argc, const char **argv) {
+int
+hestInputStackPushCommandLine(hestInputStack *hist, int argc, const char **argv,
+                              char *err, const hestParm *hparm) {
   assert(hist);
+  AIR_UNUSED(err);
+  if (hparm->verbosity) {
+    printf("%s: changing stack height: %u --> %u with argc=%d,argv=%p; "
+           "setting argIdx to 0\n",
+           __func__, hist->hinArr->len, hist->hinArr->len + 1, argc, AIR_VOIDP(argv));
+  }
   uint idx = airArrayLenIncr(hist->hinArr, 1);
+  if (hparm->verbosity > 1) {
+    printf("%s: new hinTop = %p\n", __func__, AIR_VOIDP(hist->hin + idx));
+  }
   hist->hin[idx].source = hestSourceCommandLine;
   hist->hin[idx].argc = argc;
   hist->hin[idx].argv = argv;
   hist->hin[idx].argIdx = 0;
-  return;
-}
-
-static int
-histProc(hestArgVec *havec, hestInputStack *hist) {
-  hestInput *hinTop = hist->hin + (hist->len - 1);
-  int done = AIR_FALSE;
-  switch (hinTop->source) {
-  case hestSourceDefault:
-    fprintf(stderr, "%s: sorry hestSourceDefault not implemented\n", __func__);
-    done = AIR_TRUE;
-    break;
-  case hestSourceCommandLine:
-    /* argv[] 0   1     2    3  (argc=4) */
-    /*       cmd arg1 arg2 arg3 */
-    if (hinTop->argIdx < hinTop->argc) {
-      /* there are args left to parse */
-      hestArgVecAppendString(havec, hinTop->argv[hinTop->argIdx]);
-      hinTop->argIdx++;
-    }
-    done = (hinTop->argIdx == hinTop->argc);
-    break;
-  case hestSourceResponseFile:
-    fprintf(stderr, "%s: sorry hestSourceResponseFile not implemented\n", __func__);
-    done = AIR_TRUE;
-    break;
-  }
-  return done;
+  return 0;
 }
 
 int
-hestInputStackProcess(hestArgVec *havec, hestInputStack *hist) {
-  int done;
-  do {
-    done = histProc(havec, hist);
-  } while (!done);
+hestInputStackPop(hestInputStack *hist, char *err, const hestParm *hparm) {
+  assert(hist);
+  uint len = hist->hinArr->len;
+  if (!len) {
+    sprintf(err, "%s: cannot pop from stack height 0", __func__);
+    return 1;
+  }
+  if (hparm->verbosity) {
+    printf("%s: changing stack height: %u --> %u; popping %s source\n", __func__, len,
+           len - 1, airEnumStr(hestSource, hist->hin[len - 1].source));
+  }
+  airArrayLenIncr(hist->hinArr, -1);
   return 0;
 }

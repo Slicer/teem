@@ -22,10 +22,32 @@
 #include <limits.h>
 #include <assert.h>
 
-#include <sys/ioctl.h> /* for ioctl(), TIOCGWINSZ, struct winsize */
-#include <unistd.h>    /* for STDOUT_FILENO and friends */
+#include <sys/ioctl.h> // for ioctl(), TIOCGWINSZ, struct winsize
+#include <unistd.h>    // for STDOUT_FILENO and friends
 
 const int hestPresent = 42;
+
+// enjoying how C99 greatly simplifies creating an airEnum at compile-time
+static const airEnum _hestSource
+  = {.name = "source",
+     .M = 3,
+     .str = (const char *[]){"(unknown_source)", //
+                             "default",          //
+                             "command-line",     //
+                             "response-file"},
+     .val = NULL,
+     .desc = (const char *[]){"unknown source",            //
+                              "default string in hestOpt", //
+                              "argc/argv command-line",    //
+                              "a response file"},
+     .strEqv = (const char *[]){"default",                 //
+                                "command-line", "cmdline", //
+                                "response-file", "respfile"},
+     .valEqv = (const int[]){hestSourceDefault,                            //
+                             hestSourceCommandLine, hestSourceCommandLine, //
+                             hestSourceResponseFile, hestSourceResponseFile},
+     .sense = AIR_FALSE};
+const airEnum *const hestSource = &_hestSource;
 
 int
 hestSourceUser(int src) {
@@ -70,11 +92,13 @@ hestParmNew() {
   can be a different top-level parser function that turns on parm->respectDashDashHelp
   and knows how to check the results */
   hparm->respectDashDashHelp = AIR_FALSE;
+  /* for these most recent addition to the hestParm,
+     abstaining from adding yet another default global variable */
+  hparm->respectDashBraceComments = AIR_TRUE;
   hparm->noArgsIsNoProblem = hestDefaultNoArgsIsNoProblem;
   hparm->greedySingleString = hestDefaultGreedySingleString;
   hparm->cleverPluralizeOtherY = hestDefaultCleverPluralizeOtherY;
-  /* for these most recent addition to the hestParm,
-     abstaining from added yet another default global variable */
+  /* here too: newer addition to hestParm avoid adding another default global */
   hparm->dieLessVerbose = AIR_FALSE;
   hparm->noBlankLineBeforeUsage = AIR_FALSE;
   hparm->columns = hestDefaultColumns;

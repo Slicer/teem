@@ -21,12 +21,25 @@
 
 int
 main(int argc, const char **argv) {
-
+  int ret = 0;
   hestOpt *opt = NULL;
+  hestParm *hparm = hestParmNew();
+  hparm->respectDashDashHelp = AIR_TRUE;
   int res[2];
-  hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");
-  hestParse2(opt, argc - 1, argv + 1, NULL, NULL);
+  hestOptAdd_2_Int(&opt, "res", "sx sy", res, NULL, "image resolution");
+  int flag;
+  hestOptAdd_Flag(&opt, "b,bingo", &flag, "a flag");
+  char *err;
+  hparm->verbosity = 0;
+  if (hestParse2(opt, argc - 1, argv + 1, &err, hparm)) {
+    fprintf(stderr, "%s: problem:\n%s\n", argv[0], err);
+    ret = 1;
+  }
+  if (opt->helpWanted) {
+    printf("%s: help wanted!\n", argv[0]);
+  }
 
   hestOptFree(opt);
-  exit(0);
+  hestParmFree(hparm);
+  exit(ret);
 }
