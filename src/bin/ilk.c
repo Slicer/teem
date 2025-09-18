@@ -57,7 +57,7 @@ main(int argc, const char *argv[]) {
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->elideSingleOtherDefault = AIR_FALSE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   hestParmColumnsIoctl(hparm, hestDefaultColumns);
 
   hestOptAdd_1_Other(&hopt, "i", "image", &nin, "-", "input image", nrrdHestNrrd);

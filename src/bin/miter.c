@@ -50,7 +50,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, muu, (airMopper)miteUserNix, airMopAlways);
 
   hparm->respectDashDashHelp = AIR_TRUE;
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hestOptAdd_1_Other(&hopt, "i", "nsin", &(muu->nsin), "",
                      "input scalar volume to render", nrrdHestNrrd);

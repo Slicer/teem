@@ -44,7 +44,7 @@ unrrdu_shuffleMain(int argc, const char **argv, const char *me, hestParm *hparm)
   airArray *mop;
 
   /* so that long permutations can be read from file */
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
 
   hestOptAdd_Nv_UInt(&opt, "p,permute", "slc0 slc1", 1, -1, &perm, NULL,
                      "new slice ordering", &permLen);

@@ -174,7 +174,7 @@ typedef struct {
 */
 typedef struct {
   int verbosity,          /* verbose diagnostic messages to stdout */
-    respFileEnable,       /* whether or not to use response files */
+    responseFileEnable,   /* whether or not to use response files */
     elideSingleEnumType,  /* if type is airTypeEnum, and if it's a single fixed parameter
                              option, then don't bother printing the type information as
                              part of hestGlossary() */
@@ -212,18 +212,6 @@ typedef struct {
                        might: only print info and glossary when they "ask for it" */
     noBlankLineBeforeUsage; /* like it says */
   unsigned int columns;     /* number of printable columns in output */
-  char respFileFlag,        /* the character at the beginning of an argument
-                               indicating that this is a response file name */
-    respFileComment,        /* comment character for the response files */
-    varParamStopFlag, /* prefixed by '-' to form the flag (usually "--") that signals the
-                         end of a *flagged* variable parameter option (single or
-                         multiple). This is important to use if there is a flagged
-                         variable parameter option preceeding an unflagged variable
-                         parameter option, because otherwise how will you know where the
-                         first stops and the second begins */
-    multiFlagSep;     /* character in flag which signifies that there is a long and short
-                         version, and which separates the two.  Or, can be set to '\0' to
-                         disable this behavior entirely. */
 } hestParm;
 
 /*
@@ -267,8 +255,8 @@ typedef struct {
   const char **argv; // we do NOT own
   unsigned int argIdx;
   // ------ if source == hestSourceResponseFile ------
-  char *fname; // we do NOT own
-  FILE *file;  // someone opened this for us
+  const char *rfname; // we do NOT own: points into an argv or a hestArg
+  FILE *rfile;        // user opens and closes this
   // ------ general for all inputs ------
   unsigned int dashBraceComment; /* not a boolean: how many -{ }- comment levels
                                     deep are we currently; tracked this way to
@@ -279,11 +267,12 @@ typedef struct {
   hestInput *hin; // array of hestInputs
   unsigned int len;
   airArray *hinArr;
+  int stdinRead; // while processing this stack we have read in "-" aka stdin
 } hestInputStack;
 
 // defaultsHest.c
 HEST_EXPORT int hestDefaultVerbosity;
-HEST_EXPORT int hestDefaultRespFileEnable;
+HEST_EXPORT int hestDefaultResponseFileEnable;
 HEST_EXPORT int hestDefaultElideSingleEnumType;
 HEST_EXPORT int hestDefaultElideSingleOtherType;
 HEST_EXPORT int hestDefaultElideSingleOtherDefault;
@@ -295,10 +284,6 @@ HEST_EXPORT int hestDefaultNoArgsIsNoProblem;
 HEST_EXPORT int hestDefaultGreedySingleString;
 HEST_EXPORT int hestDefaultCleverPluralizeOtherY;
 HEST_EXPORT unsigned int hestDefaultColumns;
-HEST_EXPORT char hestDefaultRespFileFlag;
-HEST_EXPORT char hestDefaultRespFileComment;
-HEST_EXPORT char hestDefaultVarParamStopFlag;
-HEST_EXPORT char hestDefaultMultiFlagSep;
 
 // argvHest.c
 HEST_EXPORT hestArg *hestArgNew(void);
@@ -316,6 +301,8 @@ HEST_EXPORT hestInputStack *hestInputStackNix(hestInputStack *hist);
 HEST_EXPORT int hestInputStackPushCommandLine(hestInputStack *hist, int argc,
                                               const char **argv, char *err,
                                               const hestParm *hparm);
+HEST_EXPORT int hestInputStackPushResponseFile(hestInputStack *hist, const char *rfname,
+                                               char *err, const hestParm *hparm);
 HEST_EXPORT int hestInputStackPop(hestInputStack *hist, char *err,
                                   const hestParm *hparm);
 

@@ -70,7 +70,7 @@ hestParmNew() {
   hparm = AIR_CALLOC(1, hestParm);
   assert(hparm);
   hparm->verbosity = hestDefaultVerbosity;
-  hparm->respFileEnable = hestDefaultRespFileEnable;
+  hparm->responseFileEnable = hestDefaultResponseFileEnable;
   hparm->elideSingleEnumType = hestDefaultElideSingleEnumType;
   hparm->elideSingleOtherType = hestDefaultElideSingleOtherType;
   hparm->elideSingleOtherDefault = hestDefaultElideSingleOtherDefault;
@@ -106,10 +106,11 @@ hestParmNew() {
   hparm->dieLessVerbose = AIR_FALSE;
   hparm->noBlankLineBeforeUsage = AIR_FALSE;
   hparm->columns = hestDefaultColumns;
-  hparm->respFileFlag = hestDefaultRespFileFlag;
-  hparm->respFileComment = hestDefaultRespFileComment;
-  hparm->varParamStopFlag = hestDefaultVarParamStopFlag;
-  hparm->multiFlagSep = hestDefaultMultiFlagSep;
+  // see note in privateHest.h about the removal of these
+  // hparm->responseFileFlag = hestDefaultRespFileFlag;
+  // hparm->responseFileComment = hestDefaultRespFileComment;
+  // hparm->varParamStopFlag = hestDefaultVarParamStopFlag;
+  // hparm->multiFlagSep = hestDefaultMultiFlagSep;
   return hparm;
 }
 
@@ -534,7 +535,7 @@ _hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
     }
     if (opt[opi].flag) {
       strcpy(tbuff, opt[opi].flag);
-      if ((sep = strchr(tbuff, hparm->multiFlagSep))) {
+      if ((sep = strchr(tbuff, MULTI_FLAG_SEP))) {
         *sep = '\0';
         if (!(strlen(tbuff) && strlen(sep + 1))) {
           if (err)

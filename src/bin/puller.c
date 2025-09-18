@@ -74,7 +74,7 @@ main(int argc, const char **argv) {
   nPosOut = nrrdNew();
   airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
 
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
   me = argv[0];
 

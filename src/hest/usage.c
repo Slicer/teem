@@ -26,13 +26,12 @@
 static void
 _hestSetBuff(char *B, const hestOpt *O, const hestParm *P, int showshort, int showlong) {
   char copy[AIR_STRLEN_HUGE + 1], *sep;
-  int max;
   unsigned int len;
-
-  max = _hestMax(O->max);
+  AIR_UNUSED(P); // formerly for P->multiFlagSep
+  int max = _hestMax(O->max);
   if (O->flag) {
     strcpy(copy, O->flag);
-    if ((sep = strchr(copy, P->multiFlagSep))) {
+    if ((sep = strchr(copy, MULTI_FLAG_SEP))) {
       *sep = 0;
       if (showshort) {
         strcat(B, "-");
@@ -41,7 +40,7 @@ _hestSetBuff(char *B, const hestOpt *O, const hestParm *P, int showshort, int sh
       if (showlong) {
         if (showshort) {
           len = AIR_UINT(strlen(B));
-          B[len] = P->multiFlagSep;
+          B[len] = MULTI_FLAG_SEP;
           B[len + 1] = '\0';
         }
         strcat(B, "--");
@@ -247,8 +246,8 @@ hestUsage(FILE *f, const hestOpt *opt, const char *argv0, const hestParm *_hparm
   }
   strcpy(buff, "Usage: ");
   strcat(buff, argv0 ? argv0 : "");
-  if (HPARM->respFileEnable) {
-    sprintf(tmpS, " [%cfile\t...]", HPARM->respFileFlag);
+  if (HPARM->responseFileEnable) {
+    sprintf(tmpS, " [%cfile\t...]", RESPONSE_FILE_FLAG);
     strcat(buff, tmpS);
   }
   for (i = 0; i < numOpts; i++) {
@@ -294,8 +293,8 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
     _hestSetBuff(buff, opt + i, HPARM, AIR_TRUE, AIR_FALSE);
     maxlen = AIR_MAX((int)strlen(buff), maxlen);
   }
-  if (HPARM->respFileEnable) {
-    sprintf(buff, "%cfile ...", HPARM->respFileFlag);
+  if (HPARM->responseFileEnable) {
+    sprintf(buff, "%cfile ...", RESPONSE_FILE_FLAG);
     len = AIR_UINT(strlen(buff));
     for (j = len; j < maxlen; j++) {
       fprintf(f, " ");
@@ -315,7 +314,7 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
     fprintf(f, "%s", buff);
     strcpy(buff, "");
 #if 1
-    if (opt[i].flag && strchr(opt[i].flag, HPARM->multiFlagSep)) {
+    if (opt[i].flag && strchr(opt[i].flag, MULTI_FLAG_SEP)) {
       /* there is a long-form flag as well as short */
       _hestSetBuff(buff, opt + i, HPARM, AIR_FALSE, AIR_TRUE);
       strcat(buff, " = ");

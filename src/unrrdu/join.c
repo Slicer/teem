@@ -45,7 +45,7 @@ unrrdu_joinMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   double mm[2], spc;
   airArray *mop;
 
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
 
   hestOptAdd_Nv_Other(&opt, "i,input", "nin0", 1, -1, &nin, NULL,
                       "everything to be joined together", &ninLen, nrrdHestNrrdNoTTY);

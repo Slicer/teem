@@ -20,7 +20,9 @@
 #include "hest.h"
 #include "privateHest.h"
 
-/* parse, parser, parsest: this aims to be the final implmentation of hestParse */
+/* parse, parser, parsest: may this be the final implmentation of hestParse */
+
+#include <assert.h>
 
 /* A little trickery for error reporting.  For many of the functions here, if they hit an
 error and hparm->verbosity is set, then we should reveal the current function name (set
@@ -39,64 +41,77 @@ static int
 histProc(hestArgVec *havec, int *helpWantedP, hestInputStack *hist, char *err,
          const hestParm *hparm) {
   static const char me[] = "histProc: ";
-  int ret = 0;
   int popAtEnd = AIR_FALSE;
   *helpWantedP = AIR_FALSE; // may over-write later
-  hestInput *hinTop = hist->hin + (hist->len - 1);
-  switch (hinTop->source) {
+  hestInput *theHin = hist->hin + hist->len - 1;
+  switch (theHin->source) {
   case hestSourceDefault: // ---------------------------------
-    sprintf(err, "%ssorry hestSourceDefault not implemented\n", ME);
-    ret = 1;
+    sprintf(err, "%ssorry hestSourceDefault not implemented", ME);
+    return 1;
     break;
   case hestSourceCommandLine: // ---------------------------------
-    /* argv[] 0   1     2    3  (argc=4) */
-    /*       cmd arg1 arg2 arg3 */
+    // argv[] 0   1     2    3  (argc=4)
+    //       cmd arg1 arg2 arg3
     if (hparm->verbosity > 1) {
-      printf("%shist->len=%u -> hinTop=%p\n", me, hist->len, AIR_VOIDP(hinTop));
+      printf("%shist->len=%u -> theHin=%p\n", me, hist->len, AIR_VOIDP(theHin));
     }
-    if (hinTop->argIdx < hinTop->argc) {
-      /* there are args left to parse */
-      const char *thisArgv = hinTop->argv[hinTop->argIdx];
+    if (theHin->argIdx < theHin->argc) {
+      // there are args left to parse
+      uint thisArgIdx = theHin->argIdx;
+      const char *theArg = theHin->argv[thisArgIdx];
       if (hparm->verbosity > 1) {
-        printf("%slooking at argv[%u] |%s|\n", me, hinTop->argIdx, thisArgv);
+        printf("%slooking at argv[%u] |%s|\n", me, theHin->argIdx, theArg);
       }
-      hinTop->argIdx++;
-      if (hparm->respectDashBraceComments && !strcmp("-{", thisArgv)) {
+      theHin->argIdx++;
+      // process theArg we just acquired
+      if (hparm->respectDashBraceComments && !strcmp("-{", theArg)) {
         // start of -{ }- commenting (or increase in nesting level)
-        hinTop->dashBraceComment += 1;
+        theHin->dashBraceComment += 1;
       }
-      if (!hinTop->dashBraceComment) {
-        hestArgVecAppendString(havec, thisArgv);
-      }
-      if (hparm->respectDashBraceComments && !strcmp("}-", thisArgv)) {
-        if (hinTop->dashBraceComment) {
-          hinTop->dashBraceComment -= 1;
+      if (theHin->dashBraceComment) {
+        if (hparm->verbosity > 1) {
+          printf("%sskipping commented-out |%s|\n", me, theArg);
+        }
+      } else {
+        // not commenting out thisArg
+        if (!hparm->responseFileEnable || theArg[0] != RESPONSE_FILE_FLAG) {
+          // not a response file, just an arg
+          hestArgVecAppendString(havec, theArg);
         } else {
-          sprintf(err, "%send comment arg \"}-\" not balanced by prior \"-{\"", ME);
-          ret = 1;
+          /* theArg is asking to be a response file; try pushing it. With or without an
+             error, we return early because there's nothing more for us to do */
+          return hestInputStackPushResponseFile(hist, theArg + 1, err, hparm);
         }
       }
-    }
-    if (hinTop->argIdx == hinTop->argc) {
+      if (hparm->respectDashBraceComments && !strcmp("}-", theArg)) {
+        if (theHin->dashBraceComment) {
+          theHin->dashBraceComment -= 1;
+        } else {
+          sprintf(err, "%send comment arg \"}-\" not balanced by prior \"-{\"", ME);
+          return 1;
+        }
+      }
+    } // NOT else
+    if (theHin->argIdx == theHin->argc) {
       // we have gotten to the end of the given argv array */
-      if (hinTop->dashBraceComment) {
+      if (theHin->dashBraceComment) {
         sprintf(err, "%sstart comment arg \"-{\" not balanced by later \"}-\"", ME);
-        ret = 1;
+        return 1;
       } else {
         popAtEnd = AIR_TRUE;
-        // but don't pop now because we need to check for --help
+        // but don't pop now because we still need to check for --help
       }
     }
     break;
   case hestSourceResponseFile: // ---------------------------------
-    sprintf(err, "%ssorry hestSourceResponseFile not implemented\n", ME);
-    ret = 1;
+    sprintf(err, "%ssorry hestSourceResponseFile not implemented", ME);
+    return 1;
     break;
   }
   /* when processing command-line or response file, check for --help
      (it makes no sense for --help to appear in a default string) */
-  if (hestSourceResponseFile == hinTop->source
-      || hestSourceCommandLine == hinTop->source) {
+  if (hestSourceResponseFile == theHin->source
+      || hestSourceCommandLine == theHin->source) {
     const hestArg *hlast;
     if (hparm->respectDashDashHelp                          // watching for "--help"
         && havec->len                                       // have at least one arg
@@ -107,10 +122,10 @@ histProc(hestArgVec *havec, int *helpWantedP, hestInputStack *hist, char *err,
   }
   if (popAtEnd) {
     if (hestInputStackPop(hist, err, hparm)) {
-      ret = 1;
+      return 1;
     }
   }
-  return ret;
+  return 0;
 }
 
 int

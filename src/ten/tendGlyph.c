@@ -123,7 +123,7 @@ tend_glyphMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   double v2w[9], ldir[3], edir[3], fdir[3], corn[3], len;
 
   /* so that command-line options can be read from file */
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
 
   mop = airMopNew();

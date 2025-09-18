@@ -82,7 +82,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   const NrrdEncoding *encoding;
 
   /* so that long lists of filenames can be read from file */
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   hparm->greedySingleString = AIR_TRUE;
 
   mop = airMopNew();

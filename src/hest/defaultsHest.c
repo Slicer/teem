@@ -21,7 +21,7 @@
 #include "privateHest.h"
 
 int hestDefaultVerbosity = 0;
-int hestDefaultRespFileEnable = AIR_FALSE;
+int hestDefaultResponseFileEnable = AIR_FALSE;
 unsigned int hestDefaultColumns = 79;
 int hestDefaultElideSingleEnumType = AIR_FALSE;
 int hestDefaultElideSingleOtherType = AIR_FALSE;
@@ -33,7 +33,3 @@ int hestDefaultElideMultipleEmptyStringDefault = AIR_FALSE;
 int hestDefaultNoArgsIsNoProblem = AIR_FALSE;
 int hestDefaultGreedySingleString = AIR_TRUE;
 int hestDefaultCleverPluralizeOtherY = AIR_FALSE;
-char hestDefaultRespFileFlag = '@';
-char hestDefaultRespFileComment = '#';
-char hestDefaultVarParamStopFlag = '-';
-char hestDefaultMultiFlagSep = ',';

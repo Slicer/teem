@@ -21,6 +21,7 @@
 #include "privateHest.h"
 
 #include <assert.h>
+#include <sys/errno.h>
 
 #define INCR 32
 
@@ -32,7 +33,7 @@ typedef union {
   void **v;
 } hestPtrPtrUnion;
 
-/* ---------------------- hestArg = harg = hestArg = harg ------------------ */
+/* -------------------------- hestArg = harg = hestArg = harg ---------------------- */
 
 /* dereferences as char *, sets to '\0' */
 static void
@@ -110,7 +111,7 @@ hestArgAddString(hestArg *harg, const char *str) {
   return;
 }
 
-/* ------------------ hestArgVec = havec = hestArgVec = havec -------------- */
+/* ---------------------- hestArgVec = havec = hestArgVec = havec ------------------ */
 
 hestArgVec *
 hestArgVecNew() {
@@ -150,7 +151,7 @@ hestArgVecPrint(const char *caller, const hestArgVec *havec) {
   printf("\n");
 }
 
-/* --------------------- hestInput = hin = hestInput = hin ----------------- */
+/* ------------------------- hestInput = hin = hestInput = hin --------------------- */
 
 static void
 hinInit(void *_hin) {
@@ -160,8 +161,8 @@ hinInit(void *_hin) {
   hin->argc = 0;
   hin->argv = NULL;
   hin->argIdx = 0;
-  hin->fname = NULL;
-  hin->file = NULL;
+  hin->rfname = NULL;
+  hin->rfile = NULL;
   hin->dashBraceComment = 0;
   return;
 }
@@ -190,6 +191,8 @@ hestInputNix(hestInput *hin) {
   return NULL;
 }
 
+/* ------------------- hestInputStack = hist = hestInputStack = hist --------------- */
+
 hestInputStack *
 hestInputStackNew(void) {
   hestInputStack *hist = AIR_CALLOC(1, hestInputStack);
@@ -200,6 +203,7 @@ hestInputStackNew(void) {
   hppu.hin = &(hist->hin);
   hist->hinArr = airArrayNew(hppu.v, &(hist->len), sizeof(hestInput), INCR);
   airArrayStructCB(hist->hinArr, hinInit, hinDone);
+  hist->stdinRead = AIR_FALSE;
   return hist;
 }
 
@@ -211,11 +215,17 @@ hestInputStackNix(hestInputStack *hist) {
   return NULL;
 }
 
+#define ME ((hparm && hparm->verbosity) ? me : "")
+
 int
 hestInputStackPushCommandLine(hestInputStack *hist, int argc, const char **argv,
                               char *err, const hestParm *hparm) {
-  assert(hist);
-  AIR_UNUSED(err);
+  static const char me[] = "hestInputStackPushCommandLine: ";
+  if (!(hist && argv && hparm)) { // (as if all this can go wrong but err is non-NULL)
+    sprintf(err, "%s: got NULL pointer (hist %p, argv %p, hparm %p)", __func__,
+            AIR_VOIDP(hist), AIR_VOIDP(argv), AIR_VOIDP(hparm));
+    return 1;
+  }
   if (hparm->verbosity) {
     printf("%s: changing stack height: %u --> %u with argc=%d,argv=%p; "
            "setting argIdx to 0\n",
@@ -223,12 +233,64 @@ hestInputStackPushCommandLine(hestInputStack *hist, int argc, const char **argv,
   }
   uint idx = airArrayLenIncr(hist->hinArr, 1);
   if (hparm->verbosity > 1) {
-    printf("%s: new hinTop = %p\n", __func__, AIR_VOIDP(hist->hin + idx));
+    printf("%snew hinTop = %p\n", ME, AIR_VOIDP(hist->hin + idx));
   }
   hist->hin[idx].source = hestSourceCommandLine;
   hist->hin[idx].argc = argc;
   hist->hin[idx].argv = argv;
   hist->hin[idx].argIdx = 0;
+  return 0;
+}
+
+int
+hestInputStackPushResponseFile(hestInputStack *hist, const char *rfname, char *err,
+                               const hestParm *hparm) {
+  static const char me[] = "hestInputStackPushResponseFile: ";
+  if (!(hist && rfname && hparm)) {
+    sprintf(err, "%s: got NULL pointer (hist %p, rfname %p, hparm %p)", __func__,
+            AIR_VOIDP(hist), AIR_VOIDP(rfname), AIR_VOIDP(hparm));
+    return 1;
+  }
+  if (!strlen(rfname)) {
+    sprintf(err,
+            "%ssaw arg start with response file flag \"%c\" "
+            "but no filename followed",
+            ME, RESPONSE_FILE_FLAG);
+    return 1;
+  }
+  // "- 1" safe because hestParse always starts with argc/argv, not a response file
+  uint topHinIdx = hist->len - 1;
+  // have we seen rfname before?
+  for (uint hidx = 0; hidx < topHinIdx; hidx++) {
+    hestInput *oldHin = hist->hin + hidx;
+    if (hestSourceResponseFile == oldHin->source //
+        && !strcmp(oldHin->rfname, rfname)) {
+      // HEY test this error
+      sprintf(err, "%salready currently reading \"%s\" as response file", ME, rfname);
+      return 1;
+    }
+  }
+  // are we trying to read stdin twice?
+  if (!strcmp("-", rfname) && hist->stdinRead) {
+    // HEY test this error
+    sprintf(err, "%sresponse filename \"%s\" but previously read stdin", ME, rfname);
+    return 1;
+  }
+  // try to open response file
+  FILE *rfile = airFopen(rfname, stdin, "r");
+  if (!(rfile)) {
+    // HEY test this error
+    sprintf(err, "%scouldn't fopen(\"%s\",\"r\"): %s", ME, rfname, strerror(errno));
+    return 1;
+  }
+  // okay, we actually opened the response file; put it on the stack
+  uint idx = airArrayLenIncr(hist->hinArr, 1);
+  if (hparm->verbosity > 1) {
+    printf("%snew hinTop = %p\n", ME, AIR_VOIDP(hist->hin + idx));
+  }
+  hist->hin[idx].source = hestSourceResponseFile;
+  hist->hin[idx].rfname = rfname;
+  hist->hin[idx].rfile = rfile;
   return 0;
 }
 

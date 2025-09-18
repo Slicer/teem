@@ -55,14 +55,14 @@ argsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, char *e
 
   *argsNumP = 0;
   *respFileNumP = 0;
-  if (!hparm->respFileEnable) {
+  if (!hparm->responseFileEnable) {
     /* don't do response files; we're done */
     return 0;
   }
 
   argIdx = 0;
   while (argv /* can be NULL for testing */ && argv[argIdx]) {
-    if (hparm->respFileFlag == argv[argIdx][0]) {
+    if (RESPONSE_FILE_FLAG == argv[argIdx][0]) {
       /* argv[argIdx] looks like its naming a response file */
       /* NOTE: despite the repeated temptation: "-" aka stdin cannot be a response file,
          because it is going to be read in twice: once by argsInResponseFiles, and then
@@ -79,7 +79,7 @@ argsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv, char *e
       len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
       while (len > 0) {
         /* first # (or #-alike char) is turned into line end */
-        if ((pound = strchr(line, hparm->respFileComment))) {
+        if ((pound = strchr(line, RESPONSE_FILE_COMMENT))) {
           *pound = '\0';
         }
         /* count words in line */
@@ -123,10 +123,9 @@ one starting with '"', and the last one ending with '"'. The same naivety means 
 '#' character is considered to mark the beginning of a comment, EVEN IF THAT '#' is
 inside a string.  Sorry.  (This is why hest parsing is being re-written ...)
 
-For a brief moment in 2023, this also stopped if it saw "--" (or whatever
-parm->varParamStopFlag implies), but that meant "--" is a brick wall that hestParse could
-never see past. But that misunderstands the relationship between how hestParse works and
-how the world uses "--".  According to POSIX guidelines:
+For a brief moment in 2023, this also stopped if it saw "--", but that meant "--" is a
+brick wall that hestParse could never see past. But that misunderstands the relationship
+between how hestParse works and how the world uses "--".  According to POSIX guidelines:
 https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html#tag_12_01
 the elements of argv can be first "options" and then "operands", where "options" are
 indicated by something starting with '-', and may have 0 or more "option-arguments".
@@ -182,7 +181,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *hpa
              oldArgv[argIdx]);
       printArgv(newArgc, newArgv, "     ");
     }
-    if (!hparm->respFileEnable || hparm->respFileFlag != oldArgv[argIdx][0]) {
+    if (!hparm->responseFileEnable || RESPONSE_FILE_FLAG != oldArgv[argIdx][0]) {
       /* either ignoring response files, or its not a response file:
       we copy the arg, remember to free it, and increment the new arg idx */
       newArgv[newArgc] = airStrdup(oldArgv[argIdx]);
@@ -198,7 +197,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *hpa
         unsigned rgi;
         if (hparm->verbosity) printf("%s: line: |%s|\n", me, line);
         /* HEY HEY too bad for you if you put # inside a string */
-        if ((pound = strchr(line, hparm->respFileComment))) *pound = '\0';
+        if ((pound = strchr(line, RESPONSE_FILE_COMMENT))) *pound = '\0';
         if (hparm->verbosity) printf("%s: -0-> line: |%s|\n", me, line);
         airOneLinify(line);
         incr = airStrntok(line, AIR_WHITESPACE);
@@ -261,13 +260,13 @@ copies into ident a string for identifying an option in error and usage messages
 static char *
 identStr(char *ident, const hestOpt *opt, const hestParm *hparm, int brief) {
   char copy[AIR_STRLEN_HUGE + 1], *sep;
-
-  if (opt->flag && (sep = strchr(opt->flag, hparm->multiFlagSep))) {
+  AIR_UNUSED(hparm);
+  if (opt->flag && (sep = strchr(opt->flag, MULTI_FLAG_SEP))) {
     strcpy(copy, opt->flag);
-    sep = strchr(copy, hparm->multiFlagSep);
+    sep = strchr(copy, MULTI_FLAG_SEP);
     *sep = '\0';
     if (brief)
-      sprintf(ident, "-%s%c--%s option", copy, hparm->multiFlagSep, sep + 1);
+      sprintf(ident, "-%s%c--%s option", copy, MULTI_FLAG_SEP, sep + 1);
     else
       sprintf(ident, "-%s option", copy);
   } else {
@@ -282,8 +281,8 @@ whichOptFlag()
 
 given a string in "flag" (with the hypen prefix) finds which of the options in the given
 array of options has the matching flag. Returns the index of the matching option, or -1
-if there is no match, but returns -2 if the flag is the end-of-parameters marker "--" (or
-whatever parm->varParamStopFlag implies)
+if there is no match, but returns -2 if the flag is the end-of-parameters marker "--"
+(and only "--", due to VAR_PARM_STOP_FLAG)
 */
 static int
 whichOptFlag(const hestOpt *opt, const char *flag, const hestParm *hparm) {
@@ -300,9 +299,9 @@ whichOptFlag(const hestOpt *opt, const char *flag, const hestParm *hparm) {
       printf("%s:      optIdx %d |%s| ?\n", me, optIdx,
              opt[optIdx].flag ? opt[optIdx].flag : "(nullflag)");
     if (!opt[optIdx].flag) continue;
-    if (strchr(opt[optIdx].flag, hparm->multiFlagSep)) {
+    if (strchr(opt[optIdx].flag, MULTI_FLAG_SEP)) {
       strcpy(copy, opt[optIdx].flag);
-      sep = strchr(copy, hparm->multiFlagSep);
+      sep = strchr(copy, MULTI_FLAG_SEP);
       *sep = '\0';
       /* first try the short version */
       sprintf(buff, "-%s", copy);
@@ -317,10 +316,10 @@ whichOptFlag(const hestOpt *opt, const char *flag, const hestParm *hparm) {
     }
   }
   if (hparm->verbosity) printf("%s: (b) optNum = %d\n", me, optNum);
-  if (hparm->varParamStopFlag) {
-    sprintf(buff, "-%c", hparm->varParamStopFlag);
+  if (VAR_PARM_STOP_FLAG) {
+    sprintf(buff, "-%c", VAR_PARM_STOP_FLAG);
     if (hparm->verbosity)
-      printf("%s: does maybe-is-flag |%s| == -parm->varParamStopFlag |%s| ?\n", me, flag,
+      printf("%s: does maybe-is-flag |%s| == -VAR_PARM_STOP_FLAG |%s| ?\n", me, flag,
              buff);
     if (!strcmp(flag, buff)) {
       if (hparm->verbosity) printf("%s: yes, it does! returning -2\n", me);
@@ -352,7 +351,7 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
 
   if (hparm) {
     stops[0] = '-';
-    stops[1] = hparm->varParamStopFlag;
+    stops[1] = VAR_PARM_STOP_FLAG;
     stops[2] = '\0';
   } /* else stops stays as empty string */
 
@@ -417,9 +416,9 @@ appeared in optAprd[].
 The sawP information is not set here, since it is better set at value parsing time, which
 happens after defaults are enstated.
 
-This is where, thanks to the action of whichOptFlag(), "--" (or whatever
-parm->varParamStopFlag implies) is used as a marker for the end of a *flagged* variable
-parameter option.  AND, the "--" marker is removed from the argv.
+This is where, thanks to the action of whichOptFlag(), "--" (and only "--" due to
+VAR_PARM_STOP_FLAG) is used as a marker for the end of a *flagged* variable parameter
+option.  AND, the "--" marker is removed from the argv.
 */
 static int
 extractFlagged(char **optParms, unsigned int *optParmNum, int *optAprd, int *argcP,
@@ -488,8 +487,7 @@ extractFlagged(char **optParms, unsigned int *optParmNum, int *optAprd, int *arg
         sprintf(err,
                 "%ssaw \"-%c\" (option-parameter-stop flag) before getting %d "
                 "parameter%s for %s (got %d)",
-                ME, hparm->varParamStopFlag, opt[optIdx].min,
-                opt[optIdx].min > 1 ? "s" : "",
+                ME, VAR_PARM_STOP_FLAG, opt[optIdx].min, opt[optIdx].min > 1 ? "s" : "",
                 identStr(ident2, opt + optIdx, hparm, AIR_FALSE), parmNum);
       }
       return 1;
@@ -1407,10 +1405,10 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
 
   /* currently, any left-over arguments indicate error */
   if (argc_used) {
-    /* char stops[3] = {'-', HPARM->varParamStopFlag, '\0'}; triggers warning:
+    /* char stops[3] = {'-', VAR_PARM_STOP_FLAG, '\0'}; triggers warning:
     initializer element is not computable at load time */
     char stops[3] = "-X";
-    stops[1] = HPARM->varParamStopFlag;
+    stops[1] = VAR_PARM_STOP_FLAG;
     if (strcmp(stops, argv[0])) {
       sprintf(err, "%sunexpected arg%s: \"%s\"", ME,
               ('-' == argv[0][0] ? " (or unrecognized flag)" : ""), argv[0]);

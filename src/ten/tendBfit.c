@@ -39,7 +39,7 @@ tend_bfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int iterMax;
   char *outS;
 
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
 
   hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-",
                      "Input nrrd.  List of DWIs from different b-values must "

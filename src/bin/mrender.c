@@ -453,7 +453,7 @@ main(int argc, const char *argv[]) {
   mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  hparm->respFileEnable = AIR_TRUE;
+  hparm->responseFileEnable = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
   uu = mrendUserNew();
   airMopAdd(mop, uu, (airMopper)mrendUserNix, airMopAlways);
