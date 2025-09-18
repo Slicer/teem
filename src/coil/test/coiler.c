@@ -24,51 +24,59 @@ const char *info = ("Test program for coil library.");
 int
 main(int argc, const char *argv[]) {
   const char *me;
-  char *err, *outS;
+  char *err;
   hestOpt *hopt = NULL;
   airArray *mop;
 
-  int numIters, numThreads, methodType, kindType, _parmLen, pi, radius, verbose;
-  Nrrd *nin, *nout;
-  coilContext *cctx;
-  double *_parm, parm[COIL_PARMS_NUM];
-
   mop = airMopNew();
   me = argv[0];
-  hestOptAdd(&hopt, "iter", "# iters", airTypeInt, 1, 1, &numIters, "5",
-             "number of iterations to do processing for");
-  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &numThreads, "5",
-             "number of threads to run");
-  hestOptAdd(&hopt, "k", "kind", airTypeEnum, 1, 1, &kindType, NULL,
-             "what kind of volume is input", NULL, coilKindType);
-  hestOptAdd(&hopt, "m", "method", airTypeEnum, 1, 1, &methodType, "test",
-             "what kind of filtering to perform", NULL, coilMethodType);
-  hestOptAdd(&hopt, "p", "parms", airTypeDouble, 1, -1, &_parm, NULL,
-             "all the parameters required for filtering method", &_parmLen);
-  hestOptAdd(&hopt, "r", "radius", airTypeInt, 1, 1, &radius, "1",
-             "radius of filtering neighborhood");
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "1", "verbosity level");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(nin), "", "input volume to filter",
-             NULL, NULL, nrrdHestNrrdNoTTY);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output file to save filtering result into");
+  unsigned int numIters;
+  hestOptAdd_1_UInt(&hopt, "iter", "# iters", &numIters, "5",
+                    "number of iterations to do processing for");
+  unsigned int numThreads;
+  hestOptAdd_1_UInt(&hopt, "nt", "# threads", &numThreads, "5",
+                    "number of threads to run");
+  int kindType;
+  hestOptAdd_1_Enum(&hopt, "k", "kind", &kindType, NULL, //
+                    "what kind of volume is input", coilKindType);
+  int methodType;
+  hestOptAdd_1_Enum(&hopt, "m", "method", &methodType, "test",
+                    "what kind of filtering to perform", coilMethodType);
+  double *_parm;
+  unsigned int _parmLen;
+  hestOptAdd_Nv_Double(&hopt, "p", "parms", 1, -1, &_parm, NULL,
+                       "all the parameters required for filtering method", //
+                       &_parmLen);
+  int radius;
+  hestOptAdd_1_Int(&hopt, "r", "radius", &radius, "1",
+                   "radius of filtering neighborhood");
+  int verbose;
+  hestOptAdd_1_Int(&hopt, "v", "verbose", &verbose, "1", //
+                   "verbosity level");
+  Nrrd *nin;
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "", //
+                     "input volume to filter", nrrdHestNrrdNoTTY);
+  char *outS;
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-",
+                      "output file to save filtering result into");
   hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  cctx = coilContextNew();
+  coilContext *cctx = coilContextNew();
   airMopAdd(mop, cctx, (airMopper)coilContextNix, airMopAlways);
-  nout = nrrdNew();
+  Nrrd *nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (_parmLen != coilMethodArray[methodType]->numParm) {
-    fprintf(stderr, "%s: %s method wants %d parms, but got %d\n", me,
-            coilMethodArray[methodType]->name, coilMethodArray[methodType]->numParm,
+  if (_parmLen != coilMethodArray[methodType]->parmNum) {
+    fprintf(stderr, "%s: %s method wants %u parms, but got %u\n", me,
+            coilMethodArray[methodType]->name, coilMethodArray[methodType]->parmNum,
             _parmLen);
     airMopError(mop);
     return 1;
   }
-  for (pi = 0; pi < _parmLen; pi++) {
+  double parm[COIL_PARMS_NUM];
+  for (unsigned int pi = 0; pi < _parmLen; pi++) {
     parm[pi] = _parm[pi];
   }
   if (coilContextAllSet(cctx, nin, coilKindArray[kindType], coilMethodArray[methodType],

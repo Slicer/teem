@@ -104,8 +104,8 @@ enum {
 */
 typedef struct {
   char name[AIR_STRLEN_SMALL + 1];
-  int type;    /* from coilMethodType* enum */
-  int numParm; /* number of parameters we need */
+  int type;             /* from coilMethodType* enum */
+  unsigned int parmNum; /* number of parameters we need */
 } coilMethod;
 
 /*

@@ -19,6 +19,8 @@
 
 #include "coil.h"
 
+typedef unsigned int uint;
+
 int /* Biff: 1 */
 coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
   static const char me[] = "coilVolumeCheck";
@@ -68,7 +70,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin, const coilKind *kind,
                   const coilMethod *method, unsigned int radius, unsigned int numThreads,
                   int verbose, double parm[COIL_PARMS_NUM]) {
   static const char me[] = "coilContextAllSet";
-  int someExist, allExist, baseDim, pi;
+  int someExist, allExist, baseDim;
   size_t size[NRRD_DIM_MAX], sx, sy, sz;
   double xsp, ysp, zsp;
   airArray *mop;
@@ -110,9 +112,9 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin, const coilKind *kind,
   mop = airMopNew();
 
   /* set parms */
-  for (pi = 0; pi < method->numParm; pi++) {
+  for (uint pi = 0; pi < method->parmNum; pi++) {
     if (!AIR_EXISTS(parm[pi])) {
-      biffAddf(COIL, "%s: parm[%d] (need %d) doesn't exist", me, pi, method->numParm);
+      biffAddf(COIL, "%s: parm[%u] (need %d) doesn't exist", me, pi, method->parmNum);
       airMopError(mop);
       return 1;
     }
