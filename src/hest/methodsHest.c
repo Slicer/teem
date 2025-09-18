@@ -49,6 +49,9 @@ static const airEnum _hestSource
      .sense = AIR_FALSE};
 const airEnum *const hestSource = &_hestSource;
 
+// see documentation in parseHest.c
+#define ME ((hparm && hparm->verbosity) ? me : "")
+
 int
 hestSourceUser(int src) {
   return (hestSourceCommandLine == src || hestSourceResponseFile == src);
