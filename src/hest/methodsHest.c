@@ -31,18 +31,19 @@ const int hestPresent = 42;
 static const airEnum _hestSource
   = {.name = "source",
      .M = 3,
-     .str = (const char *[]){"(unknown_source)", //
-                             "default",          //
-                             "command-line",     //
-                             "response-file"},
+     .str = (const char *[]){"(unknown_source)", // 0
+                             "default",          // 1
+                             "command-line",     // 2
+                             "response-file"},   // 3
      .val = NULL,
      .desc = (const char *[]){"unknown source",            //
                               "default string in hestOpt", //
                               "argc/argv command-line",    //
                               "a response file"},
-     .strEqv = (const char *[]){"default",                 //
-                                "command-line", "cmdline", //
-                                "response-file", "respfile"},
+     .strEqv = (const char *[]){"default",                   //
+                                "command-line", "cmdline",   //
+                                "response-file", "respfile", //
+                                ""},
      .valEqv = (const int[]){hestSourceDefault,                            //
                              hestSourceCommandLine, hestSourceCommandLine, //
                              hestSourceResponseFile, hestSourceResponseFile},

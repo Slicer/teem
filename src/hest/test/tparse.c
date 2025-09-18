@@ -21,6 +21,14 @@
 
 int
 main(int argc, const char **argv) {
+
+  // airEnumPrint(stdout, hestSource);
+  char enerr[AIR_STRLEN_LARGE + 1];
+  if (airEnumCheck(enerr, hestSource)) {
+    fprintf(stderr, "%s: problem:\n%s\n", argv[0], enerr);
+    exit(1);
+  }
+
   int ret = 0;
   hestOpt *opt = NULL;
   hestParm *hparm = hestParmNew();
@@ -41,5 +49,6 @@ main(int argc, const char **argv) {
 
   hestOptFree(opt);
   hestParmFree(hparm);
+
   exit(ret);
 }
