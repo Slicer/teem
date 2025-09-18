@@ -17,7 +17,6 @@
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-
 #include "../ten.h"
 
 const char *info = ("Test EM bimodal histogram fitting.");
@@ -26,11 +25,9 @@ int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
-  Nrrd *nhisto;
   tenEMBimodalParm *biparm;
-  double minprob[2];
 
   mop = airMopNew();
   me = argv[0];
@@ -38,18 +35,16 @@ main(int argc, const char *argv[]) {
   biparm = tenEMBimodalParmNew();
   airMopAdd(mop, biparm, (airMopper)tenEMBimodalParmNix, airMopAlways);
 
-  hestOptAdd(&hopt, NULL, "histogram", airTypeOther, 1, 1, &nhisto, NULL,
-             "The 1-D histogram to analyize", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "ts", "two stage", airTypeInt, 0, 0,
-             &(biparm->twoStage), NULL,
-             "use two-stage processing");
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &(biparm->verbose), "1",
-             "verbosity level");
-  hestOptAdd(&hopt, "mp", "minprob 1,2", airTypeDouble, 2, 2, minprob, "0 0",
-             "minimum significant posterior probabilies, for first and "
-             "second stages");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  Nrrd *nhisto;
+  hestOptAdd_1_Other(&hopt, NULL, "histogram", &nhisto, NULL,
+                     "The 1-D histogram to analyize", nrrdHestNrrd);
+  hestOptAdd_Flag(&hopt, "ts", &(biparm->twoStage), "use two-stage processing");
+  hestOptAdd_1_Int(&hopt, "v", "verbose", &(biparm->verbose), "1", "verbosity level");
+  double minprob[2];
+  hestOptAdd_2_Double(&hopt, "mp", "minprob 1,2", minprob, "0 0",
+                      "minimum significant posterior probabilies, for first and "
+                      "second stages");
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -63,14 +58,13 @@ main(int argc, const char *argv[]) {
     return 1;
   }
   fprintf(stderr, "%s: bimodal histogram fit\n", me);
-  fprintf(stderr, "material 1 (%g%%): mean = %g, stdv = %g\n",
-          100*(biparm->fraction1), biparm->mean1, biparm->stdv1);
+  fprintf(stderr, "material 1 (%g%%): mean = %g, stdv = %g\n", 100 * (biparm->fraction1),
+          biparm->mean1, biparm->stdv1);
   fprintf(stderr, "material 2 (%g%%): mean = %g, stdv = %g\n",
-          100*(1 - biparm->fraction1), biparm->mean2, biparm->stdv2);
-  fprintf(stderr, " ---> optimal threshold = %g (confidence = %g)\n",
-          biparm->threshold, biparm->confidence);
+          100 * (1 - biparm->fraction1), biparm->mean2, biparm->stdv2);
+  fprintf(stderr, " ---> optimal threshold = %g (confidence = %g)\n", biparm->threshold,
+          biparm->confidence);
 
   airMopOkay(mop);
   return 0;
 }
-

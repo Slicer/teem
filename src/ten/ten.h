@@ -911,11 +911,11 @@ typedef struct {
     minDelta,                /* convergence test for maximization */
     minFraction,             /* smallest fraction (in 0.0 to 1.0) that material
                                 1 or 2 can legitimately have */
-    minConfidence,           /* smallest confidence value that the model fitting
-                                is allowed to have */
-    twoStage,                /* wacky two-stage fitting */
-    verbose;                 /* output messages and/or progress images */
+    minConfidence;           /* smallest confidence value that the model fitting
+                              is allowed to have */
   unsigned int maxIteration; /* cap on # of non-convergent iters allowed */
+  int twoStage,              /* wacky two-stage fitting */
+    verbose;                 /* output messages and/or progress images */
   /* ----- internal ----- */
   double *histo,          /* double version of histogram */
     *pp1, *pp2,           /* pre-computed posterior probabilities for the

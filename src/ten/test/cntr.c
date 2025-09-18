@@ -17,7 +17,6 @@
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-
 #include "../ten.h"
 
 const char *info = ("does contraction between 2 2nd-order "
@@ -27,24 +26,25 @@ int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
 
-  char *outS;
-  Nrrd *_ncov, *ncov, *_nten[2], *nten[2], *nout;
+  Nrrd *ncov, *nten[2], *nout;
   double *cc, *t0, *t1, *out, ww[21];
   size_t nn, ii;
 
   mop = airMopNew();
   me = argv[0];
-  hestOptAdd(&hopt, "i4", "volume", airTypeOther, 1, 1, &_ncov, NULL,
-             "4th-order tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "i2", "v0 v1", airTypeOther, 2, 2, _nten, NULL,
-             "two 2nd-order tensor volumes", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
-             "file to write output nrrd to");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  Nrrd *_ncov;
+  hestOptAdd_1_Other(&hopt, "i4", "volume", &_ncov, NULL, "4th-order tensor volume",
+                     nrrdHestNrrd);
+  Nrrd *_nten[2];
+  hestOptAdd_2_Other(&hopt, "i2", "v0 v1", _nten, NULL, "two 2nd-order tensor volumes",
+                     nrrdHestNrrd);
+  char *outS;
+  hestOptAdd_1_String(&hopt, "o", "filename", &outS, "-",
+                      "file to write output nrrd to");
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -56,17 +56,17 @@ main(int argc, const char *argv[]) {
     return 1;
   }
   if (!(4 == _ncov->dim && 21 == _ncov->axis[0].size)) {
-    fprintf(stderr, "%s: didn't get a 4-D 21-by-X volume (got %u-D %u-by-X)\n",
-            me, _ncov->dim, AIR_UINT(_ncov->axis[0].size));
+    fprintf(stderr, "%s: didn't get a 4-D 21-by-X volume (got %u-D %u-by-X)\n", me,
+            _ncov->dim, AIR_UINT(_ncov->axis[0].size));
     airMopError(mop);
     return 1;
   }
-  if (!(nrrdElementNumber(_ncov)/21 == nrrdElementNumber(_nten[0])/7
-        && nrrdElementNumber(_nten[0])/7 == nrrdElementNumber(_nten[1])/7)) {
+  if (!(nrrdElementNumber(_ncov) / 21 == nrrdElementNumber(_nten[0]) / 7
+        && nrrdElementNumber(_nten[0]) / 7 == nrrdElementNumber(_nten[1]) / 7)) {
     fprintf(stderr, "%s: number voxels %u %u %u don't all match\n", me,
-            AIR_UINT(nrrdElementNumber(_ncov)/21),
-            AIR_UINT(nrrdElementNumber(_nten[0])/7),
-            AIR_UINT(nrrdElementNumber(_nten[1])/7));
+            AIR_UINT(nrrdElementNumber(_ncov) / 21),
+            AIR_UINT(nrrdElementNumber(_nten[0]) / 7),
+            AIR_UINT(nrrdElementNumber(_nten[1]) / 7));
     airMopError(mop);
     return 1;
   }
@@ -83,8 +83,8 @@ main(int argc, const char *argv[]) {
       || nrrdConvert(nten[0], _nten[0], nrrdTypeDouble)
       || nrrdConvert(nten[1], _nten[1], nrrdTypeDouble)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble converting to %s:\n%s\n",
-            me, airEnumStr(nrrdType, nrrdTypeDouble), err);
+    fprintf(stderr, "%s: trouble converting to %s:\n%s\n", me,
+            airEnumStr(nrrdType, nrrdTypeDouble), err);
     airMopError(mop);
     return 1;
   }
@@ -101,12 +101,27 @@ main(int argc, const char *argv[]) {
   out = AIR_CAST(double *, nout->data);
   nn = nrrdElementNumber(nout);
 
-  ww[ 0] = 1*1; ww[ 1] = 2*1; ww[ 2] = 2*1; ww[ 3] = 1*1; ww[ 4] = 2*1; ww[ 5] = 1*1;
-  /* */         ww[ 6] = 2*2; ww[ 7] = 2*2; ww[ 8] = 1*2; ww[ 9] = 2*2; ww[10] = 1*2;
-  /* */                       ww[11] = 2*2; ww[12] = 1*2; ww[13] = 2*2; ww[14] = 1*2;
-  /* */                                     ww[15] = 1*1; ww[16] = 2*1; ww[17] = 1*1;
-  /* */                                                   ww[18] = 2*2; ww[19] = 1*2;
-  /* */                                                                 ww[20] = 1*1;
+  ww[0] = 1 * 1;
+  ww[1] = 2 * 1;
+  ww[2] = 2 * 1;
+  ww[3] = 1 * 1;
+  ww[4] = 2 * 1;
+  ww[5] = 1 * 1;
+  /* */ ww[6] = 2 * 2;
+  ww[7] = 2 * 2;
+  ww[8] = 1 * 2;
+  ww[9] = 2 * 2;
+  ww[10] = 1 * 2;
+  /* */ ww[11] = 2 * 2;
+  ww[12] = 1 * 2;
+  ww[13] = 2 * 2;
+  ww[14] = 1 * 2;
+  /* */ ww[15] = 1 * 1;
+  ww[16] = 2 * 1;
+  ww[17] = 1 * 1;
+  /* */ ww[18] = 2 * 2;
+  ww[19] = 1 * 2;
+  /* */ ww[20] = 1 * 1;
 
   /*
   for (ii=0; ii<21; ii++) {
@@ -114,14 +129,26 @@ main(int argc, const char *argv[]) {
   }
   */
 
-  for (ii=0; ii<nn; ii++) {
+  for (ii = 0; ii < nn; ii++) {
 
-    out[ii] = (+ cc[ 0]*ww[ 0]*t0[1]*t1[1] + cc[ 1]*ww[ 1]*t0[2]*t1[1] + cc[ 2]*ww[ 2]*t0[3]*t1[1] + cc[ 3]*ww[ 3]*t0[4]*t1[1] + cc[ 4]*ww[ 4]*t0[5]*t1[1] + cc[ 5]*ww[ 5]*t0[6]*t1[1] +
-               + cc[ 1]*ww[ 1]*t0[1]*t1[2] + cc[ 6]*ww[ 6]*t0[2]*t1[2] + cc[ 7]*ww[ 7]*t0[3]*t1[2] + cc[ 8]*ww[ 8]*t0[4]*t1[2] + cc[ 9]*ww[ 9]*t0[5]*t1[2] + cc[10]*ww[10]*t0[6]*t1[2] +
-               + cc[ 2]*ww[ 2]*t0[1]*t1[3] + cc[ 7]*ww[ 7]*t0[2]*t1[3] + cc[11]*ww[11]*t0[3]*t1[3] + cc[12]*ww[12]*t0[4]*t1[3] + cc[13]*ww[13]*t0[5]*t1[3] + cc[14]*ww[14]*t0[6]*t1[3] +
-               + cc[ 3]*ww[ 3]*t0[1]*t1[4] + cc[ 8]*ww[ 8]*t0[2]*t1[4] + cc[12]*ww[12]*t0[3]*t1[4] + cc[15]*ww[15]*t0[4]*t1[4] + cc[16]*ww[16]*t0[5]*t1[4] + cc[17]*ww[17]*t0[6]*t1[4] +
-               + cc[ 4]*ww[ 4]*t0[1]*t1[5] + cc[ 9]*ww[ 9]*t0[2]*t1[5] + cc[13]*ww[13]*t0[3]*t1[5] + cc[16]*ww[16]*t0[4]*t1[5] + cc[18]*ww[18]*t0[5]*t1[5] + cc[19]*ww[19]*t0[6]*t1[5] +
-               + cc[ 5]*ww[ 5]*t0[1]*t1[6] + cc[10]*ww[10]*t0[2]*t1[6] + cc[14]*ww[14]*t0[3]*t1[6] + cc[17]*ww[17]*t0[4]*t1[6] + cc[19]*ww[19]*t0[5]*t1[6] + cc[20]*ww[20]*t0[6]*t1[6]);
+    out[ii] = (+cc[0] * ww[0] * t0[1] * t1[1] + cc[1] * ww[1] * t0[2] * t1[1]
+               + cc[2] * ww[2] * t0[3] * t1[1] + cc[3] * ww[3] * t0[4] * t1[1]
+               + cc[4] * ww[4] * t0[5] * t1[1] + cc[5] * ww[5] * t0[6] * t1[1]
+               + +cc[1] * ww[1] * t0[1] * t1[2] + cc[6] * ww[6] * t0[2] * t1[2]
+               + cc[7] * ww[7] * t0[3] * t1[2] + cc[8] * ww[8] * t0[4] * t1[2]
+               + cc[9] * ww[9] * t0[5] * t1[2] + cc[10] * ww[10] * t0[6] * t1[2]
+               + +cc[2] * ww[2] * t0[1] * t1[3] + cc[7] * ww[7] * t0[2] * t1[3]
+               + cc[11] * ww[11] * t0[3] * t1[3] + cc[12] * ww[12] * t0[4] * t1[3]
+               + cc[13] * ww[13] * t0[5] * t1[3] + cc[14] * ww[14] * t0[6] * t1[3]
+               + +cc[3] * ww[3] * t0[1] * t1[4] + cc[8] * ww[8] * t0[2] * t1[4]
+               + cc[12] * ww[12] * t0[3] * t1[4] + cc[15] * ww[15] * t0[4] * t1[4]
+               + cc[16] * ww[16] * t0[5] * t1[4] + cc[17] * ww[17] * t0[6] * t1[4]
+               + +cc[4] * ww[4] * t0[1] * t1[5] + cc[9] * ww[9] * t0[2] * t1[5]
+               + cc[13] * ww[13] * t0[3] * t1[5] + cc[16] * ww[16] * t0[4] * t1[5]
+               + cc[18] * ww[18] * t0[5] * t1[5] + cc[19] * ww[19] * t0[6] * t1[5]
+               + +cc[5] * ww[5] * t0[1] * t1[6] + cc[10] * ww[10] * t0[2] * t1[6]
+               + cc[14] * ww[14] * t0[3] * t1[6] + cc[17] * ww[17] * t0[4] * t1[6]
+               + cc[19] * ww[19] * t0[5] * t1[6] + cc[20] * ww[20] * t0[6] * t1[6]);
 
     /*         0:xxxx  1:xxxy  2:xxxz  3:xxyy  4:xxyz  5:xxzz
      *                 6:xyxy  7:xyxz  8:xyyy  9:xyyz 10:xyzz

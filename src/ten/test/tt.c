@@ -103,45 +103,44 @@ washQtoM3(double m[9], double q[4]) {
 
 int
 main(int argc, const char *argv[]) {
-  const char *me;
-  char *err, *outS;
+  const char *me = argv[0];
+  char *err;
   hestOpt *hopt = NULL;
-  airArray *mop;
 
-  int sx, sy, xi, yi, samp, version, whole, right;
-  float *tdata;
-  double p[3], xyz[3], q[4], len, hackcp = 0, maxca;
-  double ca, cp, mD[9], mRF[9], mRI[9], mT[9], hack;
-  Nrrd *nten;
-  mop = airMopNew();
-
-  me = argv[0];
-  hestOptAdd(&hopt, "n", "# samples", airTypeInt, 1, 1, &samp, "4",
-             "number of glyphs along each edge of triangle");
-  hestOptAdd(&hopt, "p", "x y z", airTypeDouble, 3, 3, p, NULL,
-             "location in quaternion quotient space");
-  hestOptAdd(&hopt, "ca", "max ca", airTypeDouble, 1, 1, &maxca, "0.8",
-             "maximum ca to use at bottom edge of triangle");
-  hestOptAdd(&hopt, "r", NULL, airTypeInt, 0, 0, &right, NULL,
-             "sample a right-triangle-shaped region, instead of "
-             "a roughly equilateral triangle. ");
-  hestOptAdd(&hopt, "w", NULL, airTypeInt, 0, 0, &whole, NULL,
-             "sample the whole triangle of constant trace, "
-             "instead of just the "
-             "sixth of it in which the eigenvalues have the "
-             "traditional sorted order. ");
-  hestOptAdd(&hopt, "hack", "hack", airTypeDouble, 1, 1, &hack, "0.04",
-             "this is a hack");
-  hestOptAdd(&hopt, "v", "version", airTypeInt, 1, 1, &version, "1",
-             "which version of the Westin metrics to use to parameterize "
-             "triangle; \"1\" for ISMRM 97, \"2\" for MICCAI 99");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output file to save tensors into");
+  airArray *mop = airMopNew();
+  int samp;
+  hestOptAdd_1_Int(&hopt, "n", "# samples", &samp, "4",
+                   "number of glyphs along each edge of triangle");
+  double p[3];
+  hestOptAdd_3_Double(&hopt, "p", "x y z", p, NULL,
+                      "location in quaternion quotient space");
+  double maxca;
+  hestOptAdd_1_Double(&hopt, "ca", "max ca", &maxca, "0.8",
+                      "maximum ca to use at bottom edge of triangle");
+  int right;
+  hestOptAdd_Flag(&hopt, "r", &right,
+                  "sample a right-triangle-shaped region, instead of "
+                  "a roughly equilateral triangle. ");
+  int whole;
+  hestOptAdd_Flag(&hopt, "w", &whole,
+                  "sample the whole triangle of constant trace, "
+                  "instead of just the "
+                  "sixth of it in which the eigenvalues have the "
+                  "traditional sorted order. ");
+  double hack;
+  hestOptAdd_1_Double(&hopt, "hack", "hack", &hack, "0.04", "this is a hack");
+  int version;
+  hestOptAdd_1_Int(&hopt, "v", "version", &version, "1",
+                   "which version of the Westin metrics to use to parameterize "
+                   "triangle; \"1\" for ISMRM 97, \"2\" for MICCAI 99");
+  char *outS;
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-",
+                      "output file to save tensors into");
   hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  nten = nrrdNew();
+  Nrrd *nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
   if (!(1 == version || 2 == version)) {
@@ -149,6 +148,7 @@ main(int argc, const char *argv[]) {
     airMopError(mop);
     return 1;
   }
+  int sx, sy;
   if (right) {
     sx = samp;
     sy = (int)(1.0 * samp / sqrt(3.0));
@@ -163,6 +163,9 @@ main(int argc, const char *argv[]) {
     airMopError(mop);
     return 1;
   }
+  float *tdata;
+  double xyz[3], q[4], len, hackcp = 0;
+  double ca, cp, mD[9], mRF[9], mRI[9], mT[9];
   q[0] = 1.0;
   q[1] = p[0];
   q[2] = p[1];
@@ -252,14 +255,14 @@ main(int argc, const char *argv[]) {
     nten->axis[2].spacing = (sx - 1) / (sqrt(3.0) * (sy - 1));
     nten->axis[3].spacing = 1;
   } else {
-    for (yi = 0; yi < samp; yi++) {
+    for (int yi = 0; yi < samp; yi++) {
       if (whole) {
         ca = AIR_AFFINE(0, yi, samp - 1, 0.0, 1.0);
       } else {
         ca = AIR_AFFINE(0, yi, samp - 1, hack, maxca);
         hackcp = AIR_AFFINE(0, yi, samp - 1, hack, 0);
       }
-      for (xi = 0; xi <= yi; xi++) {
+      for (int xi = 0; xi <= yi; xi++) {
         if (whole) {
           cp = AIR_AFFINE(0, xi, samp - 1, 0.0, 1.0);
         } else {

@@ -27,28 +27,31 @@ main(int argc, const char *argv[]) {
   hestOpt *hopt = NULL;
   airArray *mop;
 
-  char *errS, *outS, *covarS;
-  Nrrd *_nodf, *nvec, *nhist, *ncovar;
-  unsigned int bins;
+  char *errS;
+  Nrrd *nhist, *ncovar;
   size_t size[NRRD_DIM_MAX];
-  float min;
 
   mop = airMopNew();
   me = argv[0];
 
-  hestOptAdd(&hopt, "i", "odf", airTypeOther, 1, 1, &_nodf, NULL,
-             "ODF volume to analyze", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "v", "odf", airTypeOther, 1, 1, &nvec, NULL,
-             "list of vectors by which odf is sampled", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "min", "min", airTypeFloat, 1, 1, &min, "0.0",
-             "ODF values below this are ignored, and per-voxel ODF is "
-             "normalized to have sum 1.0.  Use \"nan\" to subtract out "
-             "the per-voxel min.");
-  hestOptAdd(&hopt, "b", "bins", airTypeUInt, 1, 1, &bins, "128",
-             "number of bins in histograms");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output file");
-  hestOptAdd(&hopt, "co", "covariance out", airTypeString, 1, 1, &covarS, "covar.nrrd",
-             "covariance output file");
+  Nrrd *_nodf;
+  hestOptAdd_1_Other(&hopt, "i", "odf", &_nodf, NULL, "ODF volume to analyze",
+                     nrrdHestNrrd);
+  Nrrd *nvec;
+  hestOptAdd_1_Other(&hopt, "v", "odf", &nvec, NULL,
+                     "list of vectors by which odf is sampled", nrrdHestNrrd);
+  float min;
+  hestOptAdd_1_Float(&hopt, "min", "min", &min, "0.0",
+                     "ODF values below this are ignored, and per-voxel ODF is "
+                     "normalized to have sum 1.0.  Use \"nan\" to subtract out "
+                     "the per-voxel min.");
+  unsigned int bins;
+  hestOptAdd_1_UInt(&hopt, "b", "bins", &bins, "128", "number of bins in histograms");
+  char *outS;
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output file");
+  char *covarS;
+  hestOptAdd_1_String(&hopt, "co", "covariance out", &covarS, "covar.nrrd",
+                      "covariance output file");
   hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);

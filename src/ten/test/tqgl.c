@@ -17,22 +17,17 @@
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-
 #include "../ten.h"
 #include "../privateTen.h"
 
 /* BAD gordon */
 extern double _tenQGL_Kdist(const double RThZA[3], const double RThZB[3]);
-extern void _tenQGL_Klog(double klog[3],
-                         const double RThZA[3], const double RThZB[3]);
-extern void _tenQGL_Kexp(double RThZB[3],
-                         const double RThZA[3], const double klog[3]);
+extern void _tenQGL_Klog(double klog[3], const double RThZA[3], const double RThZB[3]);
+extern void _tenQGL_Kexp(double RThZB[3], const double RThZA[3], const double klog[3]);
 
 extern double _tenQGL_Rdist(const double RThPhA[3], const double RThPhB[3]);
-extern void _tenQGL_Rlog(double rlog[3],
-                         const double RThPhA[3], const double RThPhB[3]);
-extern void _tenQGL_Rexp(double RThPhB[3],
-                         const double RThPhA[3], const double rlog[3]);
+extern void _tenQGL_Rlog(double rlog[3], const double RThPhA[3], const double RThPhB[3]);
+extern void _tenQGL_Rexp(double RThPhB[3], const double RThPhA[3], const double rlog[3]);
 
 /* normalized gradients of k or r invariants, in XYZ space,
    to help determine if path is really a loxodrome */
@@ -40,8 +35,7 @@ void
 kgrads(double grad[3][3], const double eval[3]) {
   double rtz[3];
 
-  tenTripleConvertSingle_d(rtz, tenTripleTypeRThetaZ,
-                           eval, tenTripleTypeEigenvalue);
+  tenTripleConvertSingle_d(rtz, tenTripleTypeRThetaZ, eval, tenTripleTypeEigenvalue);
 
   ELL_3V_SET(grad[0], cos(rtz[1]), sin(rtz[1]), 0);
   ELL_3V_SET(grad[1], -sin(rtz[1]), cos(rtz[1]), 0);
@@ -52,17 +46,13 @@ void
 rgrads(double grad[3][3], const double eval[3]) {
   double rtp[3];
 
-  tenTripleConvertSingle_d(rtp, tenTripleTypeRThetaPhi,
-                           eval, tenTripleTypeEigenvalue);
+  tenTripleConvertSingle_d(rtp, tenTripleTypeRThetaPhi, eval, tenTripleTypeEigenvalue);
 
-  ELL_3V_SET(grad[0],
-             cos(rtp[1])*sin(rtp[2]),
-             sin(rtp[1])*sin(rtp[2]),
-             cos(rtp[2]));
+  ELL_3V_SET(grad[0], cos(rtp[1]) * sin(rtp[2]), sin(rtp[1]) * sin(rtp[2]), cos(rtp[2]));
   ELL_3V_SET(grad[1], -sin(rtp[1]), cos(rtp[1]), 0);
   ELL_3V_SET(grad[2],
-             cos(rtp[1])*cos(rtp[2]),
-             sin(rtp[1])*cos(rtp[2]),
+             cos(rtp[1]) * cos(rtp[2]),
+             sin(rtp[1]) * cos(rtp[2]),
              -sin(rtp[2]));
 }
 
@@ -73,67 +63,47 @@ const char *info = ("quaternion geo-lox hacking.  Actually all this does is "
 int
 main(int argc, const char *argv[]) {
   const char *me;
-  hestOpt *hopt=NULL;
-  airArray *mop;
-
-  double tripA[3], tripB[3], evalA[3], evalB[3],
-    rt_A[3], rt_B[3], trip[3], eval[3], lasteval[3], lastxyz[3],
-    logAB[3], ndist;
-  int ittype, ottype, ptype, rttype;
-  unsigned int NN, ii;
-  tenInterpParm *tip;
-
-  void (*interp)(double oeval[3], const double evalA[3],
-                 const double evalB[3], const double tt);
-  double (*qdist)(const double RTh_A[3], const double RTh_B[3]);
-  void (*qlog)(double klog[3],
-               const double RThZA[3], const double RThZB[3]);
-  void (*qexp)(double RThZB[3],
-               const double RThZA[3], const double klog[3]);
-  void (*grads)(double grad[3][3], const double eval[3]);
+  hestOpt *hopt = NULL;
 
   me = argv[0];
-  mop = airMopNew();
-  tip = tenInterpParmNew();
+  airArray *mop = airMopNew();
+  tenInterpParm *tip = tenInterpParmNew();
   airMopAdd(mop, tip, (airMopper)tenInterpParmNix, airMopAlways);
 
-  hestOptAdd(&hopt, "a", "start", airTypeDouble, 3, 3, tripA, NULL,
-             "start triple of values");
-  hestOptAdd(&hopt, "b", "end", airTypeDouble, 3, 3, tripB, NULL,
-             "end triple of values");
-  hestOptAdd(&hopt, "it", "type", airTypeEnum, 1, 1, &ittype, NULL,
-             "type of given start and end triples", NULL, tenTripleType);
-  hestOptAdd(&hopt, "ot", "type", airTypeEnum, 1, 1, &ottype, NULL,
-             "type of triples for output", NULL, tenTripleType);
-  hestOptAdd(&hopt, "p", "type", airTypeEnum, 1, 1, &ptype, NULL,
-             "type of path interpolation", NULL, tenInterpType);
-  hestOptAdd(&hopt, "n", "# steps", airTypeUInt, 1, 1, &NN, "100",
-             "number of steps along path");
+  double tripA[3];
+  hestOptAdd_3_Double(&hopt, "a", "start", tripA, NULL, "start triple of values");
+  double tripB[3];
+  hestOptAdd_3_Double(&hopt, "b", "end", tripB, NULL, "end triple of values");
+  int ittype;
+  hestOptAdd_1_Enum(&hopt, "it", "type", &ittype, NULL,
+                    "type of given start and end triples", tenTripleType);
+  int ottype;
+  hestOptAdd_1_Enum(&hopt, "ot", "type", &ottype, NULL, "type of triples for output",
+                    tenTripleType);
+  int ptype;
+  hestOptAdd_1_Enum(&hopt, "p", "type", &ptype, NULL, "type of path interpolation",
+                    tenInterpType);
+  unsigned int NN;
+  hestOptAdd_1_UInt(&hopt, "n", "# steps", &NN, "100", "number of steps along path");
 
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1,
-             &(tip->verbose), "0", "verbosity");
-  hestOptAdd(&hopt, "s", "stepsize", airTypeDouble, 1, 1,
-             &(tip->convStep), "1", "step size in update");
-  hestOptAdd(&hopt, "r", "recurse", airTypeInt, 0, 0,
-             &(tip->enableRecurse), NULL,
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &(tip->verbose), "0",
+             "verbosity");
+  hestOptAdd(&hopt, "s", "stepsize", airTypeDouble, 1, 1, &(tip->convStep), "1",
+             "step size in update");
+  hestOptAdd(&hopt, "r", "recurse", airTypeInt, 0, 0, &(tip->enableRecurse), NULL,
              "enable recursive solution, when useful");
-  hestOptAdd(&hopt, "mn", "minnorm", airTypeDouble, 1, 1,
-             &(tip->minNorm), "0.000001",
+  hestOptAdd(&hopt, "mn", "minnorm", airTypeDouble, 1, 1, &(tip->minNorm), "0.000001",
              "minnorm of something");
-  hestOptAdd(&hopt, "mi", "maxiter", airTypeUInt, 1, 1,
-             &(tip->maxIter), "0",
+  hestOptAdd(&hopt, "mi", "maxiter", airTypeUInt, 1, 1, &(tip->maxIter), "0",
              "if non-zero, max # iterations for computation");
-  hestOptAdd(&hopt, "c", "conv", airTypeDouble, 1, 1,
-             &(tip->convEps), "0.0001",
+  hestOptAdd(&hopt, "c", "conv", airTypeDouble, 1, 1, &(tip->convEps), "0.0001",
              "convergence threshold of length fraction");
 
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( tenInterpTypeQuatGeoLoxK == ptype
-         || tenInterpTypeQuatGeoLoxR == ptype )) {
+  if (!(tenInterpTypeQuatGeoLoxK == ptype || tenInterpTypeQuatGeoLoxR == ptype)) {
     fprintf(stderr, "%s: need type %s or %s, not %s\n", me,
             airEnumStr(tenInterpType, tenInterpTypeQuatGeoLoxK),
             airEnumStr(tenInterpType, tenInterpTypeQuatGeoLoxR),
@@ -142,6 +112,13 @@ main(int argc, const char *argv[]) {
     return 1;
   }
 
+  void (*interp)(double oeval[3], const double evalA[3], const double evalB[3],
+                 const double tt);
+  double (*qdist)(const double RTh_A[3], const double RTh_B[3]);
+  void (*qlog)(double klog[3], const double RThZA[3], const double RThZB[3]);
+  void (*qexp)(double RThZB[3], const double RThZA[3], const double klog[3]);
+  void (*grads)(double grad[3][3], const double eval[3]);
+  int rttype;
   if (tenInterpTypeQuatGeoLoxK == ptype) {
     interp = tenQGLInterpTwoEvalK;
     qdist = _tenQGL_Kdist;
@@ -159,30 +136,28 @@ main(int argc, const char *argv[]) {
   }
 
   fprintf(stderr, "%s: (%s) %f %f %f \n--%s--> %f %f %f\n", me,
-          airEnumStr(tenTripleType, ittype),
-          tripA[0], tripA[1], tripA[2],
-          airEnumStr(tenInterpType, ptype),
-          tripB[0], tripB[1], tripB[2]);
+          airEnumStr(tenTripleType, ittype), tripA[0], tripA[1], tripA[2],
+          airEnumStr(tenInterpType, ptype), tripB[0], tripB[1], tripB[2]);
 
+  double evalA[3], evalB[3], rt_A[3], rt_B[3], trip[3], eval[3], lasteval[3], lastxyz[3],
+    logAB[3];
   tenTripleConvertSingle_d(evalA, tenTripleTypeEigenvalue, tripA, ittype);
   tenTripleConvertSingle_d(evalB, tenTripleTypeEigenvalue, tripB, ittype);
   tenTripleConvertSingle_d(rt_A, rttype, tripA, ittype);
   tenTripleConvertSingle_d(rt_B, rttype, tripB, ittype);
 
-  ndist = 0;
+  double ndist = 0;
   ELL_3V_SET(lasteval, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_3V_SET(lastxyz, AIR_NAN, AIR_NAN, AIR_NAN);
   qlog(logAB, rt_A, rt_B);
-  fprintf(stderr, "%s: log = %g %g %g (%g)\n", me,
-          logAB[0], logAB[1], logAB[2], ELL_3V_LEN(logAB));
-  for (ii=0; ii<NN; ii++) {
+  fprintf(stderr, "%s: log = %g %g %g (%g)\n", me, logAB[0], logAB[1], logAB[2],
+          ELL_3V_LEN(logAB));
+  for (unsigned int ii = 0; ii < NN; ii++) {
     double tt, xyz[3], dot[3], ll[3], prayRT[3], prayO[3];
-    tt = AIR_AFFINE(0, ii, NN-1, 0.0, 1.0);
+    tt = AIR_AFFINE(0, ii, NN - 1, 0.0, 1.0);
     interp(eval, evalA, evalB, tt);
-    tenTripleConvertSingle_d(trip, ottype,
-                             eval, tenTripleTypeEigenvalue);
-    tenTripleConvertSingle_d(xyz, tenTripleTypeXYZ,
-                             eval, tenTripleTypeEigenvalue);
+    tenTripleConvertSingle_d(trip, ottype, eval, tenTripleTypeEigenvalue);
+    tenTripleConvertSingle_d(xyz, tenTripleTypeXYZ, eval, tenTripleTypeEigenvalue);
     ELL_3V_SCALE(ll, tt, logAB);
     qexp(prayRT, rt_A, ll);
     tenTripleConvertSingle_d(prayO, ottype, prayRT, rttype);
@@ -198,17 +173,13 @@ main(int argc, const char *argv[]) {
     } else {
       ELL_3V_SET(dot, 0, 0, 0);
     }
-    printf("%03u %g %g   %g %g    %g %g   00   %g %g %g\n", ii,
-           trip[0], prayO[0],
-           trip[1], prayO[1],
-           trip[2], prayO[2],
-           dot[0], dot[1], dot[2]);
+    printf("%03u %g %g   %g %g    %g %g   00   %g %g %g\n", ii, trip[0], prayO[0],
+           trip[1], prayO[1], trip[2], prayO[2], dot[0], dot[1], dot[2]);
     ELL_3V_COPY(lasteval, eval);
     ELL_3V_COPY(lastxyz, xyz);
   }
 
-  fprintf(stderr, "%s: dist %g =?= %g\n", me,
-          qdist(rt_A, rt_B), ndist);
+  fprintf(stderr, "%s: dist %g =?= %g\n", me, qdist(rt_A, rt_B), ndist);
 
   airMopOkay(mop);
   return 0;

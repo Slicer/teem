@@ -54,32 +54,33 @@ washQtoM3(double m[9], double q[4]) {
 int
 main(int argc, const char *argv[]) {
   const char *me;
-  char *err, *outS;
+  char *err;
   hestOpt *hopt = NULL;
   airArray *mop;
 
-  int xi, yi, zi, samp;
-  float *tdata;
-  double clp[2], xyz[3], q[4], len;
-  double mD[9], mRF[9], mRI[9], mT[9];
-  Nrrd *nten;
   mop = airMopNew();
 
   me = argv[0];
-  hestOptAdd(&hopt, "n", "# samples", airTypeInt, 1, 1, &samp, "4",
-             "number of samples along each edge of cube");
-  hestOptAdd(&hopt, "c", "cl cp", airTypeDouble, 2, 2, clp, NULL,
-             "shape of tensor to use; \"cl\" and \"cp\" are cl1 "
-             "and cp1 values, both in [0.0,1.0]");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output file to save tensors into");
+  int samp;
+  hestOptAdd_1_Int(&hopt, "n", "# samples", &samp, "4",
+                   "number of samples along each edge of cube");
+  double clp[2];
+  hestOptAdd_2_Double(&hopt, "c", "cl cp", clp, NULL,
+                      "shape of tensor to use; \"cl\" and \"cp\" are cl1 "
+                      "and cp1 values, both in [0.0,1.0]");
+  char *outS;
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-",
+                      "output file to save tensors into");
   hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  nten = nrrdNew();
+  Nrrd *nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
+  float *tdata;
+  double xyz[3], q[4], len;
+  double mD[9], mRF[9], mRI[9], mT[9];
   _clp2xyz(xyz, clp);
   fprintf(stderr, "%s: want evals = %g %g %g\n", me, xyz[0], xyz[1], xyz[2]);
 
@@ -93,9 +94,9 @@ main(int argc, const char *argv[]) {
   ELL_3M_IDENTITY_SET(mD);
   ELL_3M_DIAG_SET(mD, xyz[0], xyz[1], xyz[2]);
   tdata = (float *)nten->data;
-  for (zi = 0; zi < samp; zi++) {
-    for (yi = 0; yi < samp; yi++) {
-      for (xi = 0; xi < samp; xi++) {
+  for (int zi = 0; zi < samp; zi++) {
+    for (int yi = 0; yi < samp; yi++) {
+      for (int xi = 0; xi < samp; xi++) {
         q[0] = 1.0;
         q[1] = AIR_AFFINE(-0.5, (float)xi, samp - 0.5, -1, 1);
         q[2] = AIR_AFFINE(-0.5, (float)yi, samp - 0.5, -1, 1);
