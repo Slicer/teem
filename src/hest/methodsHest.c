@@ -27,7 +27,9 @@
 
 const int hestPresent = 42;
 
-// enjoying how C99 greatly simplifies creating an airEnum at compile-time
+const char *const _hestBiffKey = "hest";
+
+// loving how C99 simplifies creating an airEnum at compile-time
 static const airEnum _hestSource
   = {.name = "source",
      .M = 3,

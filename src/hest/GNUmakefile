@@ -42,7 +42,7 @@ $(L).Included := yes
 #### Describe library L here
 ####
 ####
-$(L).Depends = air
+$(L).Depends = air biff  # private biff dependency new for TeemV2
 $(L).PublicHdr = hest.h
 $(L).PrivateHdr = privateHest.h
 $(L).Obj = $(patsubst %.c,%.o, \

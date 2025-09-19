@@ -21,6 +21,14 @@
 extern "C" {
 #endif
 
+/* Having hest depend on biff is new for TeemV2: with the new and more modular
+re-write of hestParse, not having a useful way to accumulate error messages across a
+deeper call stack was getting just too annoying.
+It is still the case, however, the hest users do not need to call into biff */
+#include <teem/biff.h>
+
+typedef unsigned int uint;
+
 // pre-TeemV2, these used to be change-able defaults in defaultsHest.c:
 //   char hestDefaultRespFileFlag = '@';
 //   char hestDefaultRespFileComment = '#';
@@ -47,9 +55,12 @@ extern "C" {
 #define VAR_PARM_STOP_FLAG    '-'
 #define MULTI_FLAG_SEP        ','
 
-typedef unsigned int uint;
+#define HEST _hestBiffKey
+
+#define HIST_DEPTH_MAX 10 // max sensibly depth of hestInputStack
 
 /* methodsHest.c */
+extern const char *const _hestBiffKey;
 extern int _hestKind(const hestOpt *opt);
 extern int _hestMax(int max);
 extern int _hestOptCheck(const hestOpt *opt, char *err, const hestParm *parm);

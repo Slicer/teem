@@ -20,110 +20,326 @@
 #include "hest.h"
 #include "privateHest.h"
 
-/* parse, parser, parsest: may this be the final implmentation of hestParse */
+/* parse, Parser, PARSEST: may this be the final implementation of hestParse */
 
 #include <assert.h>
+#include <sys/errno.h>
 
-/* A little trickery for error reporting.  For many of the functions here, if they hit an
-error and hparm->verbosity is set, then we should reveal the current function name (set
-by convention in `me`). But without verbosity, we hide that function name, so it appears
-that the error is coming from the caller (probably identified as argv[0]).  However, that
-means that functions using this `ME` macro should (in defiance of convention) set to `me`
-to `functionname: ` (NOTE the `: `) so that all of that goes away without verbosity. And,
-that means that error message generation here should also defy convention and instead of
-being "%s: what happened" it should just be "%swhat happened" */
-// how to const-correctly use either given (const) _hparm or own (non-const) hparm
-#define HPARM (_hparm ? _hparm : hparm)
-#define HMME  (HPARM->verbosity ? me : "")
-#define ME    ((hparm && hparm->verbosity) ? me : "")
+int
+histPop(hestInputStack *hist, const hestParm *hparm) {
+  if (!(hist && hparm)) {
+    biffAddf(HEST, "%s: got NULL pointer (hist %p hparm %p)", __func__, AIR_VOIDP(hist),
+             AIR_VOIDP(hparm));
+    return 1;
+  }
+  if (!(hist->len)) {
+    biffAddf(HEST, "%s: cannot pop from input stack height 0", __func__);
+    return 1;
+  }
+  hestInput *topHin = hist->hin + hist->len - 1;
+  if (topHin->dashBraceComment) {
+    biffAddf(HEST,
+             "%s: %u start comment marker%s \"-{\" not balanced by equal later \"}-\"",
+             __func__, topHin->dashBraceComment,
+             topHin->dashBraceComment > 1 ? "s" : "");
+    return 1;
+  }
+  if (hparm->verbosity) {
+    printf("%s: changing stack height: %u --> %u; popping %s source\n", __func__,
+           hist->len, hist->len - 1,
+           airEnumStr(hestSource, hist->hin[hist->len - 1].source));
+  }
+  airArrayLenIncr(hist->hinArr, -1);
+  return 0;
+}
+
+// possible *statP values set by histProcNextArg
+enum {
+  procStatUnknown,  // 0: don't know
+  procStatEmpty,    // 1: we have no arg to give
+  procStatTryAgain, // 2: inconclusive because had to manage things
+  procStatBehold    // 3: have produced an arg, here it is
+};
+
+/*
+histProcNextArgSub draws on whatever the top input source is, to produce another arg.
+It sets in *statP the status of the arg production process. Allowing procStatTryAgain
+is a way to acknowledge the fact that we are called iteratively by a loop we don't
+control, and managing the machinery of arg production is itself a multi-step process that
+doesn't always produce an arg. We should need to do look-ahead to make progress, even if
+we don't produce an arg.
+*/
+static int
+histProcNextArgSub(int *statP, hestArg *tharg, hestInputStack *hist,
+                   const hestParm *hparm) {
+  if (!(statP && tharg && hist && hparm)) {
+    biffAddf(HEST, "%s: got NULL pointer (statP %p tharg %p hist %p hparm %p)", __func__,
+             AIR_VOIDP(statP), AIR_VOIDP(tharg), AIR_VOIDP(hist), AIR_VOIDP(hparm));
+    return 1;
+  }
+  // printf("!%s: hello hist->len %u\n", __func__, hist->len);
+  hestArgReset(tharg);
+  *statP = procStatUnknown;
+  if (!hist->len) {
+    // the stack is empty; say so
+    *statP = procStatEmpty;
+    return 0;
+  }
+  uint hinIdx = hist->len - 1;
+  hestInput *hin = hist->hin + hinIdx;
+  // printf("!%s: source %s\n", __func__, airEnumStr(hestSource, hin->source));
+  if (hestSourceCommandLine == hin->source) {
+    // argv[]  0   1    2    3   (argc=4)
+    //        cmd arg1 arg2 arg3
+    uint argi = hin->argIdx;
+    // printf("!%s: argi %u vs argc %u\n", __func__, argi, hin->argc);
+    if (argi < hin->argc) {
+      // there are args left to parse
+      hestArgAddString(tharg, hin->argv[argi]);
+      // printf("!%s: now tharg->str=|%s|\n", __func__, tharg->str);
+      *statP = procStatBehold;
+      hin->argIdx++;
+    } else {
+      // we have gotten to the end of the given argv array, pop it */
+      if (histPop(hist, hparm)) {
+        biffAddf(HEST, "%s: trouble popping", __func__);
+        return 1;
+      }
+      *statP = procStatTryAgain;
+    }
+  } else {
+    // source is default string or response file
+    biffAddf(HEST, "%s: source %s not yet implemented", __func__,
+             airEnumStr(hestSource, hin->source));
+    return 1;
+  }
+  return 0;
+}
 
 static int
-histProc(hestArgVec *havec, int *helpWantedP, hestInputStack *hist, char *err,
-         const hestParm *hparm) {
-  static const char me[] = "histProc: ";
-  int popAtEnd = AIR_FALSE;
-  *helpWantedP = AIR_FALSE; // may over-write later
-  hestInput *theHin = hist->hin + hist->len - 1;
-  switch (theHin->source) {
-  case hestSourceDefault: // ---------------------------------
-    sprintf(err, "%ssorry hestSourceDefault not implemented", ME);
-    return 1;
-    break;
-  case hestSourceCommandLine: // ---------------------------------
-    // argv[] 0   1     2    3  (argc=4)
-    //       cmd arg1 arg2 arg3
-    if (hparm->verbosity > 1) {
-      printf("%shist->len=%u -> theHin=%p\n", me, hist->len, AIR_VOIDP(theHin));
-    }
-    if (theHin->argIdx < theHin->argc) {
-      // there are args left to parse
-      uint thisArgIdx = theHin->argIdx;
-      const char *theArg = theHin->argv[thisArgIdx];
-      if (hparm->verbosity > 1) {
-        printf("%slooking at argv[%u] |%s|\n", me, theHin->argIdx, theArg);
-      }
-      theHin->argIdx++;
-      // process theArg we just acquired
-      if (hparm->respectDashBraceComments && !strcmp("-{", theArg)) {
-        // start of -{ }- commenting (or increase in nesting level)
-        theHin->dashBraceComment += 1;
-      }
-      if (theHin->dashBraceComment) {
-        if (hparm->verbosity > 1) {
-          printf("%sskipping commented-out |%s|\n", me, theArg);
-        }
-      } else {
-        // not commenting out thisArg
-        if (!hparm->responseFileEnable || theArg[0] != RESPONSE_FILE_FLAG) {
-          // not a response file, just an arg
-          hestArgVecAppendString(havec, theArg);
-        } else {
-          /* theArg is asking to be a response file; try pushing it. With or without an
-             error, we return early because there's nothing more for us to do */
-          return hestInputStackPushResponseFile(hist, theArg + 1, err, hparm);
-        }
-      }
-      if (hparm->respectDashBraceComments && !strcmp("}-", theArg)) {
-        if (theHin->dashBraceComment) {
-          theHin->dashBraceComment -= 1;
-        } else {
-          sprintf(err, "%send comment arg \"}-\" not balanced by prior \"-{\"", ME);
-          return 1;
-        }
-      }
-    } // NOT else
-    if (theHin->argIdx == theHin->argc) {
-      // we have gotten to the end of the given argv array */
-      if (theHin->dashBraceComment) {
-        sprintf(err, "%sstart comment arg \"-{\" not balanced by later \"}-\"", ME);
-        return 1;
-      } else {
-        popAtEnd = AIR_TRUE;
-        // but don't pop now because we still need to check for --help
-      }
-    }
-    break;
-  case hestSourceResponseFile: // ---------------------------------
-    sprintf(err, "%ssorry hestSourceResponseFile not implemented", ME);
-    return 1;
-    break;
-  }
-  /* when processing command-line or response file, check for --help
-     (it makes no sense for --help to appear in a default string) */
-  if (hestSourceResponseFile == theHin->source
-      || hestSourceCommandLine == theHin->source) {
-    const hestArg *hlast;
-    if (hparm->respectDashDashHelp                          // watching for "--help"
-        && havec->len                                       // have at least one arg
-        && (hlast = havec->harg + havec->len - 1)->finished // latest arg is finished
-        && !strcmp("--help", hlast->str)) {                 // and it equals "--help"
-      *helpWantedP = AIR_TRUE;
-    }
-  }
-  if (popAtEnd) {
-    if (hestInputStackPop(hist, err, hparm)) {
+histProcNextArg(int *statP, hestArg *tharg, hestInputStack *hist,
+                const hestParm *hparm) {
+  // printf("!%s: hello hist->len %u\n", __func__, hist->len);
+  do {
+    if (histProcNextArgSub(statP, tharg, hist, hparm)) {
+      biffAddf(HEST, "%s: trouble getting next arg", __func__);
       return 1;
     }
+    if (hparm->verbosity > 1) {
+      printf("%s: histProcNextArgSub set *statP = %d\n", __func__, *statP);
+    }
+  } while (*statP == procStatTryAgain);
+  return 0;
+}
+
+static int
+histPushCommandLine(hestInputStack *hist, int argc, const char **argv,
+                    const hestParm *hparm) {
+  if (!(hist && argv && hparm)) {
+    biffAddf(HEST, "%s: got NULL pointer (hist %p, argv %p, hparm %p)", __func__,
+             AIR_VOIDP(hist), AIR_VOIDP(argv), AIR_VOIDP(hparm));
+    return 1;
+  }
+  if (HIST_DEPTH_MAX == hist->len) {
+    biffAddf(HEST, "%s: input stack depth already at max %u", __func__, HIST_DEPTH_MAX);
+    return 1;
+  }
+  if (hparm->verbosity) {
+    printf("%s: changing stack height: %u --> %u with argc=%d,argv=%p; "
+           "setting argIdx to 0\n",
+           __func__, hist->hinArr->len, hist->hinArr->len + 1, argc, AIR_VOIDP(argv));
+  }
+  uint idx = airArrayLenIncr(hist->hinArr, 1);
+  if (hparm->verbosity > 1) {
+    printf("%s: new hinTop = %p\n", __func__, AIR_VOIDP(hist->hin + idx));
+  }
+  hist->hin[idx].source = hestSourceCommandLine;
+  hist->hin[idx].argc = argc;
+  hist->hin[idx].argv = argv;
+  hist->hin[idx].argIdx = 0;
+  return 0;
+}
+
+static int
+histPushResponseFile(hestInputStack *hist, const char *rfname, const hestParm *hparm) {
+  if (!(hist && rfname && hparm)) {
+    biffAddf(HEST, "%s: got NULL pointer (hist %p, rfname %p, hparm %p)", __func__,
+             AIR_VOIDP(hist), AIR_VOIDP(rfname), AIR_VOIDP(hparm));
+    return 1;
+  }
+  if (HIST_DEPTH_MAX == hist->len) {
+    // HEY test this error
+    biffAddf(HEST, "%s: input stack depth already at max %u", __func__, HIST_DEPTH_MAX);
+    return 1;
+  }
+  if (!strlen(rfname)) {
+    // HEY test this error
+    biffAddf(HEST,
+             "%s: saw arg start with response file flag \"%c\" "
+             "but no filename followed",
+             __func__, RESPONSE_FILE_FLAG);
+    return 1;
+  }
+  // have we seen rfname before?
+  if (hist->len) {
+    uint topHinIdx = hist->len - 1;
+    for (uint hidx = 0; hidx < topHinIdx; hidx++) {
+      hestInput *oldHin = hist->hin + hidx;
+      if (hestSourceResponseFile == oldHin->source //
+          && !strcmp(oldHin->rfname, rfname)) {
+        // HEY test this error
+        biffAddf(HEST,
+                 "%s: already reading \"%s\" as response file; "
+                 "cannot recursively read it again",
+                 __func__, rfname);
+        return 1;
+      }
+    }
+  }
+  // are we trying to read stdin twice?
+  if (!strcmp("-", rfname) && hist->stdinRead) {
+    // HEY test this error
+    biffAddf(HEST, "%s: response filename \"%s\" but previously read stdin", __func__,
+             rfname);
+    return 1;
+  }
+  // try to open response file
+  FILE *rfile = airFopen(rfname, stdin, "r");
+  if (!(rfile)) {
+    biffAddf(HEST, "%s: couldn't fopen(\"%s\",\"r\"): %s", __func__, rfname,
+             strerror(errno));
+    return 1;
+  }
+  // okay, we actually opened the response file; put it on the stack
+  uint idx = airArrayLenIncr(hist->hinArr, 1);
+  if (hparm->verbosity > 1) {
+    printf("%s: (hist depth %u) new hinTop = %p\n", __func__, hist->len,
+           AIR_VOIDP(hist->hin + idx));
+  }
+  hist->hin[idx].source = hestSourceResponseFile;
+  hist->hin[idx].rfname = rfname;
+  hist->hin[idx].rfile = rfile;
+  return 0;
+}
+
+/*
+histProcess consumes args (tokens) from the stack `hist`, mostly just copying
+them into `havec`, but this does interpret the tokens just enough to implement:
+   (what)                     (allowed sources)
+ - commenting with -{ , }-    all (even a default string, may regret this)
+ - ask for --help             command-line
+ - response files             command-line, response file
+since these are the things that histProcNextArg does not understand (it just produces
+finished tokens). On the other hand, we do NOT know anything about individual hestOpts
+and their flags, which is why they weren't passed to us (--help is special).
+Upon seeing a request for a response file, we push it to the input stack.  This function
+never pops from the input stack (that is the responsibility of histProcNextArg).
+
+This function takes no ownership of anything so avoids any mopping responsibility, not
+even for the tmp arg holder `tharg`; that is passed in here and cleaned up caller.
+*/
+static int
+histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack *hist,
+            const hestParm *hparm) {
+  *helpWantedP = AIR_FALSE;
+  int stat = procStatUnknown;
+  uint iters = 0;
+  hestInput *topHin;
+  // printf("!%s: hello hist->len %u\n", __func__, hist->len);
+  /* We `return` directly from this loop ONLY when we MUST stop processing the stack,
+     because of an error, or because of user asking for help.
+     Otherwise, we loop again. */
+  while (1) {
+    iters += 1;
+    /* if this loop just pushed a response file, the top hestInput is different
+       from what it was when this function started, so re-learn it. */
+    topHin = hist->hin + hist->len - 1;
+    const char *srcstr = airEnumStr(hestSource, topHin->source);
+    // read next arg into tharg
+    if (histProcNextArg(&stat, tharg, hist, hparm)) {
+      biffAddf(HEST, "%s: (arg %u src %s) unable to get next arg", __func__, iters,
+               srcstr);
+      return 1;
+    }
+    if (procStatEmpty == stat) {
+      // the stack has no more tokens to give, stop looped requests for mre
+      if (hparm->verbosity) {
+        printf("%s: (arg %u src %s) empty!\n", __func__, iters, srcstr);
+      }
+      break;
+    }
+    // we have a token, is it turning off commenting?
+    if (hparm->respectDashBraceComments && !strcmp("}-", tharg->str)) {
+      if (topHin->dashBraceComment) {
+        topHin->dashBraceComment -= 1;
+        if (hparm->verbosity) {
+          printf("%s: topHin->dashBraceComment now %u\n", __func__,
+                 topHin->dashBraceComment);
+        }
+        continue; // since }- does not belong in havec
+      } else {
+        biffAddf(HEST,
+                 "%s: (arg %u src %s) end comment marker \"}-\" not "
+                 "balanced by prior \"-{\"",
+                 __func__, iters, srcstr);
+        return 1;
+      }
+    }
+    // not ending comment, are we starting (or deepening) one?
+    if (hparm->respectDashBraceComments && !strcmp("-{", tharg->str)) {
+      topHin->dashBraceComment += 1;
+      if (hparm->verbosity) {
+        printf("%s: topHin->dashBraceComment now %u\n", __func__,
+               topHin->dashBraceComment);
+      }
+      continue;
+    }
+    // if in comment, move along
+    if (topHin->dashBraceComment) {
+      if (hparm->verbosity > 1) {
+        printf("%s: (arg %u src %s) skipping commented-out |%s|\n", __func__, iters,
+               srcstr, tharg->str);
+      }
+      continue;
+    }
+    // else this arg is not in a comment and is not related to commenting
+    if (hparm->respectDashDashHelp && !strcmp("--help", tharg->str)) {
+      if (hestSourceCommandLine == topHin->source) {
+        *helpWantedP = AIR_TRUE;
+        /* user asking for help halts further parsing work: user is not looking
+           for parsing results nor error messages about that process */
+        return 0;
+      } else {
+        biffAddf(HEST, "%s: (arg %u src %s) \"--help\" not expected here", __func__,
+                 iters, srcstr);
+        return 1;
+      }
+    }
+    if (hparm->verbosity > 1) {
+      printf("%s: (arg %u src %s) looking at latest tharg |%s|\n", __func__, iters,
+             srcstr, tharg->str);
+    }
+    if (hparm->responseFileEnable && tharg->str[0] == RESPONSE_FILE_FLAG) {
+      // tharg->str is asking to open a response file; try pushing it
+      if (histPushResponseFile(hist, tharg->str + 1, hparm)) {
+        biffAddf(HEST, "%s: (arg %u src %s) unable to process response file %s",
+                 __func__, iters, srcstr, tharg->str);
+        return 1;
+      }
+      // have just added response file to stack, next iter will read from it
+      continue;
+    }
+    // this arg is not specially handled by us; add it to the arg vec
+    hestArgVecAppendString(havec, tharg->str);
+    if (hparm->verbosity > 1) {
+      printf("%s: (arg %u src %s) added |%s| to havec, now len %u\n", __func__, iters,
+             srcstr, tharg->str, havec->len);
+    }
+  }
+  if (hist->len && stat == procStatEmpty) {
+    biffAddf(HEST, "%s: non-empty stack (depth %u) can't generate args???", __func__,
+             hist->len);
+    return 1;
   }
   return 0;
 }
@@ -131,8 +347,9 @@ histProc(hestArgVec *havec, int *helpWantedP, hestInputStack *hist, char *err,
 int
 hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
            const hestParm *_hparm) {
-  /* see note on HMME (at top) for why me[] ends with ": " */
-  static const char me[] = "hestParse2: ";
+
+  /* how to const-correctly use hparm or _hparm in an expression */
+#define HPARM (_hparm ? _hparm : hparm)
 
   // -------- initialize the mop
   airArray *mop = airMopNew();
@@ -144,11 +361,11 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
     airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   }
   if (HPARM->verbosity > 1) {
-    printf("%shparm->verbosity %d\n", HMME, HPARM->verbosity);
+    printf("%s: hparm->verbosity %d\n", __func__, HPARM->verbosity);
   }
 
   // -------- allocate the err string. We do it a dumb way for now.
-  // TODO: make this smarter
+  // TODO: make this allocation smarter
   uint eslen = 2 * AIR_STRLEN_HUGE;
   char *err = AIR_CALLOC(eslen + 1, char);
   assert(err);
@@ -163,7 +380,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
     airMopAdd(mop, err, airFree, airMopAlways);
   }
   if (HPARM->verbosity > 1) {
-    printf("%serr %p\n", HMME, AIR_VOIDP(err));
+    printf("%s: err %p\n", __func__, AIR_VOIDP(err));
   }
 
   // -------- check on validity of the hestOpt array
@@ -173,7 +390,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
     return 1;
   }
   if (HPARM->verbosity > 1) {
-    printf("%s_hestOptCheck passed\n", HMME);
+    printf("%s: _hestOptCheck passed\n", __func__);
   }
 
   // -------- allocate the state we use during parsing
@@ -181,28 +398,36 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
   airMopAdd(mop, hist, (airMopper)hestInputStackNix, airMopAlways);
   hestArgVec *havec = hestArgVecNew();
   airMopAdd(mop, havec, (airMopper)hestArgVecNix, airMopAlways);
+  hestArg *tharg = hestArgNew(); // tmp hestArg
+  airMopAdd(mop, tharg, (airMopper)hestArgNix, airMopAlways);
   if (HPARM->verbosity > 1) {
-    printf("%shavec and hist allocated\n", HMME);
+    printf("%s: parsing state allocated\n", __func__);
   }
 
   // -------- initialize input stack w/ given argc,argv, then process it
-  if (hestInputStackPushCommandLine(hist, argc, argv, err, HPARM)) {
+  if (histPushCommandLine(hist, argc, argv, HPARM)
+      || histProcess(havec, &(opt->helpWanted), tharg, hist, HPARM)) {
+    char *bferr = biffGetDone(HEST);
+    airMopAdd(mop, bferr, airFree, airMopAlways);
+    strcpy(err, bferr);
     airMopError(mop);
     return 1;
   }
-  do {
-    /* Every iteration of this will work on one argv[] element, or, one character of a
-       response file. As long as we avoid giving ourselves infinite work, eventually,
-       bird by bird, we will finish.  */
-    if (histProc(havec, &(opt->helpWanted), hist, err, HPARM)) {
-      // error message in err
-      airMopError(mop);
-      return 1;
-    }
-    // keep going while there's something on stack and no calls for help have been seen
-  } while (hist->len && !(opt->helpWanted));
 
+  // (debugging) have finished input stack, what argvec did it leave us with?
   hestArgVecPrint(__func__, havec);
+
+  if (opt->helpWanted) {
+    // once the call for help is made, we respect it: clean up and return
+    airMopOkay(mop);
+    return 0;
+  }
+
+  // ( extract, process: make little argvec for each opt )
+  // extract given flagged options
+  // extract given unflagged options
+  // process default strings of not-given options
+  // set value(s) from per-opt argvec
 
   airMopOkay(mop);
   return 0;

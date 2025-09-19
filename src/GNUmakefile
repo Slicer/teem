@@ -110,7 +110,7 @@ include $(TeemSrc)/make/externals.mk
 ## DepLibs, RevLibs: strings of N/L (number/library) pairs, in either order
 ## (TEEM_LIB_LIST)
 ##
-Libs := air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
+Libs := air biff hest nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
 DepNums := 0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M
 ifneq ($(words $(Libs)),$(words $(DepNums)))
   $(error Sorry, |Libs| == $(words $(Libs)) != $(words $(DepNums)) == |DepNums|)

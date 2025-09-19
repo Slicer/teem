@@ -34,10 +34,11 @@ del _x, _y
 
 VERB = 1
 # TEEM_LIB_LIST
-TLIBS = [  # 'air', 'hest', 'biff',  (these libraries cannot not use biff, by their nature)
+TLIBS = [  # 'air', 'biff',  (these libraries cannot not use biff, by their nature)
     # the following lists ALL the other Teem libraries. It may be that some
     # (like elf, tijk, unrrdu) do not use biff, but that is something we discover
     # now as part of our operation, rather than decreeing from the outset.
+    'hest', # in TeemV2 now depends on biff
     'nrrd',
     'ell',
     'moss',

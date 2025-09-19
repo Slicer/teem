@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include <teem/air.h>
+// and see privateHest.h for why we internally also use biff
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(hest_EXPORTS) || defined(teem_EXPORTS)
@@ -235,7 +236,6 @@ typedef struct {
   char *str;
   unsigned int len; // NOT strlen; this includes '\0'-termination
   airArray *strArr;
-  int finished; // we have finished building up this string
 } hestArg;
 
 // hestArgVec: for building up a "vector" of arguments
@@ -288,6 +288,7 @@ HEST_EXPORT unsigned int hestDefaultColumns;
 // argvHest.c
 HEST_EXPORT hestArg *hestArgNew(void);
 HEST_EXPORT hestArg *hestArgNix(hestArg *harg);
+HEST_EXPORT void hestArgReset(hestArg *harg);
 HEST_EXPORT void hestArgAddChar(hestArg *harg, char cc);
 HEST_EXPORT void hestArgAddString(hestArg *harg, const char *str);
 HEST_EXPORT hestArgVec *hestArgVecNew(void);
@@ -298,13 +299,6 @@ HEST_EXPORT hestInput *hestInputNew(void);
 HEST_EXPORT hestInput *hestInputNix(hestInput *hin);
 HEST_EXPORT hestInputStack *hestInputStackNew(void);
 HEST_EXPORT hestInputStack *hestInputStackNix(hestInputStack *hist);
-HEST_EXPORT int hestInputStackPushCommandLine(hestInputStack *hist, int argc,
-                                              const char **argv, char *err,
-                                              const hestParm *hparm);
-HEST_EXPORT int hestInputStackPushResponseFile(hestInputStack *hist, const char *rfname,
-                                               char *err, const hestParm *hparm);
-HEST_EXPORT int hestInputStackPop(hestInputStack *hist, char *err,
-                                  const hestParm *hparm);
 
 // parsest.c
 HEST_EXPORT int hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
