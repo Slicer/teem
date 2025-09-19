@@ -183,7 +183,9 @@ hestInputNew(void) {
 static void
 hinDone(void *_hin) {
   hestInput *hin = (hestInput *)_hin;
-  /* nothing, for now*/
+  if (hin->rfile) {
+    airFclose(hin->rfile);
+  }
   AIR_UNUSED(hin);
   return;
 }
