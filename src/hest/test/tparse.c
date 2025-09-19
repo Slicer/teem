@@ -40,9 +40,10 @@ main(int argc, const char **argv) {
   hestOptAdd_2_Int(&opt, "res", "sx sy", res, NULL, "image resolution");
   int flag;
   hestOptAdd_Flag(&opt, "b,bingo", &flag, "a flag");
-  char *err;
+  char *err = NULL;
   if (hestParse2(opt, argc - 1, argv + 1, &err, hparm)) {
     fprintf(stderr, "%s: problem:\n%s\n", argv[0], err);
+    free(err);
     ret = 1;
   }
   if (opt->helpWanted) {
