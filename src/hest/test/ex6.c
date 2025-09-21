@@ -376,17 +376,6 @@ main(int argc, const char **argv) {
   unsigned int qvSaw;
   hestOptAdd_Nv_Other(&opt, "qv", "quat1", 1, -1, &qv, "12.34  43.21",
                       "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
-
-  if (2 == argc && !strcmp("decls", argv[1])) {
-    printf("Writing decls.h and then bailing\n");
-    FILE *ff = fopen("decls.h", "w");
-    hestOptAddDeclsPrint(ff);
-    fclose(ff);
-    exit(0);
-  }
-  /* else not writing decls.h; remove it to ensure freshness */
-  remove("decls.h");
-
   hestParseOrDie(opt, argc - 1, argv + 1, parm, argv[0], info, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
 
