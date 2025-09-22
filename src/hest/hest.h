@@ -50,11 +50,11 @@ extern "C" {
  * The blissfully-type-unaware hestOptAdd() has always relied on the airTypeT enum values
  * below. Since that function is not being removed, to avoid needless code breakage with
  * TeemV2, these values now live in this hest header. hest users should instead be using
- * the properly typed hestOptAdd_X_T functions, which have no need for airType
+ * one of the 99 properly typed hestOptAdd_X_T functions, which have no need for airType
  * pseudo-types.
  *
  * Other things that used to be in air, but which really only mattered to implement hest
- * functions have been moved into privateHest.h, but with air --> hest renaming.
+ * functions have been moved into privateHest.h, but with air --> _hest renaming:
  *    #define AIR_TYPE_MAX
  *    const char airTypeStr[AIR_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1];
  *    const size_t airTypeSize[AIR_TYPE_MAX + 1];

@@ -454,7 +454,7 @@ AIR_EXPORT int airJSFRandSanity(void);
 
 /* changes for for TeemV2:
  *** airParseStrT() are no longer var-args; it was a mistaken way to enforce uniformity
- *   across parsers for different types, and it was really only airParseStrE (for
+ *   across parsers for different types, but it was really only airParseStrE (for
  *   parsing airEnum values) that needed it.  Then airParseStrS sneakily used it for
  *   its final "greedy" argument, which was also a bad idea to overcome bad ideas in
  *   hestParse(), which have since been fixed with its 2025 re-write.
@@ -475,8 +475,8 @@ AIR_EXPORT int airJSFRandSanity(void);
  *     const char airTypeStr[HEST_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1] --> _hestTypeStr
  *     const size_t airTypeSize[HEST_TYPE_MAX + 1] --> _hestTypeSize
  *     unsigned int (*const airParseStr[AIR_TYPE_MAX + 1])(void *,
-                                                           const char *, *const char *,
-                                                           *unsigned int);
+ *                                                         const char *, *const char *,
+ *                                                         *unsigned int);
  *                      --> _hestParseStr
  */
 /* parseAir.c */
