@@ -224,15 +224,28 @@ argstGo(int *nastP, hestArg *tharg, int *stateP, int icc, int vrbo) {
     }
     break;
   case argstEscapeIn:
-  case argstEscapeDQ:
     if ('\n' == cc) {
       // line continuation; ignore \ and \n
     } else {
-      // add escaped characters (including #) to arg
+      // add escaped character (including #) to arg
       hestArgAddChar(tharg, cc);
     }
-    // either way, back to whatever we were in pre-escape
-    *stateP = (argstEscapeIn == *stateP) ? argstInside : argstDoubleQ;
+    // back to unescaped input
+    *stateP = argstInside;
+    break;
+  case argstEscapeDQ:
+    if ('\n' == cc) {
+      // like above: line continuation; ignore \ and \n
+    } else if ('$' == cc || '\'' == cc || '\"' == cc || '\\' == cc) {
+      // add escaped character to arg
+      hestArgAddChar(tharg, cc);
+    } else {
+      // other character (needlessly) escaped, put in both \ and char
+      hestArgAddChar(tharg, '\\');
+      hestArgAddChar(tharg, cc);
+    }
+    // back to unescaped input
+    *stateP = argstDoubleQ;
     break;
   case argstComment:
     if ('\n' == cc) {
@@ -290,7 +303,8 @@ histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
     } else {
       // we have gotten to the end of the given argv array, pop it as input source */
       if (histPop(hist, hparm)) {
-        biffAddf(HEST, "%s: trouble popping", __func__);
+        biffAddf(HEST, "%s: trouble popping %s", __func__,
+                 airEnumStr(hestSource, hestSourceCommandLine));
         return 1;
       }
       *nastP = nastTryAgain;
@@ -325,7 +339,13 @@ histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
       } else {
         // we're at end; pop input; *nastP already set to nastTryAgain by argstGo()
         if (histPop(hist, hparm)) {
-          biffAddf(HEST, "%s: trouble popping", __func__);
+          if (hestSourceResponseFile == hin->source) {
+            biffAddf(HEST, "%s: trouble popping %s \"%s\"", __func__,
+                     airEnumStr(hestSource, hin->source), hin->rfname);
+          } else {
+            biffAddf(HEST, "%s: trouble popping %s |%s|", __func__,
+                     airEnumStr(hestSource, hin->source), hin->dfltStr);
+          }
           return 1;
         }
       }
