@@ -113,9 +113,6 @@ static const airEnum _hestSource
      .sense = AIR_FALSE};
 const airEnum *const hestSource = &_hestSource;
 
-// see documentation in parseHest.c
-#define ME ((hparm && hparm->verbosity) ? me : "")
-
 int
 hestSourceUser(int src) {
   return (hestSourceCommandLine == src || hestSourceResponseFile == src);
@@ -353,7 +350,8 @@ optarr_incr(hestOpt **optP) {
 
 /*
 hestOptSingleSet: a completely generic setter for a single hestOpt
-Note that this makes no attempt at error-checking; that is all in hestOptCheck
+Note that this makes no attempt at error-checking; that is all in _hestOPCheck.
+*THIS* is the function that sets opt->kind.
 */
 void
 hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
@@ -392,15 +390,11 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
 
 /*
 hestOptAdd_nva: A new (as of 2023) non-var-args ("_nva") version of hestOptAdd;
-now hestOptAdd is a wrapper around this. And, the per-hestOpt logic has now
-been moved to hestOptSingleSet.
+The per-hestOpt logic (including setting opt->kind) has now been moved to
+hestOptSingleSet. The venerable var-args hestOptAdd is now a wrapper around this.
+and the 99 non-var-args hestOptAdd_* functions also all call this.
 
 Like hestOptAdd has done since 2013: returns UINT_MAX in case of error.
-
-Note: (as of 2023) you probably shouldn't use this function; instead use
-one of hestOptAdd_Flag, hestOptAdd_1_T, hestOptAdd_{2,3,4,N}_T, hestOptAdd_1v_T,
-or hestOptAdd_Nv_T for T=Bool, Int, UInt, LongInt, ULongInt, Size_t, Float, Double,
-Char, String, Enum, Other
 */
 unsigned int
 hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,
@@ -425,9 +419,21 @@ hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,
 }
 
 /*
-** as of Sept 2013 this returns information: the index of the
-** option just added.  Returns UINT_MAX in case of error.
-*/
+ * hestOptAdd
+ *
+ * Until 2023, this was the main way of using hest: a var-args function that could do no
+ * useful type-checking, and was very easy to call incorrectly, leading to inscrutable
+ * errors.
+ *
+ * Now, thankfully, you have 99 better hestOptAdd_ functions to use instead:
+ * hestOptAdd_Flag, hestOptAdd_1_T, hestOptAdd_{2,3,4,N}_T, hestOptAdd_1v_T, or
+ * hestOptAdd_Nv_T for T=Bool, Short, UShort, Int, UInt, LongInt, ULongInt, Size_t,
+ * Float, Double, Char, String, Enum, or Other.
+ *
+ * This returns the index of the option just added, to so the caller can remember it and
+ * this speed up later checking the `hestOpt->source` to learn where how the option was
+ * parsed. Returns UINT_MAX in case of error.
+ */
 unsigned int
 hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type,
            unsigned int min, int max, void *valueP, const char *dflt, const char *info,
@@ -487,228 +493,187 @@ hestOptFree(hestOpt *opt) {
 }
 
 /*
-_hestOptCheck()   (formerly _hestPanic, in parseHest.c)
-
-This performs the validation of the given hestOpt array itself (not the command line to
-be parsed), with descriptive error messages sprintf'ed into err, if given. hestOptCheck()
-is the expected way for users to access this.
-
-Prior to 2023 code revisit; this used to set the "kind" in all the opts but now that is
-more appropriately done at the time the option is added (by hestOptAdd, hestOptAdd_nva,
-hestOptSingleSet, or hestOptAdd_*_*)
-*/
+ * _hestOPCheck
+ *
+ * new biff-based container for all logic that used to be in _hestOptCheck (which is
+ * the 2025 rename of _hestPanic): the validation of the given hestOpt array `opt` itself
+ * (but *not* anything about the command-line or its parsing), relative to the given
+ * (non-NULL) hestParm `hparm`.
+ *
+ * Pre-2025, hest did not depend on biff, and this instead took a 'char *err' that
+ * somehow magically had to be allocated for the size of any possible error message
+ * generated here.  The 2025 re-write recognized that biff is the right way to accumulate
+ * error messages, but the use of biff is internal to biff, but not (unusually for Teem)
+ * part of the the expected use of biff's API. Thus, public functions hestOptCheck() and
+ * hestOptParmCheck(), which are the expected way to access the functionality herein,
+ * take a `char **errP` arg into which a message is sprintf'ed, after allocation.
+ *
+ * The shift to using biff removed how this function used to fprintf(stderr) some message
+ * like "panic 0.5" which as completely uninformative.  Now, hestOptCheck() and
+ * hestOptParmCheck() fprintf(stderr) the biff message.
+ *
+ * Prior to 2023 code revisit: this used to set the "kind" in all the opts, but now that
+ * is more appropriately done at the time the option is added.
+ */
 int
-_hestOptCheck(const hestOpt *opt, char *err, const hestParm *hparm) {
-  /* see note on ME (at top) for why me[] ends with ": " */
-  static const char me[] = "_hestOptCheck: ";
-  char tbuff[AIR_STRLEN_HUGE + 1], *sep;
-  int numvar, opi, optNum;
-
-  optNum = hestOptNum(opt);
-  numvar = 0;
-  for (opi = 0; opi < optNum; opi++) {
+_hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
+  if (!(opt && hparm)) {
+    biffAddf(HEST, "%s: got NULL opt (%p) or hparm (%p)", __func__, AIR_VOIDP(opt),
+             AIR_VOIDP(hparm));
+    return 1;
+  }
+  uint optNum = opt->arrLen;
+  uint varNum = 0; // number of variable-parameter options
+  for (uint opi = 0; opi < optNum; opi++) {
     if (!(AIR_IN_OP(airTypeUnknown, opt[opi].type, airTypeLast))) {
-      if (err)
-        sprintf(err, "%sopt[%d].type (%d) not in valid range [%d,%d]", ME, opi,
-                opt[opi].type, airTypeUnknown + 1, airTypeLast - 1);
-      else
-        fprintf(stderr, "%s: panic 0\n", me);
+      biffAddf(HEST, "%s: opt[%u].type (%d) not in valid range [%d,%d]", __func__, opi,
+               opt[opi].type, airTypeUnknown + 1, airTypeLast - 1);
       return 1;
     }
     if (!(opt[opi].valueP)) {
-      if (err)
-        sprintf(err, "%sopt[%d]'s valueP is NULL!", ME, opi);
-      else
-        fprintf(stderr, "%s: panic 0.5\n", me);
+      biffAddf(HEST, "%s: opt[%u]'s valueP is NULL!", __func__, opi);
       return 1;
     }
+    // `kind` set by hestOptSingleSet
     if (-1 == opt[opi].kind) {
-      if (err)
-        sprintf(err, "%sopt[%d]'s min (%d) and max (%d) incompatible", ME, opi,
-                opt[opi].min, opt[opi].max);
-      else
-        fprintf(stderr, "%s: panic 1\n", me);
+      biffAddf(HEST, "%s: opt[%u]'s min (%d) and max (%d) incompatible", __func__, opi,
+               opt[opi].min, opt[opi].max);
       return 1;
     }
     if (5 == opt[opi].kind && !(opt[opi].sawP)) {
-      if (err)
-        sprintf(err,
-                "%shave multiple variable parameters, "
-                "but sawP is NULL",
-                ME);
-      else
-        fprintf(stderr, "%s: panic 2\n", me);
+      biffAddf(HEST,
+               "%s: have multiple variable parameters, "
+               "but sawP is NULL",
+               __func__);
       return 1;
     }
     if (airTypeEnum == opt[opi].type) {
       if (!(opt[opi].enm)) {
-        if (err) {
-          sprintf(err,
-                  "%sopt[%d] (%s) is type \"enum\", but no "
-                  "airEnum pointer given",
-                  ME, opi, opt[opi].flag ? opt[opi].flag : "?");
-        } else {
-          fprintf(stderr, "%s: panic 3\n", me);
-        }
+        biffAddf(HEST,
+                 "%s: opt[%u] (%s) is type \"enum\", but no "
+                 "airEnum pointer given",
+                 __func__, opi, opt[opi].flag ? opt[opi].flag : "?");
         return 1;
       }
     }
     if (airTypeOther == opt[opi].type) {
       if (!(opt[opi].CB)) {
-        if (err) {
-          sprintf(err,
-                  "%sopt[%d] (%s) is type \"other\", but no "
-                  "callbacks given",
-                  ME, opi, opt[opi].flag ? opt[opi].flag : "?");
-        } else {
-          fprintf(stderr, "%s: panic 4\n", me);
-        }
+        biffAddf(HEST,
+                 "%s: opt[%u] (%s) is type \"other\", but no "
+                 "callbacks given",
+                 __func__, opi, opt[opi].flag ? opt[opi].flag : "?");
         return 1;
       }
       if (!(opt[opi].CB->size > 0)) {
-        if (err)
-          sprintf(err, "%sopt[%d]'s \"size\" (%d) invalid", ME, opi,
-                  (int)(opt[opi].CB->size));
-        else
-          fprintf(stderr, "%s: panic 5\n", me);
+        biffAddf(HEST, "%s: opt[%u]'s \"size\" (%u) invalid", __func__, opi,
+                 (uint)(opt[opi].CB->size));
         return 1;
       }
       if (!(opt[opi].CB->type)) {
-        if (err)
-          sprintf(err, "%sopt[%d]'s \"type\" is NULL", ME, opi);
-        else
-          fprintf(stderr, "%s: panic 6\n", me);
+        biffAddf(HEST, "%s: opt[%u]'s \"type\" is NULL", __func__, opi);
         return 1;
       }
       if (!(opt[opi].CB->parse)) {
-        if (err)
-          sprintf(err, "%sopt[%d]'s \"parse\" callback NULL", ME, opi);
-        else
-          fprintf(stderr, "%s: panic 7\n", me);
+        biffAddf(HEST, "%s: opt[%u]'s \"parse\" callback NULL", __func__, opi);
         return 1;
       }
       if (opt[opi].CB->destroy && (sizeof(void *) != opt[opi].CB->size)) {
-        if (err)
-          sprintf(err,
-                  "%sopt[%d] has a \"destroy\", but size %lu isn't "
-                  "sizeof(void*)",
-                  ME, opi, (unsigned long)(opt[opi].CB->size));
-        else
-          fprintf(stderr, "%s: panic 8\n", me);
+        biffAddf(HEST,
+                 "%sopt[%u] has a \"destroy\", but size %lu isn't "
+                 "sizeof(void*)",
+                 __func__, opi, (unsigned long)(opt[opi].CB->size));
         return 1;
       }
     }
     if (opt[opi].flag) {
-      strcpy(tbuff, opt[opi].flag);
+      char *tbuff = airStrdup(opt[opi].flag);
+      if (!tbuff) {
+        biffAddf(HEST, "%s: could not strdup() opi[%u].flag", __func__, opi);
+        return 1;
+      }
+      // no map, have to call free(tbuff) !
+      char *sep;
       if ((sep = strchr(tbuff, MULTI_FLAG_SEP))) {
         *sep = '\0';
         if (!(strlen(tbuff) && strlen(sep + 1))) {
-          if (err)
-            sprintf(err,
-                    "%seither short (\"%s\") or long (\"%s\") flag"
-                    " of opt[%d] is zero length",
-                    ME, tbuff, sep + 1, opi);
-          else
-            fprintf(stderr, "%s: panic 9\n", me);
-          return 1;
+          biffAddf(HEST,
+                   "%s: either short (\"%s\") or long (\"%s\") flag"
+                   " of opt[%u] is zero length",
+                   __func__, tbuff, sep + 1, opi);
+          return (free(tbuff), 1);
         }
         if (hparm->respectDashDashHelp && !strcmp("help", sep + 1)) {
-          if (err)
-            sprintf(err,
-                    "%slong \"--%s\" flag of opt[%d] is same as \"--help\" "
-                    "that requested hparm->respectDashDashHelp handles separately",
-                    ME, sep + 1, opi);
-          else
-            fprintf(stderr, "%s: panic 9.5\n", me);
-          return 1;
+          biffAddf(HEST,
+                   "%s: long \"--%s\" flag of opt[%u] is same as \"--help\" "
+                   "that requested hparm->respectDashDashHelp handles separately",
+                   __func__, sep + 1, opi);
+          return (free(tbuff), 1);
         }
       } else {
         if (!strlen(opt[opi].flag)) {
-          if (err)
-            sprintf(err, "%sopt[%d].flag is zero length", ME, opi);
-          else
-            fprintf(stderr, "%s: panic 10\n", me);
-          return 1;
+          biffAddf(HEST, "%s: opt[%u].flag is zero length", __func__, opi);
+          return (free(tbuff), 1);
         }
       }
       if (hparm->respectDashBraceComments
           && (strchr(opt[opi].flag, '{') || strchr(opt[opi].flag, '}'))) {
-        if (err)
-          sprintf(err,
-                  "%srequested hparm->respectDashBraceComments but opt[%d]'s flag "
-                  "\"%s\" confusingly contains '{' or '}'",
-                  ME, opi, opt[opi].flag);
-        else
-          fprintf(stderr, "%s: panic 10.5\n", me);
-        return 1;
+        biffAddf(HEST,
+                 "%s: requested hparm->respectDashBraceComments but opt[%u]'s flag "
+                 "\"%s\" confusingly contains '{' or '}'",
+                 __func__, opi, opt[opi].flag);
+        return (free(tbuff), 1);
       }
       if (4 == opt[opi].kind) {
         if (!opt[opi].dflt) {
-          if (err)
-            sprintf(err,
-                    "%sflagged single variable parameter must "
-                    "specify a default",
-                    ME);
-          else
-            fprintf(stderr, "%s: panic 11\n", me);
-          return 1;
+          biffAddf(HEST,
+                   "%s: flagged single variable parameter must "
+                   "specify a default",
+                   __func__);
+          return (free(tbuff), 1);
         }
         if (!strlen(opt[opi].dflt)) {
-          if (err)
-            sprintf(err,
-                    "%sflagged single variable parameter default "
-                    "must be non-zero length",
-                    ME);
-          else
-            fprintf(stderr, "%s: panic 12\n", me);
-          return 1;
+          biffAddf(HEST,
+                   "%s: flagged single variable parameter default "
+                   "must be non-zero length",
+                   __func__);
+          return (free(tbuff), 1);
         }
       }
       /*
       sprintf(tbuff, "-%s", opt[op].flag);
       if (1 == sscanf(tbuff, "%f", &tmpF)) {
         if (err)
-          sprintf(err, "%sopt[%d].flag (\"%s\") is numeric, bad news",
+          sprintf(err, "%sopt[%u].flag (\"%s\") is numeric, bad news",
                   ME, op, opt[op].flag);
         return 1;
       }
       */
     }
+    // ------ end of if (opt[opi].flag)
     if (1 == opt[opi].kind) {
       if (!opt[opi].flag) {
-        if (err)
-          sprintf(err, "%sflags must have flags", ME);
-        else
-          fprintf(stderr, "%s: panic 13\n", me);
+        biffAddf(HEST, "%s: opt[%u] flag must have a flag", __func__, opi);
         return 1;
       }
     } else {
       if (!opt[opi].name) {
-        if (err)
-          sprintf(err, "%sopt[%d] isn't a flag: must have \"name\"", ME, opi);
-        else
-          fprintf(stderr, "%s: panic 14\n", me);
+        biffAddf(HEST, "%s: opt[%u] isn't a flag: must have \"name\"", __func__, opi);
         return 1;
       }
     }
     if (4 == opt[opi].kind && !opt[opi].dflt) {
-      if (err)
-        sprintf(err,
-                "%sopt[%d] is single variable parameter, but "
-                "no default set",
-                ME, opi);
-      else
-        fprintf(stderr, "%s: panic 15\n", me);
+      biffAddf(HEST,
+               "%s: opt[%u] is single variable parameter, but "
+               "no default set",
+               __func__, opi);
       return 1;
     }
-    numvar += ((int)opt[opi].min < _hestMax(opt[opi].max)
+    varNum += ((int)opt[opi].min < _hestMax(opt[opi].max)
                && (NULL == opt[opi].flag)); /* HEY scrutinize casts */
   }
-  if (numvar > 1) {
-    if (err)
-      sprintf(err, "%scan't have %d unflagged min<max opts, only one", ME, numvar);
-    else
-      fprintf(stderr, "%s: panic 16\n", me);
+  if (varNum > 1) {
+    biffAddf(HEST, "%s: can't have %u unflagged min<max options, only one", __func__,
+             varNum);
     return 1;
   }
   return 0;
@@ -725,30 +690,21 @@ hestOptFree_vp(void *_opt) {
   return AIR_VOIDP(hestOptFree((hestOpt *)_opt));
 }
 
+/*
+ * hestOptCheck: check given hestOpt array `opt`, using the default hestParm.
+ * Puts any errors into newly allocated (caller responsible to free) `*errP`.
+ */
 int
-hestOptCheck(hestOpt *opt, char **errP) {
-  static const char me[] = "hestOptCheck";
-  char *err;
-  hestParm *hparm;
-  int big;
-
-  big = _hestErrStrlen(opt, 0, NULL);
-  if (!(err = AIR_CALLOC(big, char))) {
-    fprintf(stderr,
-            "%s PANIC: couldn't allocate error message "
-            "buffer (size %d)\n",
-            me, big);
-    if (errP) *errP = NULL;
-    return 1;
-  }
-  hparm = hestParmNew();
-  if (_hestOptCheck(opt, err, hparm)) {
-    /* problems */
+hestOptCheck(const hestOpt *opt, char **errP) {
+  hestParm *hparm = hestParmNew();
+  if (_hestOPCheck(opt, hparm)) {
+    char *err = biffGetDone(HEST);
     if (errP) {
       /* they did give a pointer address; they'll free it */
       *errP = err;
     } else {
-      /* they didn't give a pointer address; their loss */
+      /* they didn't give a pointer address; we dump to stderr */
+      fprintf(stderr, "%s: problem with given hestOpt array:\n%s", __func__, err);
       free(err);
     }
     hestParmFree(hparm);
@@ -756,7 +712,31 @@ hestOptCheck(hestOpt *opt, char **errP) {
   }
   /* else, no problems */
   if (errP) *errP = NULL;
-  free(err);
   hestParmFree(hparm);
+  return 0;
+}
+
+/*
+ * hestOptParmCheck: check given hestOpt array `opt` in combination with the given
+ * hestParm `hparm`. Puts any errors into newly allocated (caller responsible to free)
+ * `*errP`.
+ * HEY copy-pasta
+ */
+int
+hestOptParmCheck(const hestOpt *opt, const hestParm *hparm, char **errP) {
+  if (_hestOPCheck(opt, hparm)) {
+    char *err = biffGetDone(HEST);
+    if (errP) {
+      /* they did give a pointer address; they'll free it */
+      *errP = err;
+    } else {
+      /* they didn't give a pointer address; we dump to stderr */
+      fprintf(stderr, "%s: problem with given hestOpt array:\n%s", __func__, err);
+      free(err);
+    }
+    return 1;
+  }
+  /* else, no problems */
+  if (errP) *errP = NULL;
   return 0;
 }

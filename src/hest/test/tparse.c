@@ -34,7 +34,7 @@ main(int argc, const char **argv) {
   hestParm *hparm = hestParmNew();
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->responseFileEnable = AIR_TRUE;
-  hparm->verbosity = 0;
+  hparm->verbosity = 10;
 
   int res[2];
   hestOptAdd_2_Int(&opt, "res", "sx sy", res, NULL, "image resolution");

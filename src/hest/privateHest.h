@@ -73,10 +73,7 @@ HEST_EXPORT unsigned int (*const _hestParseStr[_HEST_TYPE_MAX + 1])(void *, cons
 extern const char *const _hestBiffKey;
 extern int _hestKind(const hestOpt *opt);
 extern int _hestMax(int max);
-extern int _hestOptCheck(const hestOpt *opt, char *err, const hestParm *parm);
-
-/* parseHest.c */
-extern uint _hestErrStrlen(const hestOpt *opt, int argc, const char **argv);
+extern int _hestOPCheck(const hestOpt *opt, const hestParm *parm);
 
 #ifdef __cplusplus
 }

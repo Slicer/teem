@@ -618,14 +618,12 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
 
 /*
 hestParse(2): parse the `argc`,`argv` commandline according to the hestOpt array `opt`.
-
+The basic phases of parsing are:
+0) Error checking on given `opt` array
 */
 int
-hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
+hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
            const hestParm *_hparm) {
-
-  /* how to const-correctly use hparm or _hparm in an expression */
-#define HPARM (_hparm ? _hparm : hparm)
 
   // -------- initialize the mop
   airArray *mop = airMopNew();
@@ -636,37 +634,31 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
     hparm = hestParmNew();
     airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   }
+  // how to const-correctly use hparm or _hparm in an expression
+#define HPARM (_hparm ? _hparm : hparm)
   if (HPARM->verbosity > 1) {
-    printf("%s: hparm->verbosity %d\n", __func__, HPARM->verbosity);
+    printf("%s: (%s) hparm->verbosity %d\n", __func__, _hparm ? "given" : "default",
+           HPARM->verbosity);
   }
 
-  // -------- allocate the err string. We do it a dumb way for now.
-  // TODO: make this allocation smarter
-  uint eslen = 2 * AIR_STRLEN_HUGE;
-  char *err = AIR_CALLOC(eslen + 1, char);
-  assert(err);
-  if (_errP) {
-    // they care about the error string, so mop it only when there is _not_ an error
-    *_errP = err;
-    airMopAdd(mop, _errP, (airMopper)airSetNull, airMopOnOkay);
-    airMopAdd(mop, err, airFree, airMopOnOkay);
-  } else {
-    /* otherwise, we're making the error string just for our own convenience,
-       so we always clean it up on exit */
-    airMopAdd(mop, err, airFree, airMopAlways);
-  }
-  if (HPARM->verbosity > 1) {
-    printf("%s: err %p\n", __func__, AIR_VOIDP(err));
+  // error string song and dance
+#define DO_ERR(WUT)                                                                     \
+  char *err = biffGetDone(HEST);                                                        \
+  if (errP) {                                                                           \
+    *errP = err;                                                                        \
+  } else {                                                                              \
+    fprintf(stderr, "%s: " WUT ":\n%s", __func__, err);                                 \
+    free(err);                                                                          \
   }
 
-  // -------- check on validity of the hestOpt array
-  if (_hestOptCheck(opt, err, HPARM)) {
-    // error message has been sprinted into err
+  // --0--0--0--0--0-- check on validity of the hestOpt array
+  if (_hestOPCheck(opt, HPARM)) {
+    DO_ERR("problem with given hestOpt array");
     airMopError(mop);
     return 1;
   }
   if (HPARM->verbosity > 1) {
-    printf("%s: _hestOptCheck passed\n", __func__);
+    printf("%s: _hestOPCheck passed\n", __func__);
   }
 
   // -------- allocate the state we use during parsing
@@ -683,16 +675,14 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
   // -------- initialize input stack w/ given argc,argv, then process it
   if (histPushCommandLine(hist, argc, argv, HPARM)
       || histProcess(havec, &(opt->helpWanted), tharg, hist, HPARM)) {
-    char *bferr = biffGetDone(HEST);
-    airMopAdd(mop, bferr, airFree, airMopAlways);
-    strcpy(err, bferr);
+    DO_ERR("problem with initial processing of command-line");
     airMopError(mop);
     return 1;
   }
-
-  // (debugging) have finished input stack, what argvec did it leave us with?
-  hestArgVecPrint(__func__, havec);
-
+  if (HPARM->verbosity > 1) {
+    // have finished input stack, what argvec did it leave us with?
+    hestArgVecPrint(__func__, havec);
+  }
   if (opt->helpWanted) {
     // once the call for help is made, we respect it: clean up and return
     airMopOkay(mop);

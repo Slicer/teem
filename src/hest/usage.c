@@ -134,67 +134,6 @@ _hestPrintStr(FILE *f, unsigned int indent, unsigned int already, unsigned int w
   free(str);
 }
 
-/*
-******** hestMinNumArgs
-
-The idea is that this helps quickly determine if the options given on the command line
-are insufficient, in order to produce general usage information instead of some specific
-parse error.
-
-Because hest is strictly agnostic with respect to how many command-line arguments
-actually constitute the command itself ("rmdir": one argument, "svn checkout": two
-arguments), it only concerns itself with the command-line arguments following the
-command aka argv[0].
-
-Thus, hestMinMinArgs() returns the minimum number of command-line arguments (following
-the command) that could be valid.  If your command is only one argument (like "rmdir"),
-then you might use the true argc passed by the OS to main() as such:
-
-   if (argc-1 < hestMinNumArgs(opt)) {
-     ... usage ...
-   }
-
-But if your command is two arguments (like "svn checkout"):
-
-   if (argc-2 < hestMinNumArgs(opt)) {
-     ... usage ...
-   }
-
-HOWEVER! don't forget the response files can complicate all this: in one argument a
-response file can provide information for any number of arguments, and the argc itself is
-kind of meaningless. The code examples above only really apply when hparm->respFileEnable
-is false.  For example, in unrrdu (private.h) we find:
-
-   if ( (hparm->respFileEnable && !argc) ||
-        (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) {
-     ... usage ...
-   }
-
-*/
-int
-hestMinNumArgs(const hestOpt *opt) {
-  hestParm *hparm;
-  int i, count, numOpts;
-
-  hparm = hestParmNew();
-  if (_hestOptCheck(opt, NULL, hparm)) {
-    hestParmFree(hparm);
-    return _hestMax(-1);
-  }
-  count = 0;
-  numOpts = hestOptNum(opt);
-  for (i = 0; i < numOpts; i++) {
-    if (!opt[i].dflt) {
-      count += opt[i].min;
-      if (!(0 == opt[i].min && 0 == opt[i].max)) {
-        count += !!opt[i].flag;
-      }
-    }
-  }
-  hestParmFree(hparm);
-  return count;
-}
-
 #define HPARM (_hparm ? _hparm : hparm)
 
 void
@@ -221,6 +160,12 @@ hestInfo(FILE *file, const char *argv0, const char *info, const hestParm *_hparm
   }
 }
 
+// error string song and dance
+#define DO_ERR                                                                          \
+  char *err = biffGetDone(HEST);                                                        \
+  fprintf(stderr, "%s: problem with given hestOpt array\n%s", __func__, err);           \
+  free(err)
+
 void
 hestUsage(FILE *f, const hestOpt *opt, const char *argv0, const hestParm *_hparm) {
   int i, numOpts;
@@ -228,12 +173,11 @@ hestUsage(FILE *f, const hestOpt *opt, const char *argv0, const hestParm *_hparm
   Previous to the 2023 revisit, it was for max lenth 2*AIR_STRLEN_HUGE, but
   test/ex6.c blew past that.  May have to increment again in the future :) */
   char buff[64 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_SMALL + 1];
-  hestParm *hparm;
+  hestParm *hparm = _hparm ? NULL : hestParmNew();
 
-  hparm = _hparm ? NULL : hestParmNew();
-
-  if (_hestOptCheck(opt, NULL, HPARM)) {
+  if (_hestOPCheck(opt, HPARM)) {
     /* we can't continue; the opt array is botched */
+    DO_ERR;
     if (hparm) {
       hestParmFree(hparm);
     }
@@ -270,12 +214,11 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
   unsigned int len;
   /* See note above about overflowing buff[] */
   char buff[64 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_HUGE + 1];
-  hestParm *hparm;
+  hestParm *hparm = _hparm ? NULL : hestParmNew();
 
-  hparm = _hparm ? NULL : hestParmNew();
-
-  if (_hestOptCheck(opt, NULL, HPARM)) {
+  if (_hestOPCheck(opt, HPARM)) {
     /* we can't continue; the opt array is botched */
+    DO_ERR;
     if (hparm) {
       hestParmFree(hparm);
     }

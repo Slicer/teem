@@ -183,7 +183,9 @@ typedef struct {
   /* --------------------- Output
   Things set/allocated by hestParse. */
 
-  /* from the hestSource* enum; from whence was this information learned */
+  /* from the hestSource* enum; from whence was this information learned. Can use
+  hestSourceUser(opt->source) to test for the sources associated with the user:
+  hestSourceCommandLine or hestSourceResponseFile */
   int source;
   /* if parseStr is non-NULL: a string (freed by hestParseFree) that is a lot like the
   string (storing zero or many parameters), from which hestParse ultimately parsed
@@ -367,11 +369,12 @@ HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
                                     ... /* unsigned int *sawP,
                                            const airEnum *enm,
                                            const hestCB *CB */);
-// SEE ALSO all the special-purpose and type-checked versions in adders.c, below
+// SEE ALSO (from adders.c) all the 99 type-checked versions of hestOptAdd_, below!
 HEST_EXPORT unsigned int hestOptNum(const hestOpt *opt);
 HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
 HEST_EXPORT void *hestOptFree_vp(void *opt);
-HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);
+HEST_EXPORT int hestOptCheck(const hestOpt *opt, char **errP);
+HEST_EXPORT int hestOptParmCheck(const hestOpt *opt, const hestParm *hparm, char **errP);
 
 // parseHest.c
 HEST_EXPORT int hestParse(hestOpt *opt, int argc, const char **argv, char **errP,
@@ -384,7 +387,6 @@ HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, const char **argv,
 // usage.c
 HEST_EXPORT void _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
                                unsigned int width, const char *_str, int bslash);
-HEST_EXPORT int hestMinNumArgs(const hestOpt *opt);
 HEST_EXPORT void hestUsage(FILE *file, const hestOpt *opt, const char *argv0,
                            const hestParm *hparm);
 HEST_EXPORT void hestGlossary(FILE *file, const hestOpt *opt, const hestParm *hparm);
@@ -406,7 +408,7 @@ min == 0; max == 1   hestOptAdd_1v_T         4   single variable parameter
 min < max; max >= 2  hestOptAdd_Nv_T         5   multiple variable parameters
 
 The type T can be: Bool, Short, UShort, Int, UInt, Long, ULong, Size_t, Float, Double,
-Char, String, Enum, and Other. An airEnum* is passed with the T=Enum functions, or a
+Char, String, Enum, or Other. An airEnum* is passed with the T=Enum functions, or a
 hestCB* is passed for the T=Other functions. The number of parameters *sawP that hestParm
 saw on the command-line is passed for the _Nv_ options.
 
