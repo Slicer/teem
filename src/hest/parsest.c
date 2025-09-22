@@ -529,14 +529,14 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     const char *srcstr = airEnumStr(hestSource, topHin->source);
     // read next arg into tharg
     if (histProcNextArg(&nast, tharg, hist, hparm)) {
-      biffAddf(HEST, "%s: (arg %u of %s) unable to get next arg", __func__, iters,
+      biffAddf(HEST, "%s: (iter %u, on %s) unable to get next arg", __func__, iters,
                srcstr);
       return 1;
     }
     if (nastEmpty == nast) {
       // the stack has no more tokens to give, stop looped requests for mre
       if (hparm->verbosity) {
-        printf("%s: (arg %u of %s) empty!\n", __func__, iters, srcstr);
+        printf("%s: (iter %u, on %s) empty!\n", __func__, iters, srcstr);
       }
       break;
     }
@@ -551,7 +551,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
         continue; // since }- does not belong in havec
       } else {
         biffAddf(HEST,
-                 "%s: (arg %u of %s) end comment marker \"}-\" not "
+                 "%s: (iter %u, on %s) end comment marker \"}-\" not "
                  "balanced by prior \"-{\"",
                  __func__, iters, srcstr);
         return 1;
@@ -569,7 +569,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     // if in comment, move along
     if (topHin->dashBraceComment) {
       if (hparm->verbosity > 1) {
-        printf("%s: (arg %u of %s) skipping commented-out |%s|\n", __func__, iters,
+        printf("%s: (iter %u, on %s) skipping commented-out |%s|\n", __func__, iters,
                srcstr, tharg->str);
       }
       continue;
@@ -582,20 +582,20 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
            for parsing results nor error messages about that process */
         return 0;
       } else {
-        biffAddf(HEST, "%s: (arg %u of %s) \"--help\" not expected here", __func__,
+        biffAddf(HEST, "%s: (iter %u, on %s) \"--help\" not expected here", __func__,
                  iters, srcstr);
         return 1;
       }
     }
     if (hparm->verbosity > 1) {
-      printf("%s: (arg %u of %s) looking at latest tharg |%s|\n", __func__, iters,
+      printf("%s: (iter %u, on %s) looking at latest tharg |%s|\n", __func__, iters,
              srcstr, tharg->str);
     }
     if (hparm->responseFileEnable && tharg->str[0] == RESPONSE_FILE_FLAG) {
       // tharg->str is asking to open a response file; try pushing it
       if (histPushResponseFile(hist, tharg->str + 1, hparm)) {
-        biffAddf(HEST, "%s: (arg %u of %s) unable to process response file %s", __func__,
-                 iters, srcstr, tharg->str);
+        biffAddf(HEST, "%s: (iter %u, on %s) unable to process response file %s",
+                 __func__, iters, srcstr, tharg->str);
         return 1;
       }
       // have just added response file to stack, next iter will read from it
@@ -604,7 +604,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     // this arg is not specially handled by us; add it to the arg vec
     hestArgVecAppendString(havec, tharg->str);
     if (hparm->verbosity > 1) {
-      printf("%s: (arg %u of %s) added |%s| to havec, now len %u\n", __func__, iters,
+      printf("%s: (iter %u, on %s) added |%s| to havec, now len %u\n", __func__, iters,
              srcstr, tharg->str, havec->len);
     }
   }
