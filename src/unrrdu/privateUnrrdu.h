@@ -231,24 +231,6 @@ UNRRDU_MAP(UNRRDU_DECLARE)
   }
 
 /*
-
-I nixed this because it meant unu invocations with only a
-few args (less than hestMinNumArgs()), which were botched
-because they were missing options, were not being described
-in the error messages.
-
-**
-** NB: below is an unidiomatic use of hestMinNumArgs(), because of
-** how unu's main invokes the "main" function of the different
-** commands.  Normally the comparison is with argc-1, or argc-2
-** the case of cvs/svn-like commands.
-
-
-if ( (hparm->respFileEnable && !argc) || \
-     (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) { \
-*/
-
-/*
 ** NOTE: of all places it is inside the PARSE() macro that the
 ** "quiet-quit" functionality is implemented; this is defensible
 ** because all unu commands use PARSE
