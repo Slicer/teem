@@ -164,7 +164,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   GETLINE(attribute declaration);
   mop = airMopNew();
-  if (3 != airParseStrS(three, nio->line, AIR_WHITESPACE, 3, AIR_FALSE)) {
+  if (3 != airParseStrS(three, nio->line, AIR_WHITESPACE, 3)) {
     biffAddf(NRRD, "%s: didn't see three words in attribute declaration \"%s\"", me,
              nio->line);
     return 1;

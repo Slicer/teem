@@ -29,26 +29,87 @@ const int hestPresent = 42;
 
 const char *const _hestBiffKey = "hest";
 
+// see note in hest.h about why airType things are here, renamed as hest
+/* clang-format off */
+const char
+_hestTypeStr[_HEST_TYPE_MAX+1][AIR_STRLEN_SMALL+1] = {
+  "(unknown)",
+  "bool",
+  "short",
+  "unsigned short",
+  "int",
+  "unsigned int",
+  "long int",
+  "unsigned long int",
+  "size_t",
+  "float",
+  "double",
+  "char",
+  "string",
+  "enum",
+  "other",
+};
+
+const size_t
+_hestTypeSize[_HEST_TYPE_MAX+1] = {
+  0,
+  sizeof(int),
+  sizeof(short),
+  sizeof(unsigned short),
+  sizeof(int),
+  sizeof(unsigned int),
+  sizeof(long int),
+  sizeof(unsigned long int),
+  sizeof(size_t),
+  sizeof(float),
+  sizeof(double),
+  sizeof(char),
+  sizeof(char*),
+  sizeof(int),
+  0   /* we don't know anything about type "other" */
+};
+/* clang-format on */
+
+unsigned int (*const _hestParseStr[_HEST_TYPE_MAX + 1])(void *, const char *,
+                                                        const char *, unsigned int)
+  = {NULL,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrB,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrH,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrUH,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrI,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrUI,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrL,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrUL,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrZ,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrF,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrD,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrC,
+     (unsigned int (*)(void *, const char *, const char *, unsigned int))airParseStrS,
+     // airParseStrE needs final airEnum* arg, no longer enforceing fake uniformity
+     NULL,
+     // no uniform of parsing type "other"; handled via hestCB in hest
+     NULL};
+
 // loving how C99 simplifies creating an airEnum at compile-time
 static const airEnum _hestSource
   = {.name = "source",
      .M = 3,
      .str = (const char *[]){"(unknown_source)", // 0
-                             "default",          // 1
-                             "command-line",     // 2
-                             "response-file"},   // 3
+                             "command-line",     // 1
+                             "response-file",    // 2
+                             "default"},         // 3
      .val = NULL,
-     .desc = (const char *[]){"unknown source",            //
-                              "default string in hestOpt", //
-                              "argc/argv command-line",    //
-                              "a response file"},
-     .strEqv = (const char *[]){"default",                   //
-                                "command-line", "cmdline",   //
+     .desc = (const char *[]){"unknown source",         //
+                              "argc/argv command-line", //
+                              "a response file",        //
+                              "default string in hestOpt"},
+     .strEqv = (const char *[]){"command-line", "cmdline",   //
                                 "response-file", "respfile", //
+                                "default",                   //
                                 ""},
-     .valEqv = (const int[]){hestSourceDefault,                            //
-                             hestSourceCommandLine, hestSourceCommandLine, //
-                             hestSourceResponseFile, hestSourceResponseFile},
+     .valEqv = (const int[]){hestSourceCommandLine, hestSourceCommandLine,   //
+                             hestSourceResponseFile, hestSourceResponseFile, //
+                             hestSourceDefault},
      .sense = AIR_FALSE};
 const airEnum *const hestSource = &_hestSource;
 
@@ -75,8 +136,6 @@ hestParmNew() {
   hparm->responseFileEnable = hestDefaultResponseFileEnable;
   hparm->elideSingleEnumType = hestDefaultElideSingleEnumType;
   hparm->elideSingleOtherType = hestDefaultElideSingleOtherType;
-  hparm->elideSingleOtherDefault = hestDefaultElideSingleOtherDefault;
-  hparm->greedySingleString = hestDefaultGreedySingleString;
   hparm->elideSingleNonExistFloatDefault = hestDefaultElideSingleNonExistFloatDefault;
   hparm->elideMultipleNonExistFloatDefault
     = hestDefaultElideMultipleNonExistFloatDefault;
@@ -102,7 +161,6 @@ hestParmNew() {
      abstaining from adding yet another default global variable */
   hparm->respectDashBraceComments = AIR_TRUE;
   hparm->noArgsIsNoProblem = hestDefaultNoArgsIsNoProblem;
-  hparm->greedySingleString = hestDefaultGreedySingleString;
   hparm->cleverPluralizeOtherY = hestDefaultCleverPluralizeOtherY;
   /* here too: newer addition to hestParm avoid adding another default global */
   hparm->dieLessVerbose = AIR_FALSE;
@@ -338,6 +396,11 @@ now hestOptAdd is a wrapper around this. And, the per-hestOpt logic has now
 been moved to hestOptSingleSet.
 
 Like hestOptAdd has done since 2013: returns UINT_MAX in case of error.
+
+Note: (as of 2023) you probably shouldn't use this function; instead use
+one of hestOptAdd_Flag, hestOptAdd_1_T, hestOptAdd_{2,3,4,N}_T, hestOptAdd_1v_T,
+or hestOptAdd_Nv_T for T=Bool, Int, UInt, LongInt, ULongInt, Size_t, Float, Double,
+Char, String, Enum, Other
 */
 unsigned int
 hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,

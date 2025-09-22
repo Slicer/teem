@@ -20,12 +20,19 @@
 #include "hest.h"
 #include "privateHest.h"
 
-/* parse, Parser, PARSEST: may this be the final implementation of hestParse */
+/* parse, Parser, PARSEST: please let this be the final implementation of hestParse */
 
 #include <assert.h>
 #include <sys/errno.h>
 
-int
+/* variable name conventions:
+harg  = hestArg
+havec = hestArgVec
+hin   = hestInput
+hist  = hestInputStack
+*/
+
+static int
 histPop(hestInputStack *hist, const hestParm *hparm) {
   if (!(hist && hparm)) {
     biffAddf(HEST, "%s: got NULL pointer (hist %p hparm %p)", __func__, AIR_VOIDP(hist),
@@ -53,41 +60,222 @@ histPop(hestInputStack *hist, const hestParm *hparm) {
   return 0;
 }
 
-// possible *statP values set by histProcNextArg
+// possible *nastP values to indicate histProc_N_ext_A_rg _st_atus
 enum {
-  procStatUnknown,  // 0: don't know
-  procStatEmpty,    // 1: we have no arg to give
-  procStatTryAgain, // 2: inconclusive because had to manage things
-  procStatBehold    // 3: have produced an arg, here it is
+  nastUnknown,  // 0: don't know
+  nastEmpty,    // 1: we have no arg to give and we have given it
+  nastTryAgain, // 2: inconclusive because we had to futz around
+  nastBehold    // 3: have produced an arg, here it is
 };
+static const airEnum _nast_ae = {.name = "next-arg-status",
+                                 .M = 3,
+                                 .str = (const char *[]){"(unknown_status)", // 0
+                                                         "empty",            // 1
+                                                         "try-again",        // 2
+                                                         "behold"},          // 3
+                                 .val = NULL,
+                                 .desc = NULL,
+                                 .strEqv = NULL,
+                                 .valEqv = NULL,
+                                 .sense = AIR_FALSE};
+static const airEnum *const nast_ae = &_nast_ae;
 
 /*
-histProcNextArgSub draws on whatever the top input source is, to produce another arg.
-It sets in *statP the status of the arg production process. Allowing procStatTryAgain
-is a way to acknowledge the fact that we are called iteratively by a loop we don't
-control, and managing the machinery of arg production is itself a multi-step process that
-doesn't always produce an arg. We should need to do look-ahead to make progress, even if
-we don't produce an arg.
+Properly parsing a character sequence into "arguments", like the shell does to convert
+the typed command-line into the argv[] array, is more than just calling strtok(), but the
+old hest code only did that, which is why it had to be re-written.  Instead, handling "
+vs ' quotes, character escaping, and the implicit concatenation of adjacent args,
+requires a little deterministic finite automaton (DFA) to be done correctly. Here is the
+POSIX info about tokenizing:
+https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_03
+(although hest does not do rule 5 about parameter expansion, command substitution,
+or arithmetic expansion), and here are the details about quoting:
+https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_02
+Here is instructive example code https://github.com/nyuichi/dash.git ; in src/parser.c
+see the readtoken1() function.
+*/
+/* the DFA states of our arg tokenizer */
+enum {
+  argstUnknown,  // 0: don't know
+  argstStart,    // 1: skipping whitespace to start arg
+  argstInside,   // 2: currently inside a token/arg
+  argstSingleQ,  // 3: inside single quoting
+  argstDoubleQ,  // 4: inside double quoting
+  argstEscapeIn, // 5: got \ escape from within (unquoted) word
+  argstEscapeDQ, // 6: Escape Dairy Queen!
+  argstComment,  // 7: #-initiated comment
+};
+// and airEnum for this
+static const airEnum _argst_ae = {.name = "tokenizer-state",
+                                  .M = 6,
+                                  .str = (const char *[]){"(unknown_state)", // 0
+                                                          "start",           // 1
+                                                          "inside",          // 2
+                                                          "singleQ",         // 3
+                                                          "doubleQ",         // 4
+                                                          "escapeIn",        // 5
+                                                          "escapeDQ",        // 6
+                                                          "#comment"},       // 7
+                                  .val = NULL,
+                                  .desc = NULL,
+                                  .strEqv = NULL,
+                                  .valEqv = NULL,
+                                  .sense = AIR_FALSE};
+static const airEnum *const argst_ae = &_argst_ae;
+
+/* parse an arg argument and save into `tharg`, one character `cc` at a time */
+static int
+argstGo(int *nastP, hestArg *tharg, int *stateP, int icc, int vrbo) {
+  char cc = (char)icc;
+  if (vrbo) {
+    printf("%s: hello: getting %d=|%c| in state=%s\n", __func__, icc, cc,
+           airEnumStr(argst_ae, *stateP));
+  }
+  // hitting end of input is special enough to handle separately
+  if (EOF == icc) {
+    int ret;
+    switch (*stateP) {
+    case argstStart:
+    case argstComment:
+      // oh well, we didn't get to start an arg
+      *nastP = nastTryAgain; // input will be popped, try again with next stack element
+      ret = 0;
+      break;
+    case argstInside:
+      // the EOF ends the arg and that's ok
+      *nastP = nastBehold;
+      ret = 0;
+      break;
+    case argstSingleQ:
+      biffAddf(HEST, "%s: hit input end inside single-quoted string", __func__);
+      ret = 1;
+      break;
+    case argstDoubleQ:
+      biffAddf(HEST, "%s: hit input end inside double-quoted string", __func__);
+      ret = 1;
+      break;
+    case argstEscapeIn:
+      biffAddf(HEST, "%s: hit input end after \\ escape from arg", __func__);
+      ret = 1;
+      break;
+    case argstEscapeDQ:
+      biffAddf(HEST, "%s: hit input end after \\ escape from double-quoted string",
+               __func__);
+      ret = 1;
+      break;
+    default:
+      biffAddf(HEST, "%s: hit input end in unknown state %d", __func__, *stateP);
+      ret = 1;
+    }
+    return ret;
+  }
+  // else not at input end, use nastUnknown as default state of "still working"
+  *nastP = nastUnknown;
+  switch (*stateP) {
+  case argstStart:
+    if (!isspace(cc)) { // if is space, we stay in argstStart
+      if ('\'' == cc) {
+        *stateP = argstSingleQ;
+      } else if ('"' == cc) {
+        *stateP = argstDoubleQ;
+      } else if ('\\' == cc) {
+        *stateP = argstEscapeIn;
+      } else if ('#' == cc) {
+        *stateP = argstComment;
+      } else { // start building up new arg
+        hestArgAddChar(tharg, cc);
+        *stateP = argstInside;
+      }
+    } // if !isspace(cc)
+    break;
+  case argstInside:
+    if (isspace(cc)) { // this is the natural end to an arg
+      *nastP = nastBehold;
+      *stateP = argstStart; // prepare for next arg
+    } else if ('\'' == cc) {
+      *stateP = argstSingleQ;
+    } else if ('"' == cc) {
+      *stateP = argstDoubleQ;
+    } else if ('\\' == cc) {
+      *stateP = argstEscapeIn;
+    } else { // add to existing arg EVEN IF IT is a '#'
+      hestArgAddChar(tharg, cc);
+      // state stays at argstInside
+    } // else !isspace(cc)
+    break;
+  case argstSingleQ:
+    if ('\'' == cc) {
+      // ending quoted string, back to arg interior
+      *stateP = argstInside;
+    } else {
+      // add characters (including #) to arg without any other interpretation
+      hestArgAddChar(tharg, cc);
+    }
+    break;
+  case argstDoubleQ:
+    if ('"' == cc) {
+      // ending quoted string, back to arg interior
+      *stateP = argstInside;
+    } else if ('\\' == cc) {
+      *stateP = argstEscapeDQ;
+    } else {
+      // add non-escaped characters (including #) to arg
+      hestArgAddChar(tharg, cc);
+    }
+    break;
+  case argstEscapeIn:
+  case argstEscapeDQ:
+    if ('\n' == cc) {
+      // line continuation; ignore \ and \n
+    } else {
+      // add escaped characters (including #) to arg
+      hestArgAddChar(tharg, cc);
+    }
+    // either way, back to whatever we were in pre-escape
+    *stateP = (argstEscapeIn == *stateP) ? argstInside : argstDoubleQ;
+    break;
+  case argstComment:
+    if ('\n' == cc) {
+      // the newline has ended the comment, prepare for next arg
+      *stateP = argstStart;
+    }
+    // else we skip the commented-out character
+    break;
+  } // switch (*stateP)
+  return 0;
+}
+
+/*
+histProcNextArgTry draws on whatever the top input source is, to (try to) produce
+another arg. It sets in *nastP the status of the next arg production process. Allowing
+nastTryAgain is a way to acknowledge that we are called iteratively by a loop we
+don't control, and managing the machinery of arg production is itself a multi-step
+process that doesn't always produce an arg.  We should NOT need to do look-ahead to
+make progress, even if we don't produce an arg: when we see that the input source at
+the top of the stack is exhausted, then we pop that source, but we shouldn't have to
+then immediately test if the next input source is also exhausted (instead we say "try
+again").
 */
 static int
-histProcNextArgSub(int *statP, hestArg *tharg, hestInputStack *hist,
+histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
                    const hestParm *hparm) {
-  if (!(statP && tharg && hist && hparm)) {
-    biffAddf(HEST, "%s: got NULL pointer (statP %p tharg %p hist %p hparm %p)", __func__,
-             AIR_VOIDP(statP), AIR_VOIDP(tharg), AIR_VOIDP(hist), AIR_VOIDP(hparm));
+  if (!(nastP && tharg && hist && hparm)) {
+    biffAddf(HEST, "%s: got NULL pointer (nastP %p tharg %p hist %p hparm %p)", __func__,
+             AIR_VOIDP(nastP), AIR_VOIDP(tharg), AIR_VOIDP(hist), AIR_VOIDP(hparm));
     return 1;
   }
   // printf("!%s: hello hist->len %u\n", __func__, hist->len);
   hestArgReset(tharg);
-  *statP = procStatUnknown;
+  *nastP = nastUnknown;
   if (!hist->len) {
     // the stack is empty; say so
-    *statP = procStatEmpty;
+    *nastP = nastEmpty;
     return 0;
   }
   uint hinIdx = hist->len - 1;
   hestInput *hin = hist->hin + hinIdx;
   // printf("!%s: source %s\n", __func__, airEnumStr(hestSource, hin->source));
+  // printf("!%s: hin(%p)->rfname = |%s|\n", __func__, AIR_VOIDP(hin), hin->rfname);
   if (hestSourceCommandLine == hin->source) {
     // argv[]  0   1    2    3   (argc=4)
     //        cmd arg1 arg2 arg3
@@ -97,40 +285,98 @@ histProcNextArgSub(int *statP, hestArg *tharg, hestInputStack *hist,
       // there are args left to parse
       hestArgAddString(tharg, hin->argv[argi]);
       // printf("!%s: now tharg->str=|%s|\n", __func__, tharg->str);
-      *statP = procStatBehold;
+      *nastP = nastBehold;
       hin->argIdx++;
     } else {
-      // we have gotten to the end of the given argv array, pop it */
+      // we have gotten to the end of the given argv array, pop it as input source */
       if (histPop(hist, hparm)) {
         biffAddf(HEST, "%s: trouble popping", __func__);
         return 1;
       }
-      *statP = procStatTryAgain;
+      *nastP = nastTryAgain;
     }
   } else {
-    // source is default string or response file
-    biffAddf(HEST, "%s: source %s not yet implemented", __func__,
-             airEnumStr(hestSource, hin->source));
-    return 1;
+    // hin->source is hestSourceResponseFile or hestSourceDefault
+    int icc; // the next character we read as int
+    int state = argstStart;
+    do {
+      // get next character `icc` from input
+      if (hestSourceDefault == hin->source) {
+        if (hin->carIdx < hin->dfltLen) {
+          icc = hin->dfltStr[hin->carIdx];
+        } else {
+          icc = EOF;
+        }
+      } else {
+        icc = fgetc(hin->rfile); // may be EOF
+      }
+      if (argstGo(nastP, tharg, &state, icc, hparm->verbosity > 1)) {
+        if (hestSourceResponseFile == hin->source) {
+          biffAddf(HEST, "%s: trouble at character %u of %s \"%s\"", __func__,
+                   hin->carIdx, airEnumStr(hestSource, hin->source), hin->rfname);
+        } else {
+          biffAddf(HEST, "%s: trouble at character %u of %s |%s|", __func__, hin->carIdx,
+                   airEnumStr(hestSource, hin->source), hin->dfltStr);
+        }
+        return 1;
+      }
+      if (EOF != icc) {
+        hin->carIdx++;
+      } else {
+        // we're at end; pop input; *nastP already set to nastTryAgain by argstGo()
+        if (histPop(hist, hparm)) {
+          biffAddf(HEST, "%s: trouble popping", __func__);
+          return 1;
+        }
+      }
+    } while (nastUnknown == *nastP);
   }
   return 0;
 }
 
 static int
-histProcNextArg(int *statP, hestArg *tharg, hestInputStack *hist,
+histProcNextArg(int *nastP, hestArg *tharg, hestInputStack *hist,
                 const hestParm *hparm) {
   // printf("!%s: hello hist->len %u\n", __func__, hist->len);
   do {
-    if (histProcNextArgSub(statP, tharg, hist, hparm)) {
+    if (histProcNextArgTry(nastP, tharg, hist, hparm)) {
       biffAddf(HEST, "%s: trouble getting next arg", __func__);
       return 1;
     }
     if (hparm->verbosity > 1) {
-      printf("%s: histProcNextArgSub set *statP = %d\n", __func__, *statP);
+      printf("%s: histProcNextArgSub set *nastP = %s\n", __func__,
+             airEnumStr(nast_ae, *nastP));
     }
-  } while (*statP == procStatTryAgain);
+  } while (*nastP == nastTryAgain);
   return 0;
 }
+
+#if 0 // not used yet
+static int
+histPushDefault(hestInputStack *hist, const char *dflt, const hestParm *hparm) {
+  if (!(hist && dflt && hparm)) {
+    biffAddf(HEST, "%s: got NULL pointer (hist %p, dflt %p, hparm %p)", __func__,
+             AIR_VOIDP(hist), AIR_VOIDP(dflt), AIR_VOIDP(hparm));
+    return 1;
+  }
+  if (HIST_DEPTH_MAX == hist->len) {
+    biffAddf(HEST, "%s: input stack depth already at max %u", __func__, HIST_DEPTH_MAX);
+    return 1;
+  }
+  if (hparm->verbosity) {
+    printf("%s: changing stack height: %u --> %u with dflt=|%s|; "
+           "dfltLen %u, dfltIdx 0\n",
+           __func__, hist->hinArr->len, hist->hinArr->len + 1, dflt,
+           AIR_UINT(strlen(dflt)));
+  }
+  uint idx = airArrayLenIncr(hist->hinArr, 1);
+  hist->hin[idx].source = hestSourceDefault;
+  hist->hin[idx].dfltStr = dflt;
+  hist->hin[idx].dfltLen = strlen(dflt);
+  hist->hin[idx].carIdx = 0;
+  return 0;
+}
+#endif
 
 static int
 histPushCommandLine(hestInputStack *hist, int argc, const char **argv,
@@ -217,8 +463,11 @@ histPushResponseFile(hestInputStack *hist, const char *rfname, const hestParm *h
            AIR_VOIDP(hist->hin + idx));
   }
   hist->hin[idx].source = hestSourceResponseFile;
-  hist->hin[idx].rfname = rfname;
+  /* We need our own copy of this filename for debugging and error messages;
+     the rfname we were passed was probably the `str` of some tmp hestArg */
+  hist->hin[idx].rfname = airStrdup(rfname);
   hist->hin[idx].rfile = rfile;
+  hist->hin[idx].carIdx = 0;
   return 0;
 }
 
@@ -232,8 +481,9 @@ them into `havec`, but this does interpret the tokens just enough to implement:
 since these are the things that histProcNextArg does not understand (it just produces
 finished tokens). On the other hand, we do NOT know anything about individual hestOpts
 and their flags, which is why they weren't passed to us (--help is special).
-Upon seeing a request for a response file, we push it to the input stack.  This function
-never pops from the input stack (that is the responsibility of histProcNextArg).
+Upon seeing a request for a response file, we push it to the input stack.  This
+function never pops from the input stack (that is the responsibility of
+histProcNextArg).
 
 This function takes no ownership of anything so avoids any mopping responsibility, not
 even for the tmp arg holder `tharg`; that is passed in here and cleaned up caller.
@@ -242,7 +492,7 @@ static int
 histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack *hist,
             const hestParm *hparm) {
   *helpWantedP = AIR_FALSE;
-  int stat = procStatUnknown;
+  int nast = nastUnknown;
   uint iters = 0;
   hestInput *topHin;
   // printf("!%s: hello hist->len %u\n", __func__, hist->len);
@@ -254,17 +504,19 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     /* if this loop just pushed a response file, the top hestInput is different
        from what it was when this function started, so re-learn it. */
     topHin = hist->hin + hist->len - 1;
+    /* printf("!%s: (iters %u) topHin(%p)->rfname = |%s|\n", __func__, iters,
+           AIR_VOIDP(topHin), topHin->rfname); */
     const char *srcstr = airEnumStr(hestSource, topHin->source);
     // read next arg into tharg
-    if (histProcNextArg(&stat, tharg, hist, hparm)) {
-      biffAddf(HEST, "%s: (arg %u src %s) unable to get next arg", __func__, iters,
+    if (histProcNextArg(&nast, tharg, hist, hparm)) {
+      biffAddf(HEST, "%s: (arg %u of %s) unable to get next arg", __func__, iters,
                srcstr);
       return 1;
     }
-    if (procStatEmpty == stat) {
+    if (nastEmpty == nast) {
       // the stack has no more tokens to give, stop looped requests for mre
       if (hparm->verbosity) {
-        printf("%s: (arg %u src %s) empty!\n", __func__, iters, srcstr);
+        printf("%s: (arg %u of %s) empty!\n", __func__, iters, srcstr);
       }
       break;
     }
@@ -279,7 +531,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
         continue; // since }- does not belong in havec
       } else {
         biffAddf(HEST,
-                 "%s: (arg %u src %s) end comment marker \"}-\" not "
+                 "%s: (arg %u of %s) end comment marker \"}-\" not "
                  "balanced by prior \"-{\"",
                  __func__, iters, srcstr);
         return 1;
@@ -297,7 +549,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     // if in comment, move along
     if (topHin->dashBraceComment) {
       if (hparm->verbosity > 1) {
-        printf("%s: (arg %u src %s) skipping commented-out |%s|\n", __func__, iters,
+        printf("%s: (arg %u of %s) skipping commented-out |%s|\n", __func__, iters,
                srcstr, tharg->str);
       }
       continue;
@@ -310,20 +562,20 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
            for parsing results nor error messages about that process */
         return 0;
       } else {
-        biffAddf(HEST, "%s: (arg %u src %s) \"--help\" not expected here", __func__,
+        biffAddf(HEST, "%s: (arg %u of %s) \"--help\" not expected here", __func__,
                  iters, srcstr);
         return 1;
       }
     }
     if (hparm->verbosity > 1) {
-      printf("%s: (arg %u src %s) looking at latest tharg |%s|\n", __func__, iters,
+      printf("%s: (arg %u of %s) looking at latest tharg |%s|\n", __func__, iters,
              srcstr, tharg->str);
     }
     if (hparm->responseFileEnable && tharg->str[0] == RESPONSE_FILE_FLAG) {
       // tharg->str is asking to open a response file; try pushing it
       if (histPushResponseFile(hist, tharg->str + 1, hparm)) {
-        biffAddf(HEST, "%s: (arg %u src %s) unable to process response file %s",
-                 __func__, iters, srcstr, tharg->str);
+        biffAddf(HEST, "%s: (arg %u of %s) unable to process response file %s", __func__,
+                 iters, srcstr, tharg->str);
         return 1;
       }
       // have just added response file to stack, next iter will read from it
@@ -332,11 +584,11 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     // this arg is not specially handled by us; add it to the arg vec
     hestArgVecAppendString(havec, tharg->str);
     if (hparm->verbosity > 1) {
-      printf("%s: (arg %u src %s) added |%s| to havec, now len %u\n", __func__, iters,
+      printf("%s: (arg %u of %s) added |%s| to havec, now len %u\n", __func__, iters,
              srcstr, tharg->str, havec->len);
     }
   }
-  if (hist->len && stat == procStatEmpty) {
+  if (hist->len && nast == nastEmpty) {
     biffAddf(HEST, "%s: non-empty stack (depth %u) can't generate args???", __func__,
              hist->len);
     return 1;
@@ -344,6 +596,10 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
   return 0;
 }
 
+/*
+hestParse(2): parse the `argc`,`argv` commandline according to the hestOpt array `opt`.
+
+*/
 int
 hestParse2(hestOpt *opt, int argc, const char **argv, char **_errP,
            const hestParm *_hparm) {

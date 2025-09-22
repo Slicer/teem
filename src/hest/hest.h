@@ -43,15 +43,53 @@ extern "C" {
 #endif
 
 /*
+ * The airType values are here in hest as a transition hack for TeemV2. The parsing needs
+ * of hest are what motivated creating airTypes in the first place. The fresh perspective
+ * of TeemV2 recognizes they should have been in hest from the outset, not in air.
+ *
+ * The blissfully-type-unaware hestOptAdd() has always relied on the airTypeT enum values
+ * below. Since that function is not being removed, to avoid needless code breakage with
+ * TeemV2, these values now live in this hest header. hest users should instead be using
+ * the properly typed hestOptAdd_X_T functions, which have no need for airType
+ * pseudo-types.
+ *
+ * Other things that used to be in air, but which really only mattered to implement hest
+ * functions have been moved into privateHest.h, but with air --> hest renaming.
+ *    #define AIR_TYPE_MAX
+ *    const char airTypeStr[AIR_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1];
+ *    const size_t airTypeSize[AIR_TYPE_MAX + 1];
+ *    unsigned int (*const airParseStr[AIR_TYPE_MAX + 1])(void *, const char *,const char
+ *                                                        unsigned int)
+ */
+enum {
+  airTypeUnknown, /*  0 */
+  airTypeBool,    /*  1 */
+  airTypeShort,   /*  2 (added for TeemV2) */
+  airTypeUShort,  /*  3 (added for TeemV2) */
+  airTypeInt,     /*  4 */
+  airTypeUInt,    /*  5 */
+  airTypeLong,    /*  6 (for TeemV2 renamed from airTypeLongInt) */
+  airTypeULong,   /*  7 (for TeemV2 renamed from airTypeULongInt) */
+  airTypeSize_t,  /*  8 */
+  airTypeFloat,   /*  9 */
+  airTypeDouble,  /* 10 */
+  airTypeChar,    /* 11 */
+  airTypeString,  /* 12 */
+  airTypeEnum,    /* 13 */
+  airTypeOther,   /* 14 */
+  airTypeLast
+};
+
+/*
 ******** hestSource* enum
 **
 ** way of identifying where the info to satisfy a particular option came from.
 */
 enum {
   hestSourceUnknown,      /* 0 */
-  hestSourceDefault,      /* 1 */
-  hestSourceCommandLine,  /* 2 (formerly called hestSourceUser) */
-  hestSourceResponseFile, /* 3 */
+  hestSourceCommandLine,  /* 1 (formerly called hestSourceUser) */
+  hestSourceResponseFile, /* 2 */
+  hestSourceDefault,      /* 3 */
   hestSourceLast
 };
 
@@ -204,8 +242,6 @@ typedef struct {
                            would be *ok* to invoke the problem without any further
                            command-line options. This is counter to pre-Teem-1.11 behavior
                            (for which no arguments *always* meant "show me usage info"). */
-    greedySingleString,    /* when parsing a single string, whether or not to be greedy
-                              (as per airParseStrS) */
     cleverPluralizeOtherY, /* when printing the type for airTypeOther, when the min
                               number of items is > 1, and the type string ends with "y",
                               then pluralize with "ies" instead of "ys" */
@@ -248,15 +284,18 @@ typedef struct {
 // hestInput: what is the thing we're processing now to build up an arg vec
 typedef struct {
   int source; // from the hestSource* enum
-  // ------ if source == hestSourceDefault ------
-  const char *dflt; // we do NOT own
   // ------ if source == hestSourceCommandLine ------
   unsigned int argc;
   const char **argv; // we do NOT own
   unsigned int argIdx;
   // ------ if source == hestSourceResponseFile ------
-  const char *rfname; // we do NOT own: points into an argv or a hestArg
-  FILE *rfile;        // user opens and closes this
+  char *rfname; // we DO own
+  FILE *rfile;  // user opens and closes this
+  // ------ if source == hestSourceDefault ------
+  const char *dfltStr;  // we do NOT own
+  unsigned int dfltLen; // strlen(dfltStr)
+  // for both hestSourceResponseFile and hestSourceDefault
+  unsigned int carIdx; // which character are we on
   // ------ general for all inputs ------
   unsigned int dashBraceComment; /* not a boolean: how many -{ }- comment levels
                                     deep are we currently; tracked this way to
@@ -281,7 +320,6 @@ HEST_EXPORT int hestDefaultElideMultipleNonExistFloatDefault;
 HEST_EXPORT int hestDefaultElideSingleEmptyStringDefault;
 HEST_EXPORT int hestDefaultElideMultipleEmptyStringDefault;
 HEST_EXPORT int hestDefaultNoArgsIsNoProblem;
-HEST_EXPORT int hestDefaultGreedySingleString;
 HEST_EXPORT int hestDefaultCleverPluralizeOtherY;
 HEST_EXPORT unsigned int hestDefaultColumns;
 
@@ -355,10 +393,10 @@ HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
 
 // adders.c
 HEST_EXPORT void hestOptAddDeclsPrint(FILE *f);
-/* Many many non-var-args alternatives to hestOptAdd, also usefully type-specific for the
-type of value to be parsed in a way that hestOptAdd_nva cannot match. These capture all
-the common uses (and then some) of hest within Teem. They are named according
-to kind, and according to the type T parameters to the option:
+/* The 99 (!) non-var-args alternatives to hestOptAdd, also usefully type-specific for
+the type of value to be parsed in a way that hestOptAdd_nva cannot match. These capture
+all the common uses (and then some) of hest within Teem. They are named according to
+kind, and according to the type T of the parms to be parsed for each option:
 
 min, max             function family       kind  description
 min == max == 0      hestOptAdd_Flag         1   (stand-alone flag; no parameters)
@@ -367,30 +405,37 @@ min == max >= 2      hestOptAdd_{2,3,4,N}_T  3   multiple fixed parameters
 min == 0; max == 1   hestOptAdd_1v_T         4   single variable parameter
 min < max; max >= 2  hestOptAdd_Nv_T         5   multiple variable parameters
 
-An airEnum* is passed for _Enum options; or a hestCB* for _Other options. The number of
-parameters *sawP that hestParm saw on the command-line is passed for the _Nv_ options.
+The type T can be: Bool, Short, UShort, Int, UInt, Long, ULong, Size_t, Float, Double,
+Char, String, Enum, and Other. An airEnum* is passed with the T=Enum functions, or a
+hestCB* is passed for the T=Other functions. The number of parameters *sawP that hestParm
+saw on the command-line is passed for the _Nv_ options.
 
-All declarations below were automatically generated via hestOptAddDeclsPrint (followed by
-clang-format), which (like the implementation of all the functions) is done via lots of
-#define macro tricks. */
+All declarations below were automatically generated via hest/test/decls (which calls
+hestOptAddDeclsPrint), followed by clang-format. */
 HEST_EXPORT unsigned int hestOptAdd_Flag(hestOpt **optP, const char *flag, int *valueP,
                                          const char *info);
 HEST_EXPORT unsigned int hestOptAdd_1v_Bool(hestOpt **hoptP, const char *flag,
                                             const char *name, int *valueP,
                                             const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1v_Short(hestOpt **hoptP, const char *flag,
+                                             const char *name, short int *valueP,
+                                             const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1v_UShort(hestOpt **hoptP, const char *flag,
+                                              const char *name,
+                                              unsigned short int *valueP,
+                                              const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_1v_Int(hestOpt **hoptP, const char *flag,
                                            const char *name, int *valueP,
                                            const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_1v_UInt(hestOpt **hoptP, const char *flag,
                                             const char *name, unsigned int *valueP,
                                             const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_1v_LongInt(hestOpt **hoptP, const char *flag,
-                                               const char *name, long int *valueP,
-                                               const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_1v_ULongInt(hestOpt **hoptP, const char *flag,
-                                                const char *name,
-                                                unsigned long int *valueP,
-                                                const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1v_Long(hestOpt **hoptP, const char *flag,
+                                            const char *name, long int *valueP,
+                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1v_ULong(hestOpt **hoptP, const char *flag,
+                                             const char *name, unsigned long int *valueP,
+                                             const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_1v_Size_t(hestOpt **hoptP, const char *flag,
                                               const char *name, size_t *valueP,
                                               const char *dflt, const char *info);
@@ -417,19 +462,25 @@ HEST_EXPORT unsigned int hestOptAdd_1v_Other(hestOpt **hoptP, const char *flag,
 HEST_EXPORT unsigned int hestOptAdd_1_Bool(hestOpt **hoptP, const char *flag,
                                            const char *name, int *valueP,
                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_Short(hestOpt **hoptP, const char *flag,
+                                            const char *name, short int *valueP,
+                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_UShort(hestOpt **hoptP, const char *flag,
+                                             const char *name,
+                                             unsigned short int *valueP,
+                                             const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_1_Int(hestOpt **hoptP, const char *flag,
                                           const char *name, int *valueP,
                                           const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_1_UInt(hestOpt **hoptP, const char *flag,
                                            const char *name, unsigned int *valueP,
                                            const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_1_LongInt(hestOpt **hoptP, const char *flag,
-                                              const char *name, long int *valueP,
-                                              const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_1_ULongInt(hestOpt **hoptP, const char *flag,
-                                               const char *name,
-                                               unsigned long int *valueP,
-                                               const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_Long(hestOpt **hoptP, const char *flag,
+                                           const char *name, long int *valueP,
+                                           const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_ULong(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned long int *valueP,
+                                            const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_1_Size_t(hestOpt **hoptP, const char *flag,
                                              const char *name, size_t *valueP,
                                              const char *dflt, const char *info);
@@ -456,19 +507,26 @@ HEST_EXPORT unsigned int hestOptAdd_1_Other(hestOpt **hoptP, const char *flag,
 HEST_EXPORT unsigned int hestOptAdd_2_Bool(hestOpt **hoptP, const char *flag,
                                            const char *name, int valueP[2],
                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_2_Short(hestOpt **hoptP, const char *flag,
+                                            const char *name, short int valueP[2],
+                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_2_UShort(hestOpt **hoptP, const char *flag,
+                                             const char *name,
+                                             unsigned short int valueP[2],
+                                             const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_2_Int(hestOpt **hoptP, const char *flag,
                                           const char *name, int valueP[2],
                                           const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_2_UInt(hestOpt **hoptP, const char *flag,
                                            const char *name, unsigned int valueP[2],
                                            const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_2_LongInt(hestOpt **hoptP, const char *flag,
-                                              const char *name, long int valueP[2],
-                                              const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_2_ULongInt(hestOpt **hoptP, const char *flag,
-                                               const char *name,
-                                               unsigned long int valueP[2],
-                                               const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_2_Long(hestOpt **hoptP, const char *flag,
+                                           const char *name, long int valueP[2],
+                                           const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_2_ULong(hestOpt **hoptP, const char *flag,
+                                            const char *name,
+                                            unsigned long int valueP[2],
+                                            const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_2_Size_t(hestOpt **hoptP, const char *flag,
                                              const char *name, size_t valueP[2],
                                              const char *dflt, const char *info);
@@ -495,19 +553,26 @@ HEST_EXPORT unsigned int hestOptAdd_2_Other(hestOpt **hoptP, const char *flag,
 HEST_EXPORT unsigned int hestOptAdd_3_Bool(hestOpt **hoptP, const char *flag,
                                            const char *name, int valueP[3],
                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_3_Short(hestOpt **hoptP, const char *flag,
+                                            const char *name, short int valueP[3],
+                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_3_UShort(hestOpt **hoptP, const char *flag,
+                                             const char *name,
+                                             unsigned short int valueP[3],
+                                             const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_3_Int(hestOpt **hoptP, const char *flag,
                                           const char *name, int valueP[3],
                                           const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_3_UInt(hestOpt **hoptP, const char *flag,
                                            const char *name, unsigned int valueP[3],
                                            const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_3_LongInt(hestOpt **hoptP, const char *flag,
-                                              const char *name, long int valueP[3],
-                                              const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_3_ULongInt(hestOpt **hoptP, const char *flag,
-                                               const char *name,
-                                               unsigned long int valueP[3],
-                                               const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_3_Long(hestOpt **hoptP, const char *flag,
+                                           const char *name, long int valueP[3],
+                                           const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_3_ULong(hestOpt **hoptP, const char *flag,
+                                            const char *name,
+                                            unsigned long int valueP[3],
+                                            const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_3_Size_t(hestOpt **hoptP, const char *flag,
                                              const char *name, size_t valueP[3],
                                              const char *dflt, const char *info);
@@ -534,19 +599,26 @@ HEST_EXPORT unsigned int hestOptAdd_3_Other(hestOpt **hoptP, const char *flag,
 HEST_EXPORT unsigned int hestOptAdd_4_Bool(hestOpt **hoptP, const char *flag,
                                            const char *name, int valueP[4],
                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_4_Short(hestOpt **hoptP, const char *flag,
+                                            const char *name, short int valueP[4],
+                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_4_UShort(hestOpt **hoptP, const char *flag,
+                                             const char *name,
+                                             unsigned short int valueP[4],
+                                             const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_4_Int(hestOpt **hoptP, const char *flag,
                                           const char *name, int valueP[4],
                                           const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_4_UInt(hestOpt **hoptP, const char *flag,
                                            const char *name, unsigned int valueP[4],
                                            const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_4_LongInt(hestOpt **hoptP, const char *flag,
-                                              const char *name, long int valueP[4],
-                                              const char *dflt, const char *info);
-HEST_EXPORT unsigned int hestOptAdd_4_ULongInt(hestOpt **hoptP, const char *flag,
-                                               const char *name,
-                                               unsigned long int valueP[4],
-                                               const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_4_Long(hestOpt **hoptP, const char *flag,
+                                           const char *name, long int valueP[4],
+                                           const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_4_ULong(hestOpt **hoptP, const char *flag,
+                                            const char *name,
+                                            unsigned long int valueP[4],
+                                            const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_4_Size_t(hestOpt **hoptP, const char *flag,
                                              const char *name, size_t valueP[4],
                                              const char *dflt, const char *info);
@@ -573,6 +645,14 @@ HEST_EXPORT unsigned int hestOptAdd_4_Other(hestOpt **hoptP, const char *flag,
 HEST_EXPORT unsigned int hestOptAdd_N_Bool(hestOpt **hoptP, const char *flag,
                                            const char *name, unsigned int N, int *valueP,
                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_N_Short(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int N,
+                                            short int *valueP, const char *dflt,
+                                            const char *info);
+HEST_EXPORT unsigned int hestOptAdd_N_UShort(hestOpt **hoptP, const char *flag,
+                                             const char *name, unsigned int N,
+                                             unsigned short int *valueP,
+                                             const char *dflt, const char *info);
 HEST_EXPORT unsigned int hestOptAdd_N_Int(hestOpt **hoptP, const char *flag,
                                           const char *name, unsigned int N, int *valueP,
                                           const char *dflt, const char *info);
@@ -580,14 +660,14 @@ HEST_EXPORT unsigned int hestOptAdd_N_UInt(hestOpt **hoptP, const char *flag,
                                            const char *name, unsigned int N,
                                            unsigned int *valueP, const char *dflt,
                                            const char *info);
-HEST_EXPORT unsigned int hestOptAdd_N_LongInt(hestOpt **hoptP, const char *flag,
-                                              const char *name, unsigned int N,
-                                              long int *valueP, const char *dflt,
-                                              const char *info);
-HEST_EXPORT unsigned int hestOptAdd_N_ULongInt(hestOpt **hoptP, const char *flag,
-                                               const char *name, unsigned int N,
-                                               unsigned long int *valueP,
-                                               const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_N_Long(hestOpt **hoptP, const char *flag,
+                                           const char *name, unsigned int N,
+                                           long int *valueP, const char *dflt,
+                                           const char *info);
+HEST_EXPORT unsigned int hestOptAdd_N_ULong(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int N,
+                                            unsigned long int *valueP, const char *dflt,
+                                            const char *info);
 HEST_EXPORT unsigned int hestOptAdd_N_Size_t(hestOpt **hoptP, const char *flag,
                                              const char *name, unsigned int N,
                                              size_t *valueP, const char *dflt,
@@ -620,6 +700,15 @@ HEST_EXPORT unsigned int hestOptAdd_Nv_Bool(hestOpt **hoptP, const char *flag,
                                             const char *name, unsigned int min, int max,
                                             int **valueP, const char *dflt,
                                             const char *info, unsigned int *sawP);
+HEST_EXPORT unsigned int hestOptAdd_Nv_Short(hestOpt **hoptP, const char *flag,
+                                             const char *name, unsigned int min, int max,
+                                             short int **valueP, const char *dflt,
+                                             const char *info, unsigned int *sawP);
+HEST_EXPORT unsigned int hestOptAdd_Nv_UShort(hestOpt **hoptP, const char *flag,
+                                              const char *name, unsigned int min,
+                                              int max, unsigned short int **valueP,
+                                              const char *dflt, const char *info,
+                                              unsigned int *sawP);
 HEST_EXPORT unsigned int hestOptAdd_Nv_Int(hestOpt **hoptP, const char *flag,
                                            const char *name, unsigned int min, int max,
                                            int **valueP, const char *dflt,
@@ -628,16 +717,15 @@ HEST_EXPORT unsigned int hestOptAdd_Nv_UInt(hestOpt **hoptP, const char *flag,
                                             const char *name, unsigned int min, int max,
                                             unsigned int **valueP, const char *dflt,
                                             const char *info, unsigned int *sawP);
-HEST_EXPORT unsigned int hestOptAdd_Nv_LongInt(hestOpt **hoptP, const char *flag,
-                                               const char *name, unsigned int min,
-                                               int max, long int **valueP,
-                                               const char *dflt, const char *info,
-                                               unsigned int *sawP);
-HEST_EXPORT unsigned int hestOptAdd_Nv_ULongInt(hestOpt **hoptP, const char *flag,
-                                                const char *name, unsigned int min,
-                                                int max, unsigned long int **valueP,
-                                                const char *dflt, const char *info,
-                                                unsigned int *sawP);
+HEST_EXPORT unsigned int hestOptAdd_Nv_Long(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int min, int max,
+                                            long int **valueP, const char *dflt,
+                                            const char *info, unsigned int *sawP);
+HEST_EXPORT unsigned int hestOptAdd_Nv_ULong(hestOpt **hoptP, const char *flag,
+                                             const char *name, unsigned int min, int max,
+                                             unsigned long int **valueP,
+                                             const char *dflt, const char *info,
+                                             unsigned int *sawP);
 HEST_EXPORT unsigned int hestOptAdd_Nv_Size_t(hestOpt **hoptP, const char *flag,
                                               const char *name, unsigned int min,
                                               int max, size_t **valueP, const char *dflt,

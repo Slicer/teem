@@ -301,10 +301,12 @@ _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V
 (M, ATYP, CTYP) and applies it to all the simple scalar types */
 #define MAP_T(MAC, M)                                                                   \
   MAC(M, Bool, int)                                                                     \
+  MAC(M, Short, short int)                                                              \
+  MAC(M, UShort, unsigned short int)                                                    \
   MAC(M, Int, int)                                                                      \
   MAC(M, UInt, unsigned int)                                                            \
-  MAC(M, LongInt, long int)                                                             \
-  MAC(M, ULongInt, unsigned long int)                                                   \
+  MAC(M, Long, long int)                                                                \
+  MAC(M, ULong, unsigned long int)                                                      \
   MAC(M, Size_t, size_t)                                                                \
   MAC(M, Float, float)                                                                  \
   MAC(M, Double, double)                                                                \

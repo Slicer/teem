@@ -162,12 +162,13 @@ static void
 hinInit(void *_hin) {
   hestInput *hin = (hestInput *)_hin;
   hin->source = hestSourceUnknown;
-  hin->dflt = NULL;
   hin->argc = 0;
   hin->argv = NULL;
   hin->argIdx = 0;
   hin->rfname = NULL;
   hin->rfile = NULL;
+  hin->dfltStr = NULL;
+  hin->carIdx = 0;
   hin->dashBraceComment = 0;
   return;
 }
@@ -183,10 +184,8 @@ hestInputNew(void) {
 static void
 hinDone(void *_hin) {
   hestInput *hin = (hestInput *)_hin;
-  if (hin->rfile) {
-    airFclose(hin->rfile);
-  }
-  AIR_UNUSED(hin);
+  hin->rfile = airFclose(hin->rfile);
+  hin->rfname = airFree(hin->rfname);
   return;
 }
 

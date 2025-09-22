@@ -624,42 +624,6 @@ airTime() {
 #endif
 }
 
-/* clang-format off */
-const char
-airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL+1] = {
-  "(unknown)",
-  "bool",
-  "int",
-  "unsigned int",
-  "long int",
-  "unsigned long int",
-  "size_t",
-  "float",
-  "double",
-  "char",
-  "string",
-  "enum",
-  "other",
-};
-
-const size_t
-airTypeSize[AIR_TYPE_MAX+1] = {
-  0,
-  sizeof(int),
-  sizeof(int),
-  sizeof(unsigned int),
-  sizeof(long int),
-  sizeof(unsigned long int),
-  sizeof(size_t),
-  sizeof(float),
-  sizeof(double),
-  sizeof(char),
-  sizeof(char*),
-  sizeof(int),
-  0   /* we don't know anything about type "other" */
-};
-/* clang-format on */
-
 /*
 ******** airEqvSettle()
 **

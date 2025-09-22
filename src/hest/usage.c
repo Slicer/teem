@@ -362,7 +362,7 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
               (airTypeEnum == opt[i].type
                  ? opt[i].enm->name
                  : (airTypeOther == opt[i].type ? opt[i].CB->type
-                                                : airTypeStr[opt[i].type])),
+                                                : _hestTypeStr[opt[i].type])),
               (_hestMax(opt[i].max) > 1
                  ? (airTypeOther == opt[i].type
                         && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type) - 1]

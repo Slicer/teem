@@ -83,7 +83,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   /* so that long lists of filenames can be read from file */
   hparm->responseFileEnable = AIR_TRUE;
-  hparm->greedySingleString = AIR_TRUE;
+  // Gone in TeemV2: hparm->greedySingleString = AIR_TRUE;
 
   mop = airMopNew();
 
@@ -157,10 +157,10 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "by many nrrd function to record a history of operations");
   hestOptAdd_1_UInt(&opt, "ls,lineskip", "num", &lineSkip, "0",
                     "number of ascii lines to skip before reading data");
-  hestOptAdd_1_LongInt(&opt, "bs,byteskip", "num", &byteSkip, "0",
-                       "number of bytes to skip (after skipping ascii lines, if any) "
-                       "before reading data.  Can use \"-bs -1\" to skip a binary "
-                       "header of unknown length in raw-encoded data");
+  hestOptAdd_1_Long(&opt, "bs,byteskip", "num", &byteSkip, "0",
+                    "number of bytes to skip (after skipping ascii lines, if any) "
+                    "before reading data.  Can use \"-bs -1\" to skip a binary "
+                    "header of unknown length in raw-encoded data");
   strcpy(encInfo,
          "encoding of input data. Possibilities include:"
          "\n \b\bo \"raw\": raw encoding"
@@ -239,7 +239,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "the same filename base as the header file.");
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  airStrtokQuoting = AIR_TRUE;
+  // Gone in TeemV2: airStrtokQuoting = AIR_TRUE;
   /* hparm->verbosity = 3; / * HEY JUST FOR DEBUGGING */
   USAGE_OR_PARSE(_unrrdu_makeInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);

@@ -98,10 +98,9 @@ main(int argc, const char **argv) {
   unsigned int ui1;
   hestOptAdd_1_UInt(&opt, "ui1", "uint1", &ui1, "42", "test of hestOptAdd_1_UInt");
   long int li1;
-  hestOptAdd_1_LongInt(&opt, "li1", "lint1", &li1, "42", "test of hestOptAdd_1_LongInt");
+  hestOptAdd_1_Long(&opt, "li1", "lint1", &li1, "42", "test of hestOptAdd_1_Long");
   unsigned long int uli1;
-  hestOptAdd_1_ULongInt(&opt, "uli1", "ulint1", &uli1, "42",
-                        "test of hestOptAdd_1_ULongInt");
+  hestOptAdd_1_ULong(&opt, "uli1", "ulint1", &uli1, "42", "test of hestOptAdd_1_ULong");
   size_t sz1;
   hestOptAdd_1_Size_t(&opt, "sz1", "size1", &sz1, "42", "test of hestOptAdd_1_Size_t");
   float fl1;
@@ -131,11 +130,10 @@ main(int argc, const char **argv) {
   unsigned int ui1v;
   hestOptAdd_1v_UInt(&opt, "ui1v", "uint1", &ui1v, "42", "test of hestOptAdd_1v_UInt");
   long int li1v;
-  hestOptAdd_1v_LongInt(&opt, "li1v", "lint1", &li1v, "42",
-                        "test of hestOptAdd_1v_LongInt");
+  hestOptAdd_1v_Long(&opt, "li1v", "lint1", &li1v, "42", "test of hestOptAdd_1v_Long");
   unsigned long int uli1v;
-  hestOptAdd_1v_ULongInt(&opt, "uli1v", "ulint1", &uli1v, "42",
-                         "test of hestOptAdd_1v_ULongInt");
+  hestOptAdd_1v_ULong(&opt, "uli1v", "ulint1", &uli1v, "42",
+                      "test of hestOptAdd_1v_ULong");
   size_t sz1v;
   hestOptAdd_1v_Size_t(&opt, "sz1v", "size1", &sz1v, "42",
                        "test of hestOptAdd_1v_Size_t");
@@ -169,11 +167,11 @@ main(int argc, const char **argv) {
   hestOptAdd_2_UInt(&opt, "ui2", "uint1 uint2", ui2, "42 24",
                     "test of hestOptAdd_2_UInt");
   long int li2[2];
-  hestOptAdd_2_LongInt(&opt, "li2", "lint1 lint2", li2, "42 24",
-                       "test of hestOptAdd_2_LongInt");
+  hestOptAdd_2_Long(&opt, "li2", "lint1 lint2", li2, "42 24",
+                    "test of hestOptAdd_2_Long");
   unsigned long int uli2[2];
-  hestOptAdd_2_ULongInt(&opt, "uli2", "ulint1 ulint2", uli2, "42 24",
-                        "test of hestOptAdd_2_ULongInt");
+  hestOptAdd_2_ULong(&opt, "uli2", "ulint1 ulint2", uli2, "42 24",
+                     "test of hestOptAdd_2_ULong");
   size_t sz2[2];
   hestOptAdd_2_Size_t(&opt, "sz2", "size1 size2", sz2, "42 24",
                       "test of hestOptAdd_2_Size_t");
@@ -208,11 +206,11 @@ main(int argc, const char **argv) {
   hestOptAdd_3_UInt(&opt, "ui3", "uint1 uint2 uint3", ui3, "43 3 34",
                     "test of hestOptAdd_3_UInt");
   long int li3[3];
-  hestOptAdd_3_LongInt(&opt, "li3", "lint1 lint2 lint3", li3, "43 4 34",
-                       "test of hestOptAdd_3_LongInt");
+  hestOptAdd_3_Long(&opt, "li3", "lint1 lint2 lint3", li3, "43 4 34",
+                    "test of hestOptAdd_3_Long");
   unsigned long int uli3[3];
-  hestOptAdd_3_ULongInt(&opt, "uli3", "ulint1 ulint2 ulint3", uli3, "43 5 34",
-                        "test of hestOptAdd_3_ULongInt");
+  hestOptAdd_3_ULong(&opt, "uli3", "ulint1 ulint2 ulint3", uli3, "43 5 34",
+                     "test of hestOptAdd_3_ULong");
   size_t sz3[3];
   hestOptAdd_3_Size_t(&opt, "sz3", "size1 size2 size3", sz3, "43 6 34",
                       "test of hestOptAdd_3_Size_t");
@@ -248,11 +246,11 @@ main(int argc, const char **argv) {
   hestOptAdd_4_UInt(&opt, "ui4", "uint1 uint2 uint3 uint4", ui4, "44 4 33 44",
                     "test of hestOptAdd_4_UInt");
   long int li4[4];
-  hestOptAdd_4_LongInt(&opt, "li4", "lint1 lint2 lint3 lint4", li4, "44 4 33 44",
-                       "test of hestOptAdd_4_LongInt");
+  hestOptAdd_4_Long(&opt, "li4", "lint1 lint2 lint3 lint4", li4, "44 4 33 44",
+                    "test of hestOptAdd_4_Long");
   unsigned long int uli4[4];
-  hestOptAdd_4_ULongInt(&opt, "uli4", "ulint1 ulint2 ulint3 ulint4", uli4, "44 5 33 44",
-                        "test of hestOptAdd_4_ULongInt");
+  hestOptAdd_4_ULong(&opt, "uli4", "ulint1 ulint2 ulint3 ulint4", uli4, "44 5 33 44",
+                     "test of hestOptAdd_4_ULong");
   size_t sz4[4];
   hestOptAdd_4_Size_t(&opt, "sz4", "size1 size2 size3 size4", sz4, "44 6 33 44",
                       "test of hestOptAdd_4_Size_t");
@@ -290,11 +288,11 @@ main(int argc, const char **argv) {
   hestOptAdd_N_UInt(&opt, "ui5", "uint1 uint2 uint3 uint4 uint5", 5, ui5,
                     "55 5 33 500 55", "test of hestOptAdd_N_UInt");
   long int li5[5];
-  hestOptAdd_N_LongInt(&opt, "li5", "lint1 lint2 lint3 lint4 lint5", 5, li5,
-                       "55 5 33 500 55", "test of hestOptAdd_N_LongInt");
+  hestOptAdd_N_Long(&opt, "li5", "lint1 lint2 lint3 lint4 lint5", 5, li5,
+                    "55 5 33 500 55", "test of hestOptAdd_N_Long");
   unsigned long int uli5[5];
-  hestOptAdd_N_ULongInt(&opt, "uli5", "ulint1 ulint2 ulint3 ulint4 ulint5", 5, uli5,
-                        "55 5 33 500 55", "test of hestOptAdd_N_ULongInt");
+  hestOptAdd_N_ULong(&opt, "uli5", "ulint1 ulint2 ulint3 ulint4 ulint5", 5, uli5,
+                     "55 5 33 500 55", "test of hestOptAdd_N_ULong");
   size_t sz5[5];
   hestOptAdd_N_Size_t(&opt, "sz5", "size1 size2 size3 size5", 5, sz5, "55 6 33 500 55",
                       "test of hestOptAdd_N_Size_t");
@@ -338,12 +336,12 @@ main(int argc, const char **argv) {
                      "test of hestOptAdd_Nv_UInt", &uivSaw);
   long int *liv;
   unsigned int livSaw;
-  hestOptAdd_Nv_LongInt(&opt, "liv", "lint1", 1, -1, &liv, "42 24",
-                        "test of hestOptAdd_Nv_LongInt", &livSaw);
+  hestOptAdd_Nv_Long(&opt, "liv", "lint1", 1, -1, &liv, "42 24",
+                     "test of hestOptAdd_Nv_Long", &livSaw);
   unsigned long int *uliv;
   unsigned int ulivSaw;
-  hestOptAdd_Nv_ULongInt(&opt, "uliv", "ulint1", 1, -1, &uliv, "42 24",
-                         "test of hestOptAdd_Nv_ULongInt", &ulivSaw);
+  hestOptAdd_Nv_ULong(&opt, "uliv", "ulint1", 1, -1, &uliv, "42 24",
+                      "test of hestOptAdd_Nv_ULong", &ulivSaw);
   size_t *szv;
   unsigned int szvSaw;
   hestOptAdd_Nv_Size_t(&opt, "szv", "size1", 1, -1, &szv, "42 24",

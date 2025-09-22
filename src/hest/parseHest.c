@@ -202,7 +202,8 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *hpa
         airOneLinify(line);
         incr = airStrntok(line, AIR_WHITESPACE);
         if (hparm->verbosity) printf("%s: -1-> line: |%s|, incr=%d\n", me, line, incr);
-        airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE, incr, AIR_FALSE);
+        airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE,
+                     incr /*, greedy=AIR_FALSE */);
         for (rgi = 0; rgi < incr; rgi++) {
           /* This time, we did allocate memory.  We can use airFree and
              not airFreeP because these will not be reset before mopping */
@@ -240,7 +241,7 @@ _hestErrStrlen(const hestOpt *opt, int argc, const char **argv) {
     other |= opt[ai].type == airTypeOther;
   }
   for (uint ai = airTypeUnknown + 1; ai < airTypeLast; ai++) {
-    ret = AIR_MAX(ret, airStrlen(airTypeStr[ai]));
+    ret = AIR_MAX(ret, airStrlen(_hestTypeStr[ai]));
   }
   if (other) {
     /* the callback's error() function may sprintf an error message
@@ -782,16 +783,22 @@ airIStore(void *v, int t, int i) {
   case airTypeBool:
     return (*((int *)v) = !!i);
     break;
+  case airTypeShort:
+    return (*((short *)v) = i);
+    break;
+  case airTypeUShort:
+    return (int)(*((unsigned short *)v) = i);
+    break;
   case airTypeInt:
     return (*((int *)v) = i);
     break;
   case airTypeUInt:
     return (int)(*((unsigned int *)v) = i);
     break;
-  case airTypeLongInt:
+  case airTypeLong:
     return (int)(*((long int *)v) = i);
     break;
-  case airTypeULongInt:
+  case airTypeULong:
     return (int)(*((unsigned long int *)v) = i);
     break;
   case airTypeSize_t:
@@ -823,16 +830,22 @@ airDLoad(void *v, int t) {
   case airTypeBool:
     return AIR_CAST(double, *((int *)v));
     break;
+  case airTypeShort:
+    return AIR_CAST(double, *((short *)v));
+    break;
+  case airTypeUShort:
+    return AIR_CAST(double, *((unsigned short *)v));
+    break;
   case airTypeInt:
     return AIR_CAST(double, *((int *)v));
     break;
   case airTypeUInt:
     return AIR_CAST(double, *((unsigned int *)v));
     break;
-  case airTypeLongInt:
+  case airTypeLong:
     return AIR_CAST(double, *((long int *)v));
     break;
-  case airTypeULongInt:
+  case airTypeULong:
     return AIR_CAST(double, *((unsigned long int *)v));
     break;
   case airTypeSize_t:
@@ -899,7 +912,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
               ? sizeof(int)
               : (airTypeOther == type /* */
                    ? opt[op].CB->size
-                   : airTypeSize[type]));
+                   : _hestTypeSize[type]));
     cP = (char *)(vP = opt[op].valueP);
     if (hparm->verbosity) {
       printf("%s %d of %d: \"%s\": |%s| --> kind=%d, type=%d, size=%u\n", me, op,
@@ -952,10 +965,10 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           break;
         case airTypeString:
           if (1
-              != airParseStrS((char **)vP, optParms[op], " ", 1,
-                              hparm->greedySingleString)) {
+              != airParseStrS((char **)vP, optParms[op], " ", 1
+                              /*, hparm->greedySingleString */)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    optDfltd[op] ? "(default) " : "", optParms[op], _hestTypeStr[type],
                     ident);
             return 1;
           }
@@ -965,10 +978,10 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           airMopMem(pmop, vP, airMopOnError);
           break;
         default:
-          /* type isn't string or enum, so no last arg to airParseStr[type] */
-          if (1 != airParseStr[type](vP, optParms[op], " ", 1)) {
+          /* type isn't string or enum, so no last arg to hestParseStr[type] */
+          if (1 != _hestParseStr[type](vP, optParms[op], " ", 1)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    optDfltd[op] ? "(default) " : "", optParms[op], _hestTypeStr[type],
                     ident);
             return 1;
           }
@@ -1022,10 +1035,10 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           break;
         case airTypeString:
           if (opt[op].min != /* min == max */
-              airParseStr[type](vP, optParms[op], " ", opt[op].min, AIR_FALSE)) {
+              _hestParseStr[type](vP, optParms[op], " ", opt[op].min)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s", ME,
                     optDfltd[op] ? "(default) " : "", optParms[op], opt[op].min,
-                    airTypeStr[type], opt[op].min > 1 ? "s" : "", ident);
+                    _hestTypeStr[type], opt[op].min > 1 ? "s" : "", ident);
             return 1;
           }
           /* vP is an array of char*s, (a char**), and what we manage
@@ -1037,10 +1050,10 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           break;
         default:
           if (opt[op].min != /* min == max */
-              airParseStr[type](vP, optParms[op], " ", opt[op].min)) {
+              _hestParseStr[type](vP, optParms[op], " ", opt[op].min)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s", ME,
                     optDfltd[op] ? "(default) " : "", optParms[op], opt[op].min,
-                    airTypeStr[type], opt[op].min > 1 ? "s" : "", ident);
+                    _hestTypeStr[type], opt[op].min > 1 ? "s" : "", ident);
             return 1;
           }
           break;
@@ -1055,9 +1068,9 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
         case airTypeChar:
           /* no "inversion" for chars: using the flag with no parameter is the same as
           not using the flag i.e. we just parse from the default string */
-          if (1 != airParseStr[type](vP, optParms[op], " ", 1)) {
+          if (1 != _hestParseStr[type](vP, optParms[op], " ", 1)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    optDfltd[op] ? "(default) " : "", optParms[op], _hestTypeStr[type],
                     ident);
             return 1;
           }
@@ -1071,10 +1084,11 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           without a parameter, was implemented from the early days of hest.  Assuming
           that a younger GLK long ago had a reason for that, that functionality now
           persists. */
-          pret = airParseStr[type](vP, optParms[op], " ", 1, hparm->greedySingleString);
+          pret = _hestParseStr[type](vP, optParms[op], " ",
+                                     1 /*, hparm->greedySingleString */);
           if (1 != pret) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    optDfltd[op] ? "(default) " : "", optParms[op], _hestTypeStr[type],
                     ident);
             return 1;
           }
@@ -1122,9 +1136,9 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           }
           break;
         default:
-          if (1 != airParseStr[type](vP, optParms[op], " ", 1)) {
+          if (1 != _hestParseStr[type](vP, optParms[op], " ", 1)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    optDfltd[op] ? "(default) " : "", optParms[op], airTypeStr[type],
+                    optDfltd[op] ? "(default) " : "", optParms[op], _hestTypeStr[type],
                     ident);
             return 1;
           }
@@ -1232,10 +1246,10 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
             opt[op].alloc = 3;
             if (optParmNum[op]
                 != airParseStrS((char **)(*((void **)vP)), optParms[op], " ",
-                                optParmNum[op], hparm->greedySingleString)) {
+                                optParmNum[op] /*, hparm->greedySingleString */)) {
               sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s", ME,
                       optDfltd[op] ? "(default) " : "", optParms[op], optParmNum[op],
-                      airTypeStr[type], optParmNum[op] > 1 ? "s" : "", ident);
+                      _hestTypeStr[type], optParmNum[op] > 1 ? "s" : "", ident);
               return 1;
             }
             /* vP is the address of an array of char*s (a char ***), and
@@ -1250,11 +1264,11 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           default:
             opt[op].alloc = 1;
             if (optParmNum[op]
-                != airParseStr[type](*((void **)vP), optParms[op], " ",
-                                     optParmNum[op])) {
+                != _hestParseStr[type](*((void **)vP), optParms[op], " ",
+                                       optParmNum[op])) {
               sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s", ME,
                       optDfltd[op] ? "(default) " : "", optParms[op], optParmNum[op],
-                      airTypeStr[type], optParmNum[op] > 1 ? "s" : "", ident);
+                      _hestTypeStr[type], optParmNum[op] > 1 ? "s" : "", ident);
               return 1;
             }
             break;
@@ -1277,14 +1291,12 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
           const hestParm *_hparm) {
   /* see note on ME (at top) for why me[] ends with ": " */
   static const char me[] = "hestParse: ";
-  char *param, *param_copy;
   char **argv, **optParms, *err;
   int a, argc, argc_used, respArgNum, *optAprd, *optDfltd, respFileNum, optNum, big, ret,
-    i, sawHelp;
+    sawHelp;
   unsigned int *optParmNum;
   airArray *mop;
   hestParm *hparm;
-  size_t start_index, end_index;
 
   optNum = hestOptNum(opt);
 
@@ -1432,14 +1444,16 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
 
   /* remove quotes from strings
          if greedy wasn't turned on for strings, then we have no hope
-         of capturing filenames with spaces. */
+         of capturing filenames with spaces.
+    (TeemV2 removed hparm->greedySingleString)
+  char *param, *param_copy;
   if (HPARM->greedySingleString) {
-    for (i = 0; i < optNum; i++) {
+    for (int i = 0; i < optNum; i++) {
       param = optParms[i];
       param_copy = NULL;
       if (param && strstr(param, " ")) {
-        start_index = 0;
-        end_index = strlen(param) - 1;
+        size_t start_index = 0;
+        size_t end_index = strlen(param) - 1;
         if (param[start_index] == '\"') start_index++;
         if (param[end_index] == '\"') end_index--;
         param_copy = AIR_CALLOC(end_index - start_index + 2, char);
@@ -1450,6 +1464,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
       }
     }
   }
+  */
 
   /* -------- now, the actual parsing of values */
   if (HPARM->verbosity) printf("%s: #### calling setValues\n", me);

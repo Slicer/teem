@@ -60,6 +60,16 @@ typedef unsigned int uint;
 #define HIST_DEPTH_MAX 10 // max sensibly depth of hestInputStack
 
 /* methodsHest.c */
+/*
+ * These were moved not just from air.h but also from public hest.h, with a
+ * air --> _hest renaming, since these are only used to implement hest functions.
+ */
+#define _HEST_TYPE_MAX 14
+HEST_EXPORT const char _hestTypeStr[_HEST_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1];
+HEST_EXPORT const size_t _hestTypeSize[_HEST_TYPE_MAX + 1];
+HEST_EXPORT unsigned int (*const _hestParseStr[_HEST_TYPE_MAX + 1])(void *, const char *,
+                                                                    const char *,
+                                                                    unsigned int);
 extern const char *const _hestBiffKey;
 extern int _hestKind(const hestOpt *opt);
 extern int _hestMax(int max);

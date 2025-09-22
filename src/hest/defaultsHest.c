@@ -31,5 +31,4 @@ int hestDefaultElideMultipleNonExistFloatDefault = AIR_FALSE;
 int hestDefaultElideSingleEmptyStringDefault = AIR_FALSE;
 int hestDefaultElideMultipleEmptyStringDefault = AIR_FALSE;
 int hestDefaultNoArgsIsNoProblem = AIR_FALSE;
-int hestDefaultGreedySingleString = AIR_TRUE;
 int hestDefaultCleverPluralizeOtherY = AIR_FALSE;

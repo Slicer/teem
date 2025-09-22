@@ -19,9 +19,11 @@
 
 #include "air.h"
 
-/* this has to default to false in order for airStrtok to be a
-   functional substitute for strtok() */
-int airStrtokQuoting = AIR_FALSE;
+/* removed for TeemV2:
+ *  / * this has to default to false in order for airStrtok to be a
+ *    functional substitute for strtok() * /
+ *  int airStrtokQuoting = AIR_FALSE;
+ */
 
 /*
 ******** airStrdup()
@@ -89,17 +91,18 @@ airStrcmp(const char *_s1, const char *_s2) {
 /* ---- END non-NrrdIO */
 /*
 ******** airStrtok()
-**
-** thread-safe strtok() replacement.  Use just like strtok(), but on
-** each call to parse a given string, pass as the last argument the
-** address of a char*, to be used for saving state while the string is
-** traversed.  Like strtok(), this will alter the "s" array passed to
-** it on the first call, and like strtok(), this returns pointers into
-** this string (rather than allocating new strings for each token).
+*
+* thread-safe strtok() replacement.  Use just like strtok(), but on each call to parse a
+* given string, pass as the last argument the address of a char*, to be used for saving
+* state while the string is traversed.  Like strtok(), this will alter the "s" array
+* passed to it on the first call, and like strtok(), this returns pointers into this
+* string (rather than allocating new strings for each token).
+*
+* NOTE: TeemV2 removed global airStrtokQuoting and the code in here that used it.
 */
 char *
 airStrtok(char *s, const char *ct, char **last) {
-  char *h, *e, *q;
+  char *h, *e;
 
   if (!(ct && last)) {
     /* can't do any work, bail */
@@ -108,24 +111,7 @@ airStrtok(char *s, const char *ct, char **last) {
   h = s ? s : *last;
   if (!airStrlen(h)) return NULL;
   h += strspn(h, ct);
-  if ('\"' == *h && airStrtokQuoting) {
-    /* something is trying to be quoted, and, we'll respect that */
-    /* have to find the next un-escaped '\"' */
-    h++;
-    q = h;
-    while (*q && !('\"' == *q && '\\' != q[-1])) {
-      q++;
-    }
-    if (*q) {
-      /* we found an unescaped '\"' */
-      e = q;
-    } else {
-      /* give up; pretend we never tried to do this quoting stuff */
-      e = h + strcspn(h, ct);
-    }
-  } else {
-    e = h + strcspn(h, ct);
-  }
+  e = h + strcspn(h, ct);
   if ('\0' == *e) {
     *last = e;
   } else {

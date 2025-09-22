@@ -70,7 +70,7 @@ main(int argc, const char **argv) {
   hparm->respectDashDashHelp = AIR_TRUE;
   /* set hparm->columns from ioctl if possible, else use unrrduDefNumColumns */
   hestParmColumnsIoctl(hparm, unrrduDefNumColumns);
-  hparm->greedySingleString = AIR_TRUE;
+  // Gone in TeemV2: hparm->greedySingleString = AIR_TRUE;
 
   /* if there are no arguments, or "unu list" (or "unu all" shhh), then we give general
   usage information */
