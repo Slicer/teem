@@ -121,7 +121,7 @@ typedef struct {
 
 // hestArgVec: for building up a "vector" of arguments
 typedef struct {
-  hestArg *harg;     // array of hestArg structs (not pointers to them)
+  hestArg **harg;    // array of pointers to hestArg structs
   unsigned int len;  // number of arguments in this vector
   airArray *hargArr; // (manages harg and len)
 } hestArgVec;
@@ -231,7 +231,7 @@ typedef struct {
                   array of strings
                3: free((*valueP)[i]) and free(*valueP), because it is a dynamically
                   allocated array of strings */
-  hestArgVec *havec; // the args attributed to this option
+  hestArgVec *havec; // the (non-flag) parm args attributed to this option
   /* Since hest's beginning in 2002, the basic container for a set of options was an
   array of hestOpt structs (not pointers to them, which rules out argv-style
   NULL-termination of the array), also unfortunately with no other top-level container
@@ -343,8 +343,9 @@ HEST_EXPORT void hestArgSetString(hestArg *harg, const char *str);
 HEST_EXPORT hestArgVec *hestArgVecNew(void);
 HEST_EXPORT void hestArgVecReset(hestArgVec *havec);
 HEST_EXPORT hestArgVec *hestArgVecNix(hestArgVec *havec);
-HEST_EXPORT void hestArgVecRemove(hestArgVec *havec, unsigned int popIdx);
+HEST_EXPORT hestArg *hestArgVecRemove(hestArgVec *havec, unsigned int popIdx);
 HEST_EXPORT void hestArgVecAppendString(hestArgVec *havec, const char *str);
+HEST_EXPORT void hestArgVecAppendArg(hestArgVec *havec, hestArg *harg);
 HEST_EXPORT void hestArgVecPrint(const char *caller, const char *info,
                                  const hestArgVec *havec);
 HEST_EXPORT hestInput *hestInputNew(void);

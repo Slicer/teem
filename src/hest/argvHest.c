@@ -22,14 +22,6 @@
 
 #define INCR 32
 
-/* to avoid strict aliasing warnings */
-typedef union {
-  hestArg **harg;
-  hestArgVec **havec;
-  hestInput **hin;
-  void **v;
-} hestPtrPtrUnion;
-
 /* -------------------------- hestArg = harg = hestArg = harg ---------------------- */
 
 /* dereferences as char *, sets to '\0' */
@@ -40,44 +32,43 @@ setNul(void *_c) {
   return;
 }
 
-static void
-hargInit(void *_harg) {
-  hestArg *harg = (hestArg *)_harg;
+hestArg *
+hestArgNew(void) {
+  hestArg *harg = AIR_CALLOC(1, hestArg);
+  assert(harg);
   harg->str = NULL;
   harg->len = 0;
   airPtrPtrUnion appu;
   appu.c = &(harg->str);
   harg->strArr = airArrayNew(appu.v, &(harg->len), sizeof(char), INCR);
+  // underlying array harg->str will not be reallocated if shrunk
+  harg->strArr->noReallocWhenSmaller = AIR_TRUE;
   airArrayStructCB(harg->strArr, setNul, NULL);
   harg->source = hestSourceUnknown;
   /* initialize with \0 so that harg->str is "" */
   airArrayLenIncr(harg->strArr, 1);
   /* now harg->str = {0:'\0'} and harg->len = 1; */
-  return;
-}
-
-hestArg *
-hestArgNew(void) {
-  hestArg *harg = AIR_CALLOC(1, hestArg);
-  assert(harg);
-  hargInit(harg);
   return harg;
 }
 
-static void
-hargDone(void *_harg) {
-  hestArg *harg = (hestArg *)_harg;
-  airArrayNuke(harg->strArr);
-  return;
+static void *
+_hestArgNew_vp(void) {
+  return AIR_VOIDP(hestArgNew());
 }
 
 hestArg *
 hestArgNix(hestArg *harg) {
   if (harg) {
-    hargDone(harg);
+    airArrayNuke(harg->strArr);
     free(harg);
   }
   return NULL;
+}
+
+static void *
+_hestArgNix_vp(void *_harg) {
+  hestArg *harg = (hestArg *)_harg;
+  return AIR_VOIDP(hestArgNix(harg));
 }
 
 void
@@ -112,6 +103,15 @@ hestArgSetString(hestArg *harg, const char *str) {
 
 /* ---------------------- hestArgVec = havec = hestArgVec = havec ------------------ */
 
+/* to avoid strict aliasing warnings */
+typedef union {
+  hestArg **harg;
+  hestArg ***hargP;
+  hestArgVec **havec;
+  hestInput **hin;
+  void **v;
+} hestPtrPtrUnion;
+
 hestArgVec *
 hestArgVecNew() {
   hestArgVec *havec = AIR_CALLOC(1, hestArgVec);
@@ -119,11 +119,12 @@ hestArgVecNew() {
   havec->harg = NULL;
   havec->len = 0;
   hestPtrPtrUnion hppu;
-  hppu.harg = &(havec->harg);
-  havec->hargArr = airArrayNew(hppu.v, &(havec->len), sizeof(hestArg), INCR);
+  hppu.hargP = &(havec->harg);
+  havec->hargArr = airArrayNew(hppu.v, &(havec->len), sizeof(hestArg *), INCR);
   // underlying array havec->harg will not be reallocated if shrunk
   havec->hargArr->noReallocWhenSmaller = AIR_TRUE;
-  airArrayStructCB(havec->hargArr, hargInit, hargDone);
+  // airArrayStructCB(havec->hargArr, hargInit, hargDone);
+  airArrayPointerCB(havec->hargArr, _hestArgNew_vp, _hestArgNix_vp);
   return havec;
 }
 
@@ -144,17 +145,17 @@ hestArgVecNix(hestArgVec *havec) {
   return NULL;
 }
 
-void
+hestArg *
 hestArgVecRemove(hestArgVec *havec, uint popIdx) {
-  // (experimented with allocating something to hold what was lost)
-  // hestArg *ret = NULL;
+  hestArg *ret = NULL;
   if (havec && popIdx < havec->len) { // note: this implies that havec->len >= 1
-    // ret = AIR_CALLOC(1, hestArg);     // (we don't have a constructor?)
-    // memcpy(ret, havec->harg + popIdx);
-    for (uint ai = popIdx; ai < havec->len - 1; ai++) {
+    ret = havec->harg[popIdx];
+    uint ai;
+    for (ai = popIdx; ai < havec->len - 1; ai++) {
       // shuffle down info inside the hestArg elements of havec->harg
-      hestArgSetString(havec->harg + ai, (havec->harg + ai + 1)->str);
-      (havec->harg + ai)->source = (havec->harg + ai + 1)->source;
+      havec->harg[ai] = havec->harg[ai + 1];
+      // hestArgSetString(havec->harg + ai, (havec->harg + ai + 1)->str);
+      // (havec->harg + ai)->source = (havec->harg + ai + 1)->source;
       /* why cannot just memcpy:
          because then the last hestArg element of havec->harg
            (the one that is being forgotten)
@@ -164,29 +165,46 @@ hestArgVecRemove(hestArgVec *havec, uint popIdx) {
          as the callack from airArrayLenIncr(), then it will also
          free the str inside the second-to-last element; oops */
     }
+    // NULL out final out, using final value of ai
+    havec->harg[ai] = NULL;
     // decrement the nominal length of havec->harg
     airArrayLenIncr(havec->hargArr, -1);
   }
-  return;
+  return ret;
 }
 
 void
 hestArgVecAppendString(hestArgVec *havec, const char *str) {
   uint idx = airArrayLenIncr(havec->hargArr, 1);
-  hestArgSetString(havec->harg + idx, str);
+  hestArgSetString(havec->harg[idx], str);
+}
+
+void
+hestArgVecAppendArg(hestArgVec *havec, hestArg *harg) {
+  uint idx = airArrayLenIncr(havec->hargArr, 1);
+  // oops, delete the hestArg just created via callback
+  hestArgNix(havec->harg[idx]);
+  havec->harg[idx] = harg;
 }
 
 void
 hestArgVecPrint(const char *caller, const char *info, const hestArgVec *havec) {
   // fprintf(stderr, "!%s: %s hestArgVec %p has %u args:\n", caller, info, havec,
   // havec->len);
+  char srcch[] = {
+    // quick way of identifying source
+    '?', // 0: hestSourceUnknown
+    'c', // 1: hestSourceCommandLine
+    'r', // 2: hestSourceResponseFile
+    'd', // 3: hestSourceDefault
+  };
   printf("%s: %s hestArgVec %p has %u args:\n", caller, info, havec, havec->len);
   for (uint idx = 0; idx < havec->hargArr->len; idx++) {
     const hestArg *harg;
-    harg = havec->harg + idx;
+    harg = havec->harg[idx];
     // fprintf(stderr, "!%s harg@%p=%u:<%s>\n", "", AIR_VOIDP(harg), idx,
     //        harg->str ? harg->str : "NULL");
-    printf(" %u:<%s>", idx, harg->str ? harg->str : "NULL");
+    printf("  %u%c:<%s>", idx, srcch[harg->source], harg->str ? harg->str : "NULL");
   }
   printf("\n");
 }

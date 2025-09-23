@@ -607,7 +607,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
              srcstr, tharg->str, havec->len);
     }
     // set source in the hestArg we just appended
-    (havec->harg + havec->len - 1)->source = topHin->source;
+    havec->harg[havec->len - 1]->source = topHin->source;
   }
   if (hist->len && nast == nastEmpty) {
     biffAddf(HEST, "%s: non-empty stack (depth %u) can't generate args???", __func__,
@@ -713,44 +713,46 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   uint argIdx = 0;
   hestOpt *theOpt = NULL;
   while (argIdx < havec->len) { // NOTE: havec->len may decrease within an interation!
-    hestArg *theArg = havec->harg + argIdx;
     if (hparm->verbosity) {
       printf("%s: ------------- argIdx = %u (of %u) -> argv[argIdx] = |%s|\n", __func__,
-             argIdx, havec->len, theArg->str);
+             argIdx, havec->len, havec->harg[argIdx]->str);
     }
-    uint optIdx = whichOptFlag(opt, theArg->str, hparm);
+    uint optIdx = whichOptFlag(opt, havec->harg[argIdx]->str, hparm);
     if (UINT_MAX == optIdx) {
-      // theArg->str is not a flag for any option, move on to next arg
+      // havec->harg[argIdx]->str is not a flag for any option, move on to next arg
       argIdx++;
       if (hparm->verbosity)
-        printf("%s: |%s| not a flag arg, continue\n", __func__, theArg->str);
+        printf("%s: |%s| not a flag arg, continue\n", __func__,
+               havec->harg[argIdx]->str);
       continue;
     }
-    // else theArg->str is a flag for option with index optIdx aka theOpt
+    // else havec->harg[argIdx]->str is a flag for option with index optIdx aka theOpt
     theOpt = opt + optIdx;
     if (hparm->verbosity)
       printf("%s: argv[%u]=|%s| is flag of opt %u \"%s\"\n", __func__, argIdx,
-             theArg->str, optIdx, theOpt->flag);
+             havec->harg[argIdx]->str, optIdx, theOpt->flag);
     /* see if we can associate some parameters with the flag */
     if (hparm->verbosity) printf("%s: any associated parms?\n", __func__);
-    uint parmNum = 0;
     int hitEnd = AIR_FALSE;
     int varParm = (5 == opt[optIdx].kind);
-    char VPS[3] = {'-', VAR_PARM_STOP_FLAG, '\0'};
+    const char *pas, VPS[3] = {'-', VAR_PARM_STOP_FLAG, '\0'};
     int hitVPS = AIR_FALSE;
-    uint nextOptIdx = 0; // what is index of option who's flag we see next
-    while (AIR_INT(parmNum) < _hestMax(theOpt->max) // parmNum is plausible # parms
-           && !(hitEnd = !(argIdx + 1 + parmNum < havec->len)) // and have valid index
-           && (!varParm // and either this isn't a variable parm opt
-               ||       // or, it is a varparm opt and we aren't looking at "--"
-               !(hitVPS = !strcmp(VPS, (theArg + 1 + parmNum)->str)))
-           && UINT_MAX // and we aren't looking at start of another flagged option
-                == (nextOptIdx = whichOptFlag(opt, (theArg + 1 + parmNum)->str,
-                                              hparm))) {
-      parmNum++;
+    uint nextOptIdx = 0, // what is index of option who's flag we hit next
+      parmNum = 0,       // how many parm args have we counted up
+      pai;               // tmp parm arg index
+    while (              // parmNum is plausible # parms
+      AIR_INT(parmNum) < _hestMax(theOpt->max)
+      // and looking ahead by parmNum still gives us a valid index pai
+      && !(hitEnd = !((pai = argIdx + 1 + parmNum) < havec->len))
+      // and either this isn't a variable parm opt
+      && (!varParm || // or, it is a varparm opt, and we aren't looking at "--"
+          !(hitVPS = !strcmp(VPS, (pas = havec->harg[pai]->str))))
+      && UINT_MAX // and we aren't looking at start of another flagged option
+           == (nextOptIdx = whichOptFlag(opt, pas, hparm))) {
       if (hparm->verbosity)
-        printf("%s: optIdx %d |%s|: |%s| --> parmNum --> %d\n", __func__, optIdx,
-               theOpt->flag, (theArg + 1 + parmNum - 1)->str, parmNum);
+        printf("%s: optIdx %d |%s|; argIdx %u < %u |%s| --> parmNum --> %d\n", __func__,
+               optIdx, theOpt->flag, argIdx, pai, pas, parmNum + 1);
+      parmNum++;
     }
     /* we stopped because we got the max number of parameters, or
        we hitEnd, or
@@ -788,15 +790,15 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     }
     if (hparm->verbosity) {
       printf("%s: ________ argv[%d]=|%s|: optIdx %u |%s| followed by %u parms\n",
-             __func__, argIdx, theArg->str, optIdx, theOpt->flag, parmNum);
+             __func__, argIdx, havec->harg[argIdx]->str, optIdx, theOpt->flag, parmNum);
     }
     // remember from whence this option came
-    theOpt->source = theArg->source;
+    theOpt->source = havec->harg[argIdx]->source;
     // lose the flag argument
     if (hparm->verbosity > 1) {
       hestArgVecPrint(__func__, "main havec as it came", havec);
     }
-    hestArgVecRemove(havec, argIdx);
+    hestArgNix(hestArgVecRemove(havec, argIdx));
     if (hparm->verbosity > 1) {
       char info[AIR_STRLEN_HUGE + 1];
       sprintf(info, "main havec after losing argIdx %u", argIdx);
@@ -805,16 +807,14 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     // empty any prior parm args learned for this option
     hestArgVecReset(theOpt->havec);
     for (uint pidx = 0; pidx < parmNum; pidx++) {
-      // theArg still points to the next arg (at index argIdx) for this option
       if (hparm->verbosity) {
-        printf("%s: moving |%s| to theOpt->havec\n", __func__, theArg->str);
+        printf("%s: moving |%s| to theOpt->havec\n", __func__, havec->harg[argIdx]->str);
       }
-      hestArgVecAppendString(theOpt->havec, theArg->str);
-      hestArgVecRemove(havec, argIdx);
+      hestArgVecAppendArg(theOpt->havec, hestArgVecRemove(havec, argIdx));
     }
     if (hitVPS) {
       // drop the variable-parameter-stop flag
-      hestArgVecRemove(havec, argIdx);
+      hestArgNix(hestArgVecRemove(havec, argIdx));
     }
     if (hparm->verbosity) {
       char info[AIR_STRLEN_HUGE + 1];
