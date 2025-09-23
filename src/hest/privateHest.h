@@ -51,8 +51,8 @@ typedef unsigned int uint;
 //     multiFlagSep;     /* character in flag which signifies that there is a long and
 //                          short version, and which separates the two.  Or, can be set
 //                          to '\0' to disable this behavior entirely. */
-// However, there is more confusion than utility created by allowing these
-// change. The actual value in giving these things names was in code legibility by
+// However, there is more confusion than utility created by allowing these to be
+// changed. The actual value in giving these things names was in code legibility by
 // removing magic constants, so that's the role of these #define's now.
 #define RESPONSE_FILE_FLAG    '@'
 #define RESPONSE_FILE_COMMENT '#'
@@ -65,8 +65,8 @@ typedef unsigned int uint;
 
 /* methodsHest.c */
 /*
- * These were moved not just from air.h but also from public hest.h, with a
- * air --> _hest renaming, since these are only used to implement hest functions.
+ * These were moved not just from air.h (see note there) but also from public hest.h,
+ * with a air --> _hest renaming, since these are only used to implement hest functions.
  */
 #define _HEST_TYPE_MAX 14
 HEST_EXPORT const char _hestTypeStr[_HEST_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1];
