@@ -735,7 +735,7 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     if (hparm->verbosity) printf("%s: any associated parms?\n", __func__);
     int hitEnd = AIR_FALSE;
     int varParm = (5 == opt[optIdx].kind);
-    const char *pas, VPS[3] = {'-', VAR_PARM_STOP_FLAG, '\0'};
+    const char VPS[3] = {'-', VAR_PARM_STOP_FLAG, '\0'};
     int hitVPS = AIR_FALSE;
     uint nextOptIdx = 0, // what is index of option who's flag we hit next
       parmNum = 0,       // how many parm args have we counted up
@@ -746,12 +746,12 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       && !(hitEnd = !((pai = argIdx + 1 + parmNum) < havec->len))
       // and either this isn't a variable parm opt
       && (!varParm || // or, it is a varparm opt, and we aren't looking at "--"
-          !(hitVPS = !strcmp(VPS, (pas = havec->harg[pai]->str))))
+          !(hitVPS = !strcmp(VPS, havec->harg[pai]->str)))
       && UINT_MAX // and we aren't looking at start of another flagged option
-           == (nextOptIdx = whichOptFlag(opt, pas, hparm))) {
+           == (nextOptIdx = whichOptFlag(opt, havec->harg[pai]->str, hparm))) {
       if (hparm->verbosity)
         printf("%s: optIdx %d |%s|; argIdx %u < %u |%s| --> parmNum --> %d\n", __func__,
-               optIdx, theOpt->flag, argIdx, pai, pas, parmNum + 1);
+               optIdx, theOpt->flag, argIdx, pai, havec->harg[pai]->str, parmNum + 1);
       parmNum++;
     }
     /* we stopped because we got the max number of parameters, or
