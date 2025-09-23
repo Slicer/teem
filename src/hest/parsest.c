@@ -650,11 +650,14 @@ whichOptFlag(const hestOpt *opt, const char *flarg, const hestParm *hparm) {
       /* else try the long version */
       sprintf(buff, "--%s", sep + 1);
       if (!strcmp(flarg, buff)) return (free(buff), free(ofboth), optIdx);
+      free(buff);
+      free(ofboth);
     } else {
       /* flag only comes in short version */
       char *buff = AIR_CALLOC(strlen("-") + strlen(optFlag) + 1, char);
       sprintf(buff, "-%s", optFlag);
       if (!strcmp(flarg, buff)) return (free(buff), optIdx);
+      free(buff);
     }
   }
   if (hparm->verbosity) printf("%s: no match, returning UINT_MAX\n", __func__);
@@ -790,11 +793,22 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     // remember from whence this option came
     theOpt->source = theArg->source;
     // lose the flag argument
+    if (hparm->verbosity > 1) {
+      hestArgVecPrint(__func__, "main havec as it came", havec);
+    }
     hestArgVecRemove(havec, argIdx);
-    // empty any pior parm args learned for this option
+    if (hparm->verbosity > 1) {
+      char info[AIR_STRLEN_HUGE + 1];
+      sprintf(info, "main havec after losing argIdx %u", argIdx);
+      hestArgVecPrint(__func__, info, havec);
+    }
+    // empty any prior parm args learned for this option
     hestArgVecReset(theOpt->havec);
     for (uint pidx = 0; pidx < parmNum; pidx++) {
       // theArg still points to the next arg (at index argIdx) for this option
+      if (hparm->verbosity) {
+        printf("%s: moving |%s| to theOpt->havec\n", __func__, theArg->str);
+      }
       hestArgVecAppendString(theOpt->havec, theArg->str);
       hestArgVecRemove(havec, argIdx);
     }
@@ -819,10 +833,15 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     theOpt = opt + opi;
     if (1 != theOpt->kind // this kind of option can take a parm
         && theOpt->flag   // and this is a flagged option we should have handled above
-        && theOpt->dflt   // and this option has no default
-        && (hestSourceUnknown == theOpt->source)) { // but this option hasn't been set
+        && !(theOpt->dflt)) {  // and this option has no default
+          if (hparm->verbosity > 1) {
+            printf("%s: opt %u |%s| (flagged opt w/ parm but no default) source = %s\n",
+                   __func__, opi, theOpt->flag, airEnumStr(hestSource, theOpt->source));
+          }
+          if (hestSourceUnknown == theOpt->source) { // but this option hasn't been set
       biffAddf(HEST, "%s: didn't get required %s\n", __func__, identStr(ident1, theOpt));
       return 1;
+          }
     }
   }
 

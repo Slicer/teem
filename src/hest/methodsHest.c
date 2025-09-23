@@ -647,6 +647,7 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
         return 1;
       }
       */
+      free(tbuff);
     }
     // ------ end of if (opt[opi].flag)
     if (1 == opt[opi].kind) {

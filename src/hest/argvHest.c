@@ -67,12 +67,7 @@ hestArgNew(void) {
 static void
 hargDone(void *_harg) {
   hestArg *harg = (hestArg *)_harg;
-  if (harg->str) {
-    /* If caller wants to keep harg->str around,
-       they need to have copied it (the pointer) and set harg->str to NULL */
-    free(harg->str);
-  }
-  airArrayNix(harg->strArr); /* leave the underlying str alone */
+  airArrayNuke(harg->strArr);
   return;
 }
 
@@ -157,8 +152,17 @@ hestArgVecRemove(hestArgVec *havec, uint popIdx) {
     // ret = AIR_CALLOC(1, hestArg);     // (we don't have a constructor?)
     // memcpy(ret, havec->harg + popIdx);
     for (uint ai = popIdx; ai < havec->len - 1; ai++) {
-      // shuffle down the hestArg elements (not pointers to them) of havec->harg
-      memcpy(havec->harg + ai, havec->harg + ai + 1, sizeof(hestArg));
+      // shuffle down info inside the hestArg elements of havec->harg
+      hestArgSetString(havec->harg + ai, (havec->harg + ai + 1)->str);
+      (havec->harg + ai)->source = (havec->harg + ai + 1)->source;
+      /* why cannot just memcpy:
+         because then the last hestArg element of havec->harg
+           (the one that is being forgotten)
+         and the second-to-last element (the last one being kept)
+         will share ->str pointers.
+         When hargDone is called on the last hestArg's address
+         as the callack from airArrayLenIncr(), then it will also
+         free the str inside the second-to-last element; oops */
     }
     // decrement the nominal length of havec->harg
     airArrayLenIncr(havec->hargArr, -1);
@@ -174,11 +178,14 @@ hestArgVecAppendString(hestArgVec *havec, const char *str) {
 
 void
 hestArgVecPrint(const char *caller, const char *info, const hestArgVec *havec) {
+  // fprintf(stderr, "!%s: %s hestArgVec %p has %u args:\n", caller, info, havec, havec->len);
   printf("%s: %s hestArgVec %p has %u args:\n", caller, info, havec, havec->len);
   for (uint idx = 0; idx < havec->hargArr->len; idx++) {
     const hestArg *harg;
     harg = havec->harg + idx;
-    printf(" %u:<%s>", idx, harg->str);
+    // fprintf(stderr, "!%s harg@%p=%u:<%s>\n", "", AIR_VOIDP(harg), idx,
+    //        harg->str ? harg->str : "NULL");
+    printf(" %u:<%s>", idx, harg->str ? harg->str : "NULL");
   }
   printf("\n");
 }
