@@ -178,7 +178,8 @@ hestArgVecAppendString(hestArgVec *havec, const char *str) {
 
 void
 hestArgVecPrint(const char *caller, const char *info, const hestArgVec *havec) {
-  // fprintf(stderr, "!%s: %s hestArgVec %p has %u args:\n", caller, info, havec, havec->len);
+  // fprintf(stderr, "!%s: %s hestArgVec %p has %u args:\n", caller, info, havec,
+  // havec->len);
   printf("%s: %s hestArgVec %p has %u args:\n", caller, info, havec, havec->len);
   for (uint idx = 0; idx < havec->hargArr->len; idx++) {
     const hestArg *harg;
