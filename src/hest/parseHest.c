@@ -69,7 +69,7 @@ argsInResponseFiles(int *argsNumP, int *respFileNumP, const char **argv,
          again by copyArgv */
       if (!(file = fopen(argv[argIdx] + 1, "rb"))) {
         /* can't open the indicated response file for reading */
-        fprintf(stderr, "%scouldn't open \"%s\" for reading as response file", ME,
+        fprintf(stderr, "%scouldn't open \"%s\" for reading as response file\n", ME,
                 argv[argIdx] + 1);
         *argsNumP = 0;
         *respFileNumP = 0;
@@ -226,8 +226,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *hpa
 }
 
 /* uint _hestErrStrlen(const hestOpt *opt, int argc, const char **argv) ...
- * This was a bad idea, so has been removed for TeemV2. Now hest internally uses biff
- */
+ * This was a bad idea; removed for TeemV2. Now hest internally uses biff */
 
 /*
 identStr()
@@ -1353,7 +1352,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **errP,
   }
   /* else !sawHelp; do sanity check on argc_used vs argc */
   if (argc_used < argc) {
-    fprintf(stderr, "%sargc_used %d < argc %d; sorry, confused", ME, argc_used, argc);
+    fprintf(stderr, "%sargc_used %d < argc %d; sorry, confused\n", ME, argc_used, argc);
     airMopError(mop);
     return 1;
   }
