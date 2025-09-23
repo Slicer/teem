@@ -367,7 +367,9 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
   opt->valueP = valueP;
   opt->dflt = airStrdup(dflt);
   opt->info = airStrdup(info);
-  /* deal with (what used to be) var args */
+  // need to set kind now so can be used in later conditionals
+  opt->kind = opt_kind(min, max);
+  // deal with (what used to be) var args
   opt->sawP = (5 == opt->kind /* */
                  ? sawP
                  : NULL);
@@ -377,11 +379,10 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
   opt->CB = (airTypeOther == type /* */
                ? CB
                : NULL);
-  opt->kind = opt_kind(min, max);
-  /* alloc set by hestParse */
+  // alloc set by hestParse
   opt->havec = hestArgVecNew();
-  /* leave arrAlloc, arrLen untouched: managed by caller */
-  /* yes, redundant with opt_init() */
+  // leave arrAlloc, arrLen untouched: managed by caller
+  // yes, redundant with opt_init()
   opt->source = hestSourceUnknown;
   opt->parmStr = NULL;
   opt->helpWanted = AIR_FALSE;
@@ -541,9 +542,9 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
     }
     if (5 == opt[opi].kind && !(opt[opi].sawP)) {
       biffAddf(HEST,
-               "%s: have multiple variable parameters, "
+               "%s: opt[%u] has multiple variable parameters (min=%u,max=%d), "
                "but sawP is NULL",
-               __func__);
+               __func__, opi, opt[opi].min, opt[opi].max);
       return 1;
     }
     if (airTypeEnum == opt[opi].type) {
