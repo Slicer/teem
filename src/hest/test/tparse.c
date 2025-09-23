@@ -38,8 +38,10 @@ main(int argc, const char **argv) {
 
   int verb;
   hestOptAdd_1_Int(&opt, "v", "verb", &verb, "0", "verbosity");
-  int *res; unsigned int slen;
-  hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 2, -1, &res, NULL, "image resolutions", &slen);
+  int *res;
+  unsigned int slen;
+  hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 2, -1, &res, NULL, "image resolutions",
+                    &slen);
   int flag;
   hestOptAdd_Flag(&opt, "b,bingo", &flag, "a flag");
   char *err = NULL;

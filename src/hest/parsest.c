@@ -831,12 +831,12 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   uint optNum = opt->arrLen;
   for (uint opi = 0; opi < optNum; opi++) {
     theOpt = opt + opi;
-    if (theOpt->flag) {  // this is a flagged option we should have handled above
-      int needing = (1 != theOpt->kind // this kind of option can take a parm
+    if (theOpt->flag) { // this is a flagged option we should have handled above
+      int needing = (1 != theOpt->kind    // this kind of option can take a parm
                      && !(theOpt->dflt)); // and this option has no default
       if (hparm->verbosity > 1) {
-        printf("%s: flagged opt %u |%s| source = %s%s\n",
-               __func__, opi, theOpt->flag, airEnumStr(hestSource, theOpt->source),
+        printf("%s: flagged opt %u |%s| source = %s%s\n", __func__, opi, theOpt->flag,
+               airEnumStr(hestSource, theOpt->source),
                needing ? " <-- w/ parm but w/out default" : "");
       }
       // if needs to be set but hasn't been
