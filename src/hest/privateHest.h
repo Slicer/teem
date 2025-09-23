@@ -27,6 +27,10 @@ deeper call stack was getting just too annoying.
 It is still the case, however, the hest users do not need to call into biff */
 #include <teem/biff.h>
 
+#include <limits.h> // for UINT_MAX
+#include <assert.h>
+#include <sys/errno.h>
+
 typedef unsigned int uint;
 
 // pre-TeemV2, these used to be change-able defaults in defaultsHest.c:

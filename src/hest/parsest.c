@@ -22,9 +22,6 @@
 
 /* parse, Parser, PARSEST: please let this be the final implementation of hestParse */
 
-#include <assert.h>
-#include <sys/errno.h>
-
 /* variable name conventions:
 harg  = hestArg
 havec = hestArgVec
@@ -296,7 +293,7 @@ histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
     // printf("!%s: argi %u vs argc %u\n", __func__, argi, hin->argc);
     if (argi < hin->argc) {
       // there are args left to parse
-      hestArgAddString(tharg, hin->argv[argi]);
+      hestArgSetString(tharg, hin->argv[argi]);
       // printf("!%s: now tharg->str=|%s|\n", __func__, tharg->str);
       *nastP = nastBehold;
       hin->argIdx++;
@@ -516,6 +513,8 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
   uint iters = 0;
   hestInput *topHin;
   // printf("!%s: hello hist->len %u\n", __func__, hist->len);
+  // initialize destination havec
+  airArrayLenSet(havec->hargArr, 0);
   /* We `return` directly from this loop ONLY when we MUST stop processing the stack,
      because of an error, or because of user asking for help.
      Otherwise, we loop again. */
@@ -534,7 +533,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
       return 1;
     }
     if (nastEmpty == nast) {
-      // the stack has no more tokens to give, stop looped requests for mre
+      // the stack has no more tokens to give, stop looped requests for more
       if (hparm->verbosity) {
         printf("%s: (iter %u, on %s) empty!\n", __func__, iters, srcstr);
       }
@@ -598,7 +597,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
                  __func__, iters, srcstr, tharg->str);
         return 1;
       }
-      // have just added response file to stack, next iter will read from it
+      // have just added response file to stack, next iter will start reading from it
       continue;
     }
     // this arg is not specially handled by us; add it to the arg vec
@@ -607,6 +606,8 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
       printf("%s: (iter %u, on %s) added |%s| to havec, now len %u\n", __func__, iters,
              srcstr, tharg->str, havec->len);
     }
+    // set source in the hestArg we just appended
+    (havec->harg + havec->len - 1)->source = topHin->source;
   }
   if (hist->len && nast == nastEmpty) {
     biffAddf(HEST, "%s: non-empty stack (depth %u) can't generate args???", __func__,
@@ -617,18 +618,240 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
 }
 
 /*
-hestParse(2): parse the `argc`,`argv` commandline according to the hestOpt array `opt`.
+whichOptFlag(): for which option (by index) is this the flag?
+
+Given an arg string `flarg` (which may be an flag arg like "-size" or parm arg like
+"512"), this finds which one, of the options in the given hestOpt array `opt` is
+identified by `flarg`. Returns the index of the matching option, if there is a match.
+
+If there is no match, returns UINT_MAX.
+*/
+static uint
+whichOptFlag(const hestOpt *opt, const char *flarg, const hestParm *hparm) {
+  uint optNum = opt->arrLen;
+  if (hparm->verbosity)
+    printf("%s: looking for maybe-is-flag |%s| in optNum=%u options\n", __func__, flarg,
+           optNum);
+  for (uint optIdx = 0; optIdx < optNum; optIdx++) {
+    if (hparm->verbosity)
+      printf("%s:      optIdx %u |%s| ?\n", __func__, optIdx,
+             opt[optIdx].flag ? opt[optIdx].flag : "(nullflag)");
+    const char *optFlag = opt[optIdx].flag;
+    if (!optFlag) continue; // it can't be for this unflagged option
+    if (strchr(optFlag, MULTI_FLAG_SEP)) {
+      // look for both long and short versions
+      char *buff = AIR_CALLOC(strlen("--") + strlen(flarg) + strlen(optFlag) + 1, char);
+      char *ofboth = airStrdup(optFlag);
+      char *sep = strchr(ofboth, MULTI_FLAG_SEP);
+      *sep = '\0'; // break short and long into separate strings
+      /* first try the short version */
+      sprintf(buff, "-%s", ofboth);
+      if (!strcmp(flarg, buff)) return (free(buff), free(ofboth), optIdx);
+      /* else try the long version */
+      sprintf(buff, "--%s", sep + 1);
+      if (!strcmp(flarg, buff)) return (free(buff), free(ofboth), optIdx);
+    } else {
+      /* flag only comes in short version */
+      char *buff = AIR_CALLOC(strlen("-") + strlen(optFlag) + 1, char);
+      sprintf(buff, "-%s", optFlag);
+      if (!strcmp(flarg, buff)) return (free(buff), optIdx);
+    }
+  }
+  if (hparm->verbosity) printf("%s: no match, returning UINT_MAX\n", __func__);
+  return UINT_MAX;
+}
+
+/* identStr sprints into `ident` (and returns same `ident`)
+   a way to identify `opt` in error and usage messages */
+static char *
+identStr(char *ident, const hestOpt *opt) {
+  if (opt->flag) {
+    if (strchr(opt->flag, MULTI_FLAG_SEP)) {
+      char *fcopy = airStrdup(opt->flag);
+      char *sep = strchr(fcopy, MULTI_FLAG_SEP);
+      *sep = '\0';
+      sprintf(ident, "\"-%s%c--%s\" option", fcopy, MULTI_FLAG_SEP, sep + 1);
+      free(fcopy);
+    } else {
+      sprintf(ident, "\"-%s\" option", opt->flag);
+    }
+  } else {
+    sprintf(ident, "\"<%s>\" option", opt->name);
+  }
+  return ident;
+}
+
+/*
+havecExtractFlagged()
+
+extracts the parameter args associated with all flagged options from the given
+`hestArgVec *havec` (as generated by histProc()) and stores them the corresponding
+opt->havec. Also sets opt->source according to where that flag arg appeared (we don't
+notice if the parameters were weirdly split between the comamnd-line and a response file;
+only the source of the flag arg is recorded).
+
+In the case of variable parameter options, this does the work of figuring out which args
+belong with the option. In any case, this only extracts and preserves (in opt->havec) the
+parameter args, not the flag arg that identified which option was being set.
+
+As a result of this work, the passed `havec` is shortened: all args associated with
+flagged opts are removed, so that later work can extract args for unflagged opts.
+
+The sawP information is not set here, since it is better set at the final value parsing
+time, which happens after defaults are enstated.
+
+This is where, thanks to the action of whichOptFlag(), "--" (and only "--" due to
+VAR_PARM_STOP_FLAG) is used as a marker for the end of a flagged variable parameter
+option.  AND, the "--" marker is removed from `havec`.
+*/
+static int
+havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
+  char ident1[AIR_STRLEN_HUGE + 1], ident2[AIR_STRLEN_HUGE + 1];
+  uint argIdx = 0;
+  hestOpt *theOpt = NULL;
+  while (argIdx < havec->len) { // NOTE: havec->len may decrease within an interation!
+    hestArg *theArg = havec->harg + argIdx;
+    if (hparm->verbosity) {
+      printf("%s: ------------- argIdx = %u (of %u) -> argv[argIdx] = |%s|\n", __func__,
+             argIdx, havec->len, theArg->str);
+    }
+    uint optIdx = whichOptFlag(opt, theArg->str, hparm);
+    if (UINT_MAX == optIdx) {
+      // theArg->str is not a flag for any option, move on to next arg
+      argIdx++;
+      if (hparm->verbosity)
+        printf("%s: |%s| not a flag arg, continue\n", __func__, theArg->str);
+      continue;
+    }
+    // else theArg->str is a flag for option with index optIdx aka theOpt
+    theOpt = opt + optIdx;
+    if (hparm->verbosity)
+      printf("%s: argv[%u]=|%s| is flag of opt %u \"%s\"\n", __func__, argIdx,
+             theArg->str, optIdx, theOpt->flag);
+    /* see if we can associate some parameters with the flag */
+    if (hparm->verbosity) printf("%s: any associated parms?\n", __func__);
+    uint parmNum = 0;
+    int hitEnd = AIR_FALSE;
+    int varParm = (5 == opt[optIdx].kind);
+    char VPS[3] = {'-', VAR_PARM_STOP_FLAG, '\0'};
+    int hitVPS = AIR_FALSE;
+    uint nextOptIdx = 0; // what is index of option who's flag we see next
+    while (AIR_INT(parmNum) < _hestMax(theOpt->max) // parmNum is plausible # parms
+           && !(hitEnd = !(argIdx + 1 + parmNum < havec->len)) // and have valid index
+           && (!varParm // and either this isn't a variable parm opt
+               ||       // or, it is a varparm opt and we aren't looking at "--"
+               !(hitVPS = !strcmp(VPS, (theArg + 1 + parmNum)->str)))
+           && UINT_MAX // and we aren't looking at start of another flagged option
+                == (nextOptIdx = whichOptFlag(opt, (theArg + 1 + parmNum)->str,
+                                              hparm))) {
+      parmNum++;
+      if (hparm->verbosity)
+        printf("%s: optIdx %d |%s|: |%s| --> parmNum --> %d\n", __func__, optIdx,
+               theOpt->flag, (theArg + 1 + parmNum - 1)->str, parmNum);
+    }
+    /* we stopped because we got the max number of parameters, or
+       we hitEnd, or
+       varParm and we hitVPS, or
+       we hit the start of another flagged option (indicated by nextOptIdx) */
+    if (hparm->verbosity)
+      printf("%s: optIdx %d |%s|: stopped w/ "
+             "parmNum=%u hitEnd=%d hitVPS=%d nextOptIdx=%u\n",
+             __func__, optIdx, theOpt->flag, parmNum, hitEnd, hitVPS, nextOptIdx);
+    if (parmNum < theOpt->min) { // didn't get required min # parameters
+      if (hitEnd) {
+        biffAddf(HEST,
+                 "%s: hit end of args before getting %u parameter%s "
+                 "for %s (got %u)",
+                 __func__, theOpt->min, theOpt->min > 1 ? "s" : "",
+                 identStr(ident1, theOpt), parmNum);
+      } else if (hitVPS) {
+        biffAddf(HEST,
+                 "%s: hit \"-%c\" (variable-parameter-stop flag) before getting %u "
+                 "parameter%s for %s (got %u)",
+                 __func__, VAR_PARM_STOP_FLAG, theOpt->min, theOpt->min > 1 ? "s" : "",
+                 identStr(ident1, theOpt), parmNum);
+      } else if (UINT_MAX != nextOptIdx) {
+        biffAddf(HEST, "%s: saw %s before getting %u parameter%s for %s (got %d)",
+                 __func__, identStr(ident2, opt + nextOptIdx), theOpt->min,
+                 theOpt->min > 1 ? "s" : "", identStr(ident1, theOpt), parmNum);
+      } else {
+        biffAddf(HEST,
+                 "%s: sorry, confused about not getting %u "
+                 "parameter%s for %s (got %d)",
+                 __func__, theOpt->min, theOpt->min > 1 ? "s" : "",
+                 identStr(ident1, theOpt), parmNum);
+      }
+      return 1;
+    }
+    if (hparm->verbosity) {
+      printf("%s: ________ argv[%d]=|%s|: optIdx %u |%s| followed by %u parms\n",
+             __func__, argIdx, theArg->str, optIdx, theOpt->flag, parmNum);
+    }
+    // remember from whence this option came
+    theOpt->source = theArg->source;
+    // lose the flag argument
+    hestArgVecRemove(havec, argIdx);
+    // empty any pior parm args learned for this option
+    hestArgVecReset(theOpt->havec);
+    for (uint pidx = 0; pidx < parmNum; pidx++) {
+      // theArg still points to the next arg (at index argIdx) for this option
+      hestArgVecAppendString(theOpt->havec, theArg->str);
+      hestArgVecRemove(havec, argIdx);
+    }
+    if (hitVPS) {
+      // drop the variable-parameter-stop flag
+      hestArgVecRemove(havec, argIdx);
+    }
+    if (hparm->verbosity) {
+      char info[AIR_STRLEN_HUGE + 1];
+      sprintf(info, "main havec after extracting optIdx %u |%s| and %u parms", optIdx,
+              theOpt->flag, parmNum);
+      hestArgVecPrint(__func__, info, havec);
+      sprintf(info, "optIdx %u |%s|'s own havec", optIdx, theOpt->flag);
+      hestArgVecPrint(__func__, info, theOpt->havec);
+    }
+    // do NOT increment argIdx
+  }
+
+  /* make sure that flagged options without default were given */
+  uint optNum = opt->arrLen;
+  for (uint opi = 0; opi < optNum; opi++) {
+    theOpt = opt + opi;
+    if (1 != theOpt->kind // this kind of option can take a parm
+        && theOpt->flag   // and this is a flagged option we should have handled above
+        && theOpt->dflt   // and this option has no default
+        && (hestSourceUnknown == theOpt->source)) { // but this option hasn't been set
+      biffAddf(HEST, "%s: didn't get required %s\n", __func__, identStr(ident1, theOpt));
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+/*
+hestParse(2): parse the `argc`,`argv` commandline according to the hestOpt array `opt`,
+and as tweaked by settings in (if non-NULL) the given `hestParm *_hparm`.  If there is
+an error, an error message string describing it in detail is generated and
+ - if errP: *errP is set to the newly allocated error message string
+   NOTE: it is the caller's responsibility to free() it later
+ - if !errP: the error message is fprintf'ed to stderr
 The basic phases of parsing are:
 0) Error checking on given `opt` array
+1) Generate internal representation of command-line that includes expanding any response
+   files; this is the `hestArgVec *havec`.
+2) From `havec`, extract the args that are attributable to flagged and unflagged options,
+   moving each `hestArg` instead into per-hestOpt opt->havec
+3) For options not user-supplied, process the opt's `dflt` string to set opt->havec
+4) Now, every option should have a opt->havec set, regardless of where it came from.
+   So parse those per-opt args to set final values for the user to see
 */
 int
 hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
            const hestParm *_hparm) {
+  airArray *mop = airMopNew(); // initialize the mop
 
-  // -------- initialize the mop
-  airArray *mop = airMopNew();
-
-  // -------- make exactly one of (given) _hparm and (our) hparm non-NULL
+  // make exactly one of (given) _hparm and (our) hparm non-NULL
   hestParm *hparm = NULL;
   if (!_hparm) {
     hparm = hestParmNew();
@@ -661,7 +884,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
     printf("%s: _hestOPCheck passed\n", __func__);
   }
 
-  // -------- allocate the state we use during parsing
+  // allocate the state we use during parsing
   hestInputStack *hist = hestInputStackNew();
   airMopAdd(mop, hist, (airMopper)hestInputStackNix, airMopAlways);
   hestArgVec *havec = hestArgVecNew();
@@ -672,7 +895,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
     printf("%s: parsing state allocated\n", __func__);
   }
 
-  // -------- initialize input stack w/ given argc,argv, then process it
+  // --1--1--1--1--1-- initialize input stack w/ given argc,argv, process it
   if (histPushCommandLine(hist, argc, argv, HPARM)
       || histProcess(havec, &(opt->helpWanted), tharg, hist, HPARM)) {
     DO_ERR("problem with initial processing of command-line");
@@ -681,7 +904,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
   }
   if (HPARM->verbosity > 1) {
     // have finished input stack, what argvec did it leave us with?
-    hestArgVecPrint(__func__, havec);
+    hestArgVecPrint(__func__, "after histProcess", havec);
   }
   if (opt->helpWanted) {
     // once the call for help is made, we respect it: clean up and return
@@ -689,12 +912,32 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
     return 0;
   }
 
-  // ( extract, process: make little argvec for each opt )
-  // extract given flagged options
-  // extract given unflagged options
-  // process default strings of not-given options
-  // set value(s) from per-opt argvec
+  // --2--2--2--2--2-- extract args associated with flagged and unflagged opt
+  // HEY initialize internal working fields of each opt
+  if (havecExtractFlagged(opt, havec, HPARM) /*
+      || havecExtractUnflagged(opt, havec, HPARM) */) {
+    DO_ERR("problem extracting args for options");
+    airMopError(mop);
+    return 1;
+  }
+  // HEY: verify that there were no errant extra args?
 
+#if 0
+  /* --3--3--3--3--3-- process defaults strings for opts that weren't user-supplied
+  Like havecExtract{,Un}Flagged, this builds up opt->havec, but does not parse it */
+  if (optProcessDefaults) {
+    DO_ERR("problem with processing defaults");
+    airMopError(mop);
+    return 1;
+  }
+
+  // --4--4--4--4--4-- Finally, parse the args and set values
+  if (optSetValues) {
+    DO_ERR("problem with setting values");
+    airMopError(mop);
+    return 1;
+  }
+#endif
   airMopOkay(mop);
   return 0;
 }

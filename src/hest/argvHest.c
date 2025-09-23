@@ -20,9 +20,6 @@
 #include "hest.h"
 #include "privateHest.h"
 
-#include <assert.h>
-#include <sys/errno.h>
-
 #define INCR 32
 
 /* to avoid strict aliasing warnings */
@@ -52,6 +49,7 @@ hargInit(void *_harg) {
   appu.c = &(harg->str);
   harg->strArr = airArrayNew(appu.v, &(harg->len), sizeof(char), INCR);
   airArrayStructCB(harg->strArr, setNul, NULL);
+  harg->source = hestSourceUnknown;
   /* initialize with \0 so that harg->str is "" */
   airArrayLenIncr(harg->strArr, 1);
   /* now harg->str = {0:'\0'} and harg->len = 1; */
@@ -107,8 +105,9 @@ hestArgAddChar(hestArg *harg, char cc) {
 }
 
 void
-hestArgAddString(hestArg *harg, const char *str) {
+hestArgSetString(hestArg *harg, const char *str) {
   assert(harg && str);
+  hestArgReset(harg);
   uint len = AIR_UINT(strlen(str));
   for (uint si = 0; si < len; si++) {
     hestArgAddChar(harg, str[si]);
@@ -127,27 +126,55 @@ hestArgVecNew() {
   hestPtrPtrUnion hppu;
   hppu.harg = &(havec->harg);
   havec->hargArr = airArrayNew(hppu.v, &(havec->len), sizeof(hestArg), INCR);
+  // underlying array havec->harg will not be reallocated if shrunk
+  havec->hargArr->noReallocWhenSmaller = AIR_TRUE;
   airArrayStructCB(havec->hargArr, hargInit, hargDone);
   return havec;
 }
 
+void
+hestArgVecReset(hestArgVec *havec) {
+  if (havec) {
+    airArrayLenSet(havec->hargArr, 0);
+  }
+  return;
+}
+
 hestArgVec *
 hestArgVecNix(hestArgVec *havec) {
-  assert(havec);
-  airArrayNuke(havec->hargArr);
-  free(havec);
+  if (havec) {
+    airArrayNuke(havec->hargArr);
+    free(havec);
+  }
   return NULL;
+}
+
+void
+hestArgVecRemove(hestArgVec *havec, uint popIdx) {
+  // (experimented with allocating something to hold what was lost)
+  // hestArg *ret = NULL;
+  if (havec && popIdx < havec->len) { // note: this implies that havec->len >= 1
+    // ret = AIR_CALLOC(1, hestArg);     // (we don't have a constructor?)
+    // memcpy(ret, havec->harg + popIdx);
+    for (uint ai = popIdx; ai < havec->len - 1; ai++) {
+      // shuffle down the hestArg elements (not pointers to them) of havec->harg
+      memcpy(havec->harg + ai, havec->harg + ai + 1, sizeof(hestArg));
+    }
+    // decrement the nominal length of havec->harg
+    airArrayLenIncr(havec->hargArr, -1);
+  }
+  return;
 }
 
 void
 hestArgVecAppendString(hestArgVec *havec, const char *str) {
   uint idx = airArrayLenIncr(havec->hargArr, 1);
-  hestArgAddString(havec->harg + idx, str);
+  hestArgSetString(havec->harg + idx, str);
 }
 
 void
-hestArgVecPrint(const char *caller, const hestArgVec *havec) {
-  printf("%s: hestArgVec %p has %u args:\n", caller, havec, havec->len);
+hestArgVecPrint(const char *caller, const char *info, const hestArgVec *havec) {
+  printf("%s: %s hestArgVec %p has %u args:\n", caller, info, havec, havec->len);
   for (uint idx = 0; idx < havec->hargArr->len; idx++) {
     const hestArg *harg;
     harg = havec->harg + idx;

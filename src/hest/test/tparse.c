@@ -36,8 +36,10 @@ main(int argc, const char **argv) {
   hparm->responseFileEnable = AIR_TRUE;
   hparm->verbosity = 10;
 
+  int verb;
+  hestOptAdd_1_Int(&opt, "v", "verb", &verb, "0", "verbosity");
   int res[2];
-  hestOptAdd_2_Int(&opt, "res", "sx sy", res, NULL, "image resolution");
+  hestOptAdd_2_Int(&opt, "s,size", "sx sy", res, NULL, "image resolution");
   int flag;
   hestOptAdd_Flag(&opt, "b,bingo", &flag, "a flag");
   char *err = NULL;

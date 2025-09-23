@@ -19,8 +19,6 @@
 
 #include "hest.h"
 #include "privateHest.h"
-#include <limits.h>
-#include <assert.h>
 
 #include <sys/ioctl.h> // for ioctl(), TIOCGWINSZ, struct winsize
 #include <unistd.h>    // for STDOUT_FILENO and friends
@@ -221,7 +219,7 @@ hestParmColumnsIoctl(hestParm *hparm, unsigned int nonIoctlColumns) {
   return ret;
 }
 
-/* _hestMax(-1) == INT_MAX, otherwise _hestMax(m) == m */
+// _hestMax(-1) == INT_MAX, otherwise _hestMax(m) == m
 int
 _hestMax(int max) {
 
@@ -290,6 +288,7 @@ opt_init(hestOpt *opt) {
   opt->sawP = NULL;
   opt->kind = 0; /* means that this hestOpt has not been set */
   opt->alloc = 0;
+  opt->havec = NULL;
   opt->arrAlloc = opt->arrLen = 0;
   opt->source = hestSourceUnknown;
   opt->parmStr = NULL;
@@ -368,7 +367,6 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
   opt->valueP = valueP;
   opt->dflt = airStrdup(dflt);
   opt->info = airStrdup(info);
-  opt->kind = opt_kind(min, max);
   /* deal with (what used to be) var args */
   opt->sawP = (5 == opt->kind /* */
                  ? sawP
@@ -379,7 +377,9 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
   opt->CB = (airTypeOther == type /* */
                ? CB
                : NULL);
+  opt->kind = opt_kind(min, max);
   /* alloc set by hestParse */
+  opt->havec = hestArgVecNew();
   /* leave arrAlloc, arrLen untouched: managed by caller */
   /* yes, redundant with opt_init() */
   opt->source = hestSourceUnknown;
@@ -475,17 +475,15 @@ _hestOptFree(hestOpt *opt) {
   opt->name = (char *)airFree(opt->name);
   opt->dflt = (char *)airFree(opt->dflt);
   opt->info = (char *)airFree(opt->info);
+  opt->havec = hestArgVecNix(opt->havec);
   return;
 }
 
 hestOpt *
 hestOptFree(hestOpt *opt) {
-  int opi, num;
-
   if (!opt) return NULL;
-
-  num = opt->arrLen;
-  for (opi = 0; opi < num; opi++) {
+  uint num = opt->arrLen;
+  for (uint opi = 0; opi < num; opi++) {
     _hestOptFree(opt + opi);
   }
   free(opt);
@@ -503,14 +501,15 @@ hestOptFree(hestOpt *opt) {
  * Pre-2025, hest did not depend on biff, and this instead took a 'char *err' that
  * somehow magically had to be allocated for the size of any possible error message
  * generated here.  The 2025 re-write recognized that biff is the right way to accumulate
- * error messages, but the use of biff is internal to biff, but not (unusually for Teem)
+ * error messages, but the use of biff is internal to biff, and not (unusually for Teem)
  * part of the the expected use of biff's API. Thus, public functions hestOptCheck() and
  * hestOptParmCheck(), which are the expected way to access the functionality herein,
  * take a `char **errP` arg into which a message is sprintf'ed, after allocation.
  *
- * The shift to using biff removed how this function used to fprintf(stderr) some message
- * like "panic 0.5" which as completely uninformative.  Now, hestOptCheck() and
- * hestOptParmCheck() fprintf(stderr) the biff message.
+ * The shift to using biff removed how this function used to fprintf(stderr) some
+ * messages like "panic 0.5" which were totally uninformative.  Now, hestOptCheck() and
+ * hestOptParmCheck(), which both call _hestOPCheck, will fprintf(stderr) the informative
+ * biff message.
  *
  * Prior to 2023 code revisit: this used to set the "kind" in all the opts, but now that
  * is more appropriately done at the time the option is added.

@@ -1450,29 +1450,22 @@ parseEnd:
 **
 ** free()s whatever was allocated by hestParse()
 **
-** returns NULL only to facilitate use with the airMop functions.
-** You should probably just ignore this quirk.
+** ignore-able quirk: returns NULL, to facilitate use with the airMop functions
 */
 void *
 hestParseFree(hestOpt *opt) {
-  int op, i, optNum;
-  unsigned int ui;
-  void **vP;
-  void ***vAP;
-  char **str;
-  char ***strP;
-
-  optNum = hestOptNum(opt);
-  for (op = 0; op < optNum; op++) {
+  uint optNum = opt->arrLen;
+  for (uint op = 0; op < optNum; op++) {
+    hestArgVecNix(opt[op].havec);
     opt[op].parmStr = airFree(opt[op].parmStr);
     /*
     printf("!hestParseFree: op = %d/%d -> kind = %d; type = %d; alloc = %d\n",
            op, optNum-1, opt[op].kind, opt[op].type, opt[op].alloc);
     */
-    vP = (void **)opt[op].valueP;
-    vAP = (void ***)opt[op].valueP;
-    str = (char **)opt[op].valueP;
-    strP = (char ***)opt[op].valueP;
+    void **vP = (void **)opt[op].valueP;
+    void ***vAP = (void ***)opt[op].valueP;
+    char **str = (char **)opt[op].valueP;
+    char ***strP = (char ***)opt[op].valueP;
     switch (opt[op].alloc) {
     case 0:
       /* nothing was allocated */
@@ -1493,23 +1486,23 @@ hestParseFree(hestOpt *opt) {
       break;
     case 2:
       if (airTypeString == opt[op].type) {
-        for (i = 0; i < (int)opt[op].min; i++) { /* HEY scrutinize casts */
+        for (int i = 0; i < (int)opt[op].min; i++) { /* HEY scrutinize casts */
           str[i] = (char *)airFree(str[i]);
         }
       } else {
-        for (i = 0; i < (int)opt[op].min; i++) { /* HEY scrutinize casts */
+        for (int i = 0; i < (int)opt[op].min; i++) { /* HEY scrutinize casts */
           vP[i] = opt[op].CB->destroy(vP[i]);
         }
       }
       break;
     case 3:
       if (airTypeString == opt[op].type) {
-        for (ui = 0; ui < *(opt[op].sawP); ui++) {
+        for (uint ui = 0; ui < *(opt[op].sawP); ui++) {
           (*strP)[ui] = (char *)airFree((*strP)[ui]);
         }
         *strP = (char **)airFree(*strP);
       } else {
-        for (ui = 0; ui < *(opt[op].sawP); ui++) {
+        for (uint ui = 0; ui < *(opt[op].sawP); ui++) {
           (*vAP)[ui] = opt[op].CB->destroy((*vAP)[ui]);
         }
         *vAP = (void **)airFree(*vAP);
