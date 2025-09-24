@@ -765,10 +765,11 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     uint optIdx = whichOptFlag(opt, havec->harg[argIdx]->str, hparm);
     if (UINT_MAX == optIdx) {
       // havec->harg[argIdx]->str is not a flag for any option, move on to next arg
-      argIdx++;
-      if (hparm->verbosity)
+      if (hparm->verbosity) {
         printf("%s: |%s| not a flag arg, continue\n", __func__,
                havec->harg[argIdx]->str);
+      }
+      argIdx++;
       continue;
     }
     // else havec->harg[argIdx]->str is a flag for option with index optIdx aka theOpt
@@ -1028,6 +1029,7 @@ anythingleft:
              "%s: after handling %u unflagged opts, still have unexpected %u args "
              "left in (starting with \"%s\")",
              __func__, unflagNum, havec->len, havec->harg[0]->str);
+    return 1;
   }
   return 0;
 }
