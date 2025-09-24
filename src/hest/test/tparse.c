@@ -39,13 +39,19 @@ main(int argc, const char **argv) {
   int verb;
   hestOptAdd_1_Int(&opt, "v", "verb", &verb, "0", "verbosity");
   int *res;
+  int unpA[2];
+  hestOptAdd_2_Int(&opt, NULL, "A A", unpA, NULL, "unflagged A");
   unsigned int slen;
-  hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 2, -1, &res, NULL, "image resolutions",
-                    &slen);
+  hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 2, -1, &res, "640 480",
+                    "image resolutions", &slen);
+  int unpB[2];
+  hestOptAdd_2_Int(&opt, NULL, "B B", unpB, NULL, "unflagged B");
   int flag;
   hestOptAdd_Flag(&opt, "b,bingo", &flag, "a flag");
   int glaf;
   hestOptAdd_Flag(&opt, "c,cingo", &glaf, "a flag");
+  int unpC[2];
+  hestOptAdd_2_Int(&opt, NULL, "C C", unpC, NULL, "unflagged C");
   char *err = NULL;
   if (hestParse2(opt, argc - 1, argv + 1, &err, hparm)) {
     fprintf(stderr, "%s: problem:\n%s\n", argv[0], err);

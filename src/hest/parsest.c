@@ -697,9 +697,9 @@ havecTransfer(hestArgVec *hvdst, hestArgVec *hvsrc, uint srcIdx, uint num) {
                srcIdx, hvsrc->len);
       return 1;
     }
-    if (!(srcIdx + num < hvsrc->len)) {
-      biffAddf(HEST, "%s: %u args starting at index %u |%s| goes past length %u",
-               __func__, num, srcIdx, hvsrc->harg[srcIdx]->str, hvsrc->len);
+    if (!(srcIdx + num <= hvsrc->len)) {
+      biffAddf(HEST, "%s: have only %u args but want %u starting at %u", __func__,
+               hvsrc->len, num, srcIdx);
       return 1;
     }
     // okay now do the work, starting with empty destination
@@ -947,18 +947,21 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
      ensured that there is at most one of these), then unflagVar is its index in opt[].
      If there is no variable parameter unflagged opt, unflagVar is optNum. */
   if (hparm->verbosity) {
-    printf("%s: unflagVar %d\n", __func__, unflagVar);
+    printf("%s: unflagVar %u %s\n", __func__, unflagVar,
+           (unflagVar == optNum ? "==> there is no unflagged var parm opt"
+                                : "is index of single unflagged var parm opt"));
   }
 
   /* grab parameters for all unflagged opts before opt[unflagVar] */
   for (uint opi = nextUnflagged(0, opt); opi < unflagVar;
        opi = nextUnflagged(opi + 1, opt)) {
     if (hparm->verbosity) {
-      printf("%s: looking at opi = %u (unflagVar = %u)\n", __func__, opi, unflagVar);
+      printf("%s: looking at opi = %u kind %d\n", __func__, opi, opt[opi].kind);
     }
     if (havecTransfer(opt[opi].havec, havec, 0, opt[opi].min /* min == max */)) {
       biffAddf(HEST, "%s: trouble getting args for %s", __func__,
                identStr(ident, opt + opi));
+      return 1;
     }
   }
   /* we skip over the variable parameter unflagged option, subtract from havec->len the
@@ -986,6 +989,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     if (havecTransfer(opt[opi].havec, havec, nvp, opt[opi].min /* min == max */)) {
       biffAddf(HEST, "%s: trouble getting args for %s", __func__,
                identStr(ident, opt + opi));
+      return 1;
     }
   }
 
@@ -1014,6 +1018,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       if (havecTransfer(opt[unflagVar].havec, havec, 0, nvp)) {
         biffAddf(HEST, "%s: trouble getting args for %s", __func__,
                  identStr(ident, opt + unflagVar));
+        return 1;
       }
     }
   } else {
