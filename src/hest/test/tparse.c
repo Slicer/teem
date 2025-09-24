@@ -46,7 +46,9 @@ main(int argc, const char **argv) {
                     &slen);
   int *unpB;
   unsigned int sawB;
-  hestOptAdd_Nv_Int(&opt, NULL, "B B", 1, -1, &unpB, NULL, "unflagged B", &sawB);
+  hestOptAdd_Nv_Int(&opt, NULL, "B B", 1, -1, &unpB, "BBBB", "unflagged B", &sawB);
+  /* int unpB[2];
+     hestOptAdd_2_Int(&opt, NULL, "B B", unpB, NULL, "unflagged B"); */
   int flag;
   hestOptAdd_Flag(&opt, "b,bingo", &flag, "a flag");
   int glaf;

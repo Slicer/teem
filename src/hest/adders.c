@@ -22,21 +22,19 @@
 
 /*
 Since r6184 2014-03-17, GLK has noted (in ../TODO.txt):
-  (from tendGlyph.c): there needs to be an alternative API for hest
-  that is not var-args based (as is hestOptAdd). You can't tell when
-  you've passed multiple strings for the detailed usage information by
-  accident.  GLK had accidentally inserted a comma into my multi-line
-  string for the "info" arg, relying on the automatic string
-  concatenation, and ended up passing total garbage to hestOptAdd for
-  the airEnum pointer, causing him to think that the tenGlyphType airEnum
-  was malformed, when it was in fact fine ...
+  (from tendGlyph.c): there needs to be an alternative API for hest that is not var-args
+  based (as is hestOptAdd). You can't tell when you've passed multiple strings for the
+  detailed usage information by accident.  GLK had accidentally inserted a comma into my
+  multi-line string for the "info" arg, relying on the automatic string concatenation,
+  and ended up passing total garbage to hestOptAdd for the airEnum pointer, causing him
+  to think that the tenGlyphType airEnum was malformed, when it was in fact fine ...
 This motivated the r7026 2023-07-06 addition of non-var-args hestOptAdd_nva, which
 would have caught the above error.
 
-The underlying issue there, though, is the total lack of type-checking associated with
-the var-args functions. Even without var-args, the "void*" type of the value storage
-pointer is still a problem. Therefore, the functions in this file help do as much
-type-checking as possible with hest.  These functions cover nearly all uses of hest
+The underlying issue there, though, is MORE than the total lack of type-checking
+associated with the var-args functions. Even without var-args, the "void*" type of the
+value storage pointer is still a problem. Therefore, the functions in this file help do
+as much type-checking as possible with hest.  These functions cover all uses of hest
 within Teem (and in GLK's SciVis class), in a way that is specific to the type of the
 value storage pointer valueP, which is still a void* even in hestOptAdd_nva.  Many of the
 possibilities here are unlikely to be needed (an option for 4 booleans?), but are
@@ -52,14 +50,14 @@ be either void* or void**, respectively. But void** is not a generic pointer to 
 type (like void* is the generic pointer type), and, we're not doing compile-time checks
 on the non-NULL-ity of hestCB->destroy. So it all devolves back to plain void*. Still,
 the hestOptAdd_*_Other function are generated here to slightly simplify the hestOptAdd
-call, since there is no more NULL and NULL for sawP and enum.  The only way around this
-particular type-checking black hole is still extreme attentiveness.
+call, since there is no more NULL and NULL for sawP and enum, respectively.  The only way
+around this particular type-checking black hole is still extreme attentiveness.
 
 Two other design points of note:
 
 (1) If we're moving to more type checking, why not make the default values be something
 other than a mere string?  Why isn't the default typed in a way analogous to the newly
-typed valueP?  This is a great idea, and it was actually briefly tried, but then
+typed valueP?  This is a great idea, and it was actually briefly tried in 2023, but then
 abandoned. One of the original good ideas that made hest work (when it was created) was
 the recognition that if the point is to get values out of argv strings collected from the
 command-line, then you are absolutely unavoidably in the business of parsing values from

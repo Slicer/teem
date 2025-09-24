@@ -396,6 +396,11 @@ hestOptSingleSet. The venerable var-args hestOptAdd is now a wrapper around this
 and the 99 non-var-args hestOptAdd_* functions also all call this.
 
 Like hestOptAdd has done since 2013: returns UINT_MAX in case of error.
+
+NOTE that we do NOT do here ANY error checking on the validity of the arguments passed,
+e.g. enforcing that we have a non-NULL sawP if min != max (a variable parameter option),
+or that without a flag (`flag` is NULL) we must have min > 0.  All of that is done later,
+in _hestOPCheck.
 */
 unsigned int
 hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,
@@ -491,30 +496,28 @@ hestOptFree(hestOpt *opt) {
   return NULL;
 }
 
-/*
- * _hestOPCheck
- *
- * new biff-based container for all logic that used to be in _hestOptCheck (which is
- * the 2025 rename of _hestPanic): the validation of the given hestOpt array `opt` itself
- * (but *not* anything about the command-line or its parsing), relative to the given
- * (non-NULL) hestParm `hparm`.
- *
- * Pre-2025, hest did not depend on biff, and this instead took a 'char *err' that
- * somehow magically had to be allocated for the size of any possible error message
- * generated here.  The 2025 re-write recognized that biff is the right way to accumulate
- * error messages, but the use of biff is internal to biff, and not (unusually for Teem)
- * part of the the expected use of biff's API. Thus, public functions hestOptCheck() and
- * hestOptParmCheck(), which are the expected way to access the functionality herein,
- * take a `char **errP` arg into which a message is sprintf'ed, after allocation.
- *
- * The shift to using biff removed how this function used to fprintf(stderr) some
- * messages like "panic 0.5" which were totally uninformative.  Now, hestOptCheck() and
- * hestOptParmCheck(), which both call _hestOPCheck, will fprintf(stderr) the informative
- * biff message.
- *
- * Prior to 2023 code revisit: this used to set the "kind" in all the opts, but now that
- * is more appropriately done at the time the option is added.
- */
+/* _hestOPCheck
+New biff-based container for all logic that originated in _hestOptCheck (which is the
+2025 rename of _hestPanic): the validation of the given hestOpt array `opt` itself (but
+*not* anything about the command-line or its parsing), relative to the given (non-NULL)
+hestParm `hparm`.
+
+Pre-2025, hest did not depend on biff, and this instead took a 'char *err' that somehow
+magically had to be allocated for the size of any possible error message generated here.
+The 2025 re-write recognized that biff is the right way to accumulate error messages, but
+the use of biff is internal to biff, and not (unusually for Teem) part of the the
+expected use of biff's API. Thus, public functions hestOptCheck() and hestOptParmCheck(),
+which are the expected way to access the functionality herein, take a `char **errP` arg
+into which a message is sprintf'ed, after allocation.
+
+The shift to using biff removed how this function used to fprintf(stderr) some messages
+like "panic 0.5" which were totally uninformative.  Now, hestOptCheck() and
+hestOptParmCheck(), which both call _hestOPCheck, will fprintf(stderr) the informative
+biff message.
+
+Prior to 2023 code revisit: this used to set the "kind" in all the opts, but now that is
+more appropriately done at the time the option is added.
+*/
 int
 _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
   if (!(opt && hparm)) {
@@ -552,7 +555,7 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
         biffAddf(HEST,
                  "%s%sopt[%u] (%s) is type \"enum\", but no "
                  "airEnum pointer given",
-                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "?");
+                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
         return 1;
       }
     }
@@ -561,7 +564,7 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
         biffAddf(HEST,
                  "%s%sopt[%u] (%s) is type \"other\", but no "
                  "callbacks given",
-                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "?");
+                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
         return 1;
       }
       if (!(opt[opi].CB->size > 0)) {
@@ -670,8 +673,14 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
       }
       */
       free(tbuff);
+    } else { // ------ end of if (opt[opi].flag)
+      // opt[opi] is unflagged
+      if (!opt[opi].min) {
+        biffAddf(HEST, "%s%sunflagged opt[%u] (name %s) must have min >= 1, not 0", _ME_,
+                 opi, opt[opi].name ? opt[opi].name : "not set");
+        return 1;
+      }
     }
-    // ------ end of if (opt[opi].flag)
     if (1 == opt[opi].kind) {
       if (!opt[opi].flag) {
         biffAddf(HEST, "%s%sopt[%u] flag must have a flag", _ME_, opi);
