@@ -42,8 +42,8 @@ main(int argc, const char **argv) {
   int unpA[2];
   hestOptAdd_2_Int(&opt, NULL, "A A", unpA, NULL, "unflagged A");
   unsigned int slen;
-  hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 2, -1, &res, "640 480",
-                    "image resolutions", &slen);
+  hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 0, -1, &res, NULL, "image resolutions",
+                    &slen);
   int *unpB;
   unsigned int sawB;
   hestOptAdd_Nv_Int(&opt, NULL, "B B", 1, -1, &unpB, NULL, "unflagged B", &sawB);

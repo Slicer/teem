@@ -83,7 +83,7 @@ extern int _hestOPCheck(const hestOpt *opt, const hestParm *parm);
    cranked up hestParm->verbosity to debug hest itself and don't want error messages
    prefixed by a lot of weird hest function names:
    In a function where hestParm *hparm is defined, the biff call should look like:
-     biffAddf(HEST, "%s%sthis is the error", _ME_, ... )
+     biffAddf(HEST, "%s%shit a problem", _ME_, ... )
    Note the "%s%s" start, with NO following space.
    Or if its not hparm but some other source `verb` of a verbosity level
      biffAddf(HEST, "%s%sthis is the error", _MEV_(verb), ... )
