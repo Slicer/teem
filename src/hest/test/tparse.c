@@ -34,7 +34,7 @@ main(int argc, const char **argv) {
   hestParm *hparm = hestParmNew();
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->responseFileEnable = AIR_TRUE;
-  hparm->verbosity = 3;
+  hparm->verbosity = 1;
 
   int verb;
   hestOptAdd_1_Int(&opt, "v", "verb", &verb, "0", "verbosity");
@@ -44,14 +44,20 @@ main(int argc, const char **argv) {
   unsigned int slen;
   hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 2, -1, &res, "640 480",
                     "image resolutions", &slen);
-  int unpB[2];
-  hestOptAdd_2_Int(&opt, NULL, "B B", unpB, NULL, "unflagged B");
+  int *unpB;
+  unsigned int sawB;
+  hestOptAdd_Nv_Int(&opt, NULL, "B B", 1, -1, &unpB, NULL, "unflagged B", &sawB);
   int flag;
   hestOptAdd_Flag(&opt, "b,bingo", &flag, "a flag");
   int glaf;
   hestOptAdd_Flag(&opt, "c,cingo", &glaf, "a flag");
   int unpC[2];
   hestOptAdd_2_Int(&opt, NULL, "C C", unpC, NULL, "unflagged C");
+  /*
+  int *unpC;
+  unsigned int sawC;
+  hestOptAdd_Nv_Int(&opt, NULL, "C C", 1, 2, &unpC, NULL, "unflagged C", &sawC);
+  */
   char *err = NULL;
   if (hestParse2(opt, argc - 1, argv + 1, &err, hparm)) {
     fprintf(stderr, "%s: problem:\n%s\n", argv[0], err);

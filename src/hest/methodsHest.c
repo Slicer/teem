@@ -518,7 +518,7 @@ hestOptFree(hestOpt *opt) {
 int
 _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
   if (!(opt && hparm)) {
-    biffAddf(HEST, "%s: got NULL opt (%p) or hparm (%p)", __func__, AIR_VOIDP(opt),
+    biffAddf(HEST, "%s%sgot NULL opt (%p) or hparm (%p)", _ME_, AIR_VOIDP(opt),
              AIR_VOIDP(hparm));
     return 1;
   }
@@ -526,62 +526,62 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
   uint varNum = 0; // number of variable-parameter options
   for (uint opi = 0; opi < optNum; opi++) {
     if (!(AIR_IN_OP(airTypeUnknown, opt[opi].type, airTypeLast))) {
-      biffAddf(HEST, "%s: opt[%u].type (%d) not in valid range [%d,%d]", __func__, opi,
+      biffAddf(HEST, "%s%sopt[%u].type (%d) not in valid range [%d,%d]", _ME_, opi,
                opt[opi].type, airTypeUnknown + 1, airTypeLast - 1);
       return 1;
     }
     if (!(opt[opi].valueP)) {
-      biffAddf(HEST, "%s: opt[%u]'s valueP is NULL!", __func__, opi);
+      biffAddf(HEST, "%s%sopt[%u]'s valueP is NULL!", _ME_, opi);
       return 1;
     }
     // `kind` set by hestOptSingleSet
     if (-1 == opt[opi].kind) {
-      biffAddf(HEST, "%s: opt[%u]'s min (%d) and max (%d) incompatible", __func__, opi,
+      biffAddf(HEST, "%s%sopt[%u]'s min (%d) and max (%d) incompatible", _ME_, opi,
                opt[opi].min, opt[opi].max);
       return 1;
     }
     if (5 == opt[opi].kind && !(opt[opi].sawP)) {
       biffAddf(HEST,
-               "%s: opt[%u] has multiple variable parameters (min=%u,max=%d), "
+               "%s%sopt[%u] has multiple variable parameters (min=%u,max=%d), "
                "but sawP is NULL",
-               __func__, opi, opt[opi].min, opt[opi].max);
+               _ME_, opi, opt[opi].min, opt[opi].max);
       return 1;
     }
     if (airTypeEnum == opt[opi].type) {
       if (!(opt[opi].enm)) {
         biffAddf(HEST,
-                 "%s: opt[%u] (%s) is type \"enum\", but no "
+                 "%s%sopt[%u] (%s) is type \"enum\", but no "
                  "airEnum pointer given",
-                 __func__, opi, opt[opi].flag ? opt[opi].flag : "?");
+                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "?");
         return 1;
       }
     }
     if (airTypeOther == opt[opi].type) {
       if (!(opt[opi].CB)) {
         biffAddf(HEST,
-                 "%s: opt[%u] (%s) is type \"other\", but no "
+                 "%s%sopt[%u] (%s) is type \"other\", but no "
                  "callbacks given",
-                 __func__, opi, opt[opi].flag ? opt[opi].flag : "?");
+                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "?");
         return 1;
       }
       if (!(opt[opi].CB->size > 0)) {
-        biffAddf(HEST, "%s: opt[%u]'s \"size\" (%u) invalid", __func__, opi,
+        biffAddf(HEST, "%s%sopt[%u]'s \"size\" (%u) invalid", _ME_, opi,
                  (uint)(opt[opi].CB->size));
         return 1;
       }
       if (!(opt[opi].CB->type)) {
-        biffAddf(HEST, "%s: opt[%u]'s \"type\" is NULL", __func__, opi);
+        biffAddf(HEST, "%s%sopt[%u]'s \"type\" is NULL", _ME_, opi);
         return 1;
       }
       if (!(opt[opi].CB->parse)) {
-        biffAddf(HEST, "%s: opt[%u]'s \"parse\" callback NULL", __func__, opi);
+        biffAddf(HEST, "%s%sopt[%u]'s \"parse\" callback NULL", _ME_, opi);
         return 1;
       }
       if (opt[opi].CB->destroy && (sizeof(void *) != opt[opi].CB->size)) {
         biffAddf(HEST,
-                 "%sopt[%u] has a \"destroy\", but size %lu isn't "
+                 "%s%sopt[%u] has a \"destroy\", but size %lu isn't "
                  "sizeof(void*)",
-                 __func__, opi, (unsigned long)(opt[opi].CB->size));
+                 _ME_, opi, (unsigned long)(opt[opi].CB->size));
         return 1;
       }
     }
@@ -589,18 +589,18 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
       const char *flag = opt[opi].flag;
       uint fslen = AIR_UINT(strlen(flag));
       if (fslen > AIR_STRLEN_SMALL / 2) {
-        biffAddf(HEST, "%s: strlen(opt[%u].flag) %u is too big", __func__, opi, fslen);
+        biffAddf(HEST, "%s%sstrlen(opt[%u].flag) %u is too big", _ME_, opi, fslen);
         return 1;
       }
       if (strchr(flag, '-')) {
-        biffAddf(HEST, "%s: opt[%u].flag \"%s\" contains '-', which will confuse things",
-                 __func__, opi, flag);
+        biffAddf(HEST, "%s%sopt[%u].flag \"%s\" contains '-', which will confuse things",
+                 _ME_, opi, flag);
         return 1;
       }
       for (uint chi = 0; chi < fslen; chi++) {
         if (!isprint(flag[chi])) {
-          biffAddf(HEST, "%s: opt[%u].flag \"%s\" char %u '%c' non-printing", __func__,
-                   opi, flag, chi, flag[chi]);
+          biffAddf(HEST, "%s%sopt[%u].flag \"%s\" char %u '%c' non-printing", _ME_, opi,
+                   flag, chi, flag[chi]);
           return 1;
         }
       }
@@ -612,51 +612,51 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
         *sep = '\0';
         if (!(strlen(tbuff) && strlen(sep + 1))) {
           biffAddf(HEST,
-                   "%s: either short (\"%s\") or long (\"%s\") flag"
+                   "%s%seither short (\"%s\") or long (\"%s\") flag"
                    " of opt[%u] is zero length",
-                   __func__, tbuff, sep + 1, opi);
+                   _ME_, tbuff, sep + 1, opi);
           return (free(tbuff), 1);
         }
         if (hparm->respectDashDashHelp && !strcmp("help", sep + 1)) {
           biffAddf(HEST,
-                   "%s: long \"--%s\" flag of opt[%u] is same as \"--help\" "
+                   "%s%slong \"--%s\" flag of opt[%u] is same as \"--help\" "
                    "that requested hparm->respectDashDashHelp handles separately",
-                   __func__, sep + 1, opi);
+                   _ME_, sep + 1, opi);
           return (free(tbuff), 1);
         }
         if (strchr(sep + 1, MULTI_FLAG_SEP)) {
           biffAddf(HEST,
-                   "%s: opt[%u] flag string \"%s\" has more than one instance of "
+                   "%s%sopt[%u] flag string \"%s\" has more than one instance of "
                    "short/long separation character '%c'",
-                   __func__, opi, flag, MULTI_FLAG_SEP);
+                   _ME_, opi, flag, MULTI_FLAG_SEP);
           return (free(tbuff), 1);
         }
       } else {
         if (!strlen(opt[opi].flag)) {
-          biffAddf(HEST, "%s: opt[%u].flag is zero length", __func__, opi);
+          biffAddf(HEST, "%s%sopt[%u].flag is zero length", _ME_, opi);
           return (free(tbuff), 1);
         }
       }
       if (hparm->respectDashBraceComments && (strchr(flag, '{') || strchr(flag, '}'))) {
         biffAddf(HEST,
-                 "%s: requested hparm->respectDashBraceComments but opt[%u]'s flag "
+                 "%s%srequested hparm->respectDashBraceComments but opt[%u]'s flag "
                  "\"%s\" confusingly contains '{' or '}'",
-                 __func__, opi, flag);
+                 _ME_, opi, flag);
         return (free(tbuff), 1);
       }
       if (4 == opt[opi].kind) {
         if (!opt[opi].dflt) {
           biffAddf(HEST,
-                   "%s: flagged single variable parameter must "
+                   "%s%sflagged single variable parameter must "
                    "specify a default",
-                   __func__);
+                   _ME_);
           return (free(tbuff), 1);
         }
         if (!strlen(opt[opi].dflt)) {
           biffAddf(HEST,
-                   "%s: flagged single variable parameter default "
+                   "%s%sflagged single variable parameter default "
                    "must be non-zero length",
-                   __func__);
+                   _ME_);
           return (free(tbuff), 1);
         }
       }
@@ -674,27 +674,27 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
     // ------ end of if (opt[opi].flag)
     if (1 == opt[opi].kind) {
       if (!opt[opi].flag) {
-        biffAddf(HEST, "%s: opt[%u] flag must have a flag", __func__, opi);
+        biffAddf(HEST, "%s%sopt[%u] flag must have a flag", _ME_, opi);
         return 1;
       }
     } else {
       if (!opt[opi].name) {
-        biffAddf(HEST, "%s: opt[%u] isn't a flag: must have \"name\"", __func__, opi);
+        biffAddf(HEST, "%s%sopt[%u] isn't a flag: must have \"name\"", _ME_, opi);
         return 1;
       }
     }
     if (4 == opt[opi].kind && !opt[opi].dflt) {
       biffAddf(HEST,
-               "%s: opt[%u] is single variable parameter, but "
+               "%s%sopt[%u] is single variable parameter, but "
                "no default set",
-               __func__, opi);
+               _ME_, opi);
       return 1;
     }
     // kind 4 = single variable parm;  kind 5 = multiple variable parm
     varNum += (opt[opi].kind > 3 && (NULL == opt[opi].flag));
   }
   if (varNum > 1) {
-    biffAddf(HEST, "%s: can't have %u unflagged min<max options, only one", __func__,
+    biffAddf(HEST, "%s%scan't have %u unflagged min<max options, only one", _ME_,
              varNum);
     return 1;
   }

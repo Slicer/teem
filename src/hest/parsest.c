@@ -32,20 +32,19 @@ hist  = hestInputStack
 static int
 histPop(hestInputStack *hist, const hestParm *hparm) {
   if (!(hist && hparm)) {
-    biffAddf(HEST, "%s: got NULL pointer (hist %p hparm %p)", __func__, AIR_VOIDP(hist),
+    biffAddf(HEST, "%s%sgot NULL pointer (hist %p hparm %p)", _ME_, AIR_VOIDP(hist),
              AIR_VOIDP(hparm));
     return 1;
   }
   if (!(hist->len)) {
-    biffAddf(HEST, "%s: cannot pop from input stack height 0", __func__);
+    biffAddf(HEST, "%s%scannot pop from input stack height 0", _ME_);
     return 1;
   }
   hestInput *topHin = hist->hin + hist->len - 1;
   if (topHin->dashBraceComment) {
     biffAddf(HEST,
-             "%s: %u start comment marker%s \"-{\" not balanced by equal later \"}-\"",
-             __func__, topHin->dashBraceComment,
-             topHin->dashBraceComment > 1 ? "s" : "");
+             "%s%s%u start comment marker%s \"-{\" not balanced by equal later \"}-\"",
+             _ME_, topHin->dashBraceComment, topHin->dashBraceComment > 1 ? "s" : "");
     return 1;
   }
   if (hparm->verbosity) {
@@ -144,24 +143,24 @@ argstGo(int *nastP, hestArg *tharg, int *stateP, int icc, int vrbo) {
       ret = 0;
       break;
     case argstSingleQ:
-      biffAddf(HEST, "%s: hit input end inside single-quoted string", __func__);
+      biffAddf(HEST, "%s%shit input end inside single-quoted string", _MEV_(vrbo));
       ret = 1;
       break;
     case argstDoubleQ:
-      biffAddf(HEST, "%s: hit input end inside double-quoted string", __func__);
+      biffAddf(HEST, "%s%shit input end inside double-quoted string", _MEV_(vrbo));
       ret = 1;
       break;
     case argstEscapeIn:
-      biffAddf(HEST, "%s: hit input end after \\ escape from arg", __func__);
+      biffAddf(HEST, "%s%shit input end after \\ escape from arg", _MEV_(vrbo));
       ret = 1;
       break;
     case argstEscapeDQ:
-      biffAddf(HEST, "%s: hit input end after \\ escape from double-quoted string",
-               __func__);
+      biffAddf(HEST, "%s%shit input end after \\ escape from double-quoted string",
+               _MEV_(vrbo));
       ret = 1;
       break;
     default:
-      biffAddf(HEST, "%s: hit input end in unknown state %d", __func__, *stateP);
+      biffAddf(HEST, "%s%shit input end in unknown state %d", _MEV_(vrbo), *stateP);
       ret = 1;
     }
     return ret;
@@ -270,7 +269,7 @@ static int
 histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
                    const hestParm *hparm) {
   if (!(nastP && tharg && hist && hparm)) {
-    biffAddf(HEST, "%s: got NULL pointer (nastP %p tharg %p hist %p hparm %p)", __func__,
+    biffAddf(HEST, "%s%sgot NULL pointer (nastP %p tharg %p hist %p hparm %p)", _ME_,
              AIR_VOIDP(nastP), AIR_VOIDP(tharg), AIR_VOIDP(hist), AIR_VOIDP(hparm));
     return 1;
   }
@@ -300,7 +299,7 @@ histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
     } else {
       // we have gotten to the end of the given argv array, pop it as input source */
       if (histPop(hist, hparm)) {
-        biffAddf(HEST, "%s: trouble popping %s", __func__,
+        biffAddf(HEST, "%s%strouble popping %s", _ME_,
                  airEnumStr(hestSource, hestSourceCommandLine));
         return 1;
       }
@@ -321,12 +320,12 @@ histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
       } else {
         icc = fgetc(hin->rfile); // may be EOF
       }
-      if (argstGo(nastP, tharg, &state, icc, hparm->verbosity > 1)) {
+      if (argstGo(nastP, tharg, &state, icc, hparm->verbosity > 3)) {
         if (hestSourceResponseFile == hin->source) {
-          biffAddf(HEST, "%s: trouble at character %u of %s \"%s\"", __func__,
-                   hin->carIdx, airEnumStr(hestSource, hin->source), hin->rfname);
+          biffAddf(HEST, "%s%strouble at character %u of %s \"%s\"", _ME_, hin->carIdx,
+                   airEnumStr(hestSource, hin->source), hin->rfname);
         } else {
-          biffAddf(HEST, "%s: trouble at character %u of %s |%s|", __func__, hin->carIdx,
+          biffAddf(HEST, "%s%strouble at character %u of %s |%s|", _ME_, hin->carIdx,
                    airEnumStr(hestSource, hin->source), hin->dfltStr);
         }
         return 1;
@@ -337,10 +336,10 @@ histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
         // we're at end; pop input; *nastP already set to nastTryAgain by argstGo()
         if (histPop(hist, hparm)) {
           if (hestSourceResponseFile == hin->source) {
-            biffAddf(HEST, "%s: trouble popping %s \"%s\"", __func__,
+            biffAddf(HEST, "%s%strouble popping %s \"%s\"", _ME_,
                      airEnumStr(hestSource, hin->source), hin->rfname);
           } else {
-            biffAddf(HEST, "%s: trouble popping %s |%s|", __func__,
+            biffAddf(HEST, "%s%strouble popping %s |%s|", _ME_,
                      airEnumStr(hestSource, hin->source), hin->dfltStr);
           }
           return 1;
@@ -357,7 +356,7 @@ histProcNextArg(int *nastP, hestArg *tharg, hestInputStack *hist,
   // printf("!%s: hello hist->len %u\n", __func__, hist->len);
   do {
     if (histProcNextArgTry(nastP, tharg, hist, hparm)) {
-      biffAddf(HEST, "%s: trouble getting next arg", __func__);
+      biffAddf(HEST, "%s%strouble getting next arg", _ME_);
       return 1;
     }
     if (hparm->verbosity > 1) {
@@ -368,16 +367,16 @@ histProcNextArg(int *nastP, hestArg *tharg, hestInputStack *hist,
   return 0;
 }
 
-#if 0 // not used yet
+#if 0
 static int
 histPushDefault(hestInputStack *hist, const char *dflt, const hestParm *hparm) {
   if (!(hist && dflt && hparm)) {
-    biffAddf(HEST, "%s: got NULL pointer (hist %p, dflt %p, hparm %p)", __func__,
+    biffAddf(HEST, "%s%sgot NULL pointer (hist %p, dflt %p, hparm %p)", _ME_,
              AIR_VOIDP(hist), AIR_VOIDP(dflt), AIR_VOIDP(hparm));
     return 1;
   }
   if (HIST_DEPTH_MAX == hist->len) {
-    biffAddf(HEST, "%s: input stack depth already at max %u", __func__, HIST_DEPTH_MAX);
+    biffAddf(HEST, "%s%sinput stack depth already at max %u", _ME_, HIST_DEPTH_MAX);
     return 1;
   }
   if (hparm->verbosity) {
@@ -399,12 +398,12 @@ static int
 histPushCommandLine(hestInputStack *hist, int argc, const char **argv,
                     const hestParm *hparm) {
   if (!(hist && argv && hparm)) {
-    biffAddf(HEST, "%s: got NULL pointer (hist %p, argv %p, hparm %p)", __func__,
+    biffAddf(HEST, "%s%sgot NULL pointer (hist %p, argv %p, hparm %p)", _ME_,
              AIR_VOIDP(hist), AIR_VOIDP(argv), AIR_VOIDP(hparm));
     return 1;
   }
   if (HIST_DEPTH_MAX == hist->len) {
-    biffAddf(HEST, "%s: input stack depth already at max %u", __func__, HIST_DEPTH_MAX);
+    biffAddf(HEST, "%s%sinput stack depth already at max %u", _ME_, HIST_DEPTH_MAX);
     return 1;
   }
   if (hparm->verbosity) {
@@ -426,21 +425,21 @@ histPushCommandLine(hestInputStack *hist, int argc, const char **argv,
 static int
 histPushResponseFile(hestInputStack *hist, const char *rfname, const hestParm *hparm) {
   if (!(hist && rfname && hparm)) {
-    biffAddf(HEST, "%s: got NULL pointer (hist %p, rfname %p, hparm %p)", __func__,
+    biffAddf(HEST, "%s%sgot NULL pointer (hist %p, rfname %p, hparm %p)", _ME_,
              AIR_VOIDP(hist), AIR_VOIDP(rfname), AIR_VOIDP(hparm));
     return 1;
   }
   if (HIST_DEPTH_MAX == hist->len) {
     // HEY test this error
-    biffAddf(HEST, "%s: input stack depth already at max %u", __func__, HIST_DEPTH_MAX);
+    biffAddf(HEST, "%s%sinput stack depth already at max %u", _ME_, HIST_DEPTH_MAX);
     return 1;
   }
   if (!strlen(rfname)) {
     // HEY test this error
     biffAddf(HEST,
-             "%s: saw arg start with response file flag \"%c\" "
+             "%s%ssaw arg start with response file flag \"%c\" "
              "but no filename followed",
-             __func__, RESPONSE_FILE_FLAG);
+             _ME_, RESPONSE_FILE_FLAG);
     return 1;
   }
   // have we seen rfname before?
@@ -452,9 +451,9 @@ histPushResponseFile(hestInputStack *hist, const char *rfname, const hestParm *h
           && !strcmp(oldHin->rfname, rfname)) {
         // HEY test this error
         biffAddf(HEST,
-                 "%s: already reading \"%s\" as response file; "
+                 "%s%salready reading \"%s\" as response file; "
                  "cannot recursively read it again",
-                 __func__, rfname);
+                 _ME_, rfname);
         return 1;
       }
     }
@@ -462,14 +461,14 @@ histPushResponseFile(hestInputStack *hist, const char *rfname, const hestParm *h
   // are we trying to read stdin twice?
   if (!strcmp("-", rfname) && hist->stdinRead) {
     // HEY test this error
-    biffAddf(HEST, "%s: response filename \"%s\" but previously read stdin", __func__,
+    biffAddf(HEST, "%s%sresponse filename \"%s\" but previously read stdin", _ME_,
              rfname);
     return 1;
   }
   // try to open response file
   FILE *rfile = airFopen(rfname, stdin, "r");
   if (!(rfile)) {
-    biffAddf(HEST, "%s: couldn't fopen(\"%s\",\"r\"): %s", __func__, rfname,
+    biffAddf(HEST, "%s%scouldn't fopen(\"%s\",\"r\"): %s", _ME_, rfname,
              strerror(errno));
     return 1;
   }
@@ -528,8 +527,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     const char *srcstr = airEnumStr(hestSource, topHin->source);
     // read next arg into tharg
     if (histProcNextArg(&nast, tharg, hist, hparm)) {
-      biffAddf(HEST, "%s: (iter %u, on %s) unable to get next arg", __func__, iters,
-               srcstr);
+      biffAddf(HEST, "%s%s(iter %u, on %s) unable to get next arg", _ME_, iters, srcstr);
       return 1;
     }
     if (nastEmpty == nast) {
@@ -550,9 +548,9 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
         continue; // since }- does not belong in havec
       } else {
         biffAddf(HEST,
-                 "%s: (iter %u, on %s) end comment marker \"}-\" not "
+                 "%s%s(iter %u, on %s) end comment marker \"}-\" not "
                  "balanced by prior \"-{\"",
-                 __func__, iters, srcstr);
+                 _ME_, iters, srcstr);
         return 1;
       }
     }
@@ -581,20 +579,20 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
            for parsing results nor error messages about that process */
         return 0;
       } else {
-        biffAddf(HEST, "%s: (iter %u, on %s) \"--help\" not expected here", __func__,
-                 iters, srcstr);
+        biffAddf(HEST, "%s%s(iter %u, on %s) \"--help\" not expected here", _ME_, iters,
+                 srcstr);
         return 1;
       }
     }
-    if (hparm->verbosity > 1) {
+    if (hparm->verbosity > 2) {
       printf("%s: (iter %u, on %s) looking at latest tharg |%s|\n", __func__, iters,
              srcstr, tharg->str);
     }
     if (hparm->responseFileEnable && tharg->str[0] == RESPONSE_FILE_FLAG) {
       // tharg->str is asking to open a response file; try pushing it
       if (histPushResponseFile(hist, tharg->str + 1, hparm)) {
-        biffAddf(HEST, "%s: (iter %u, on %s) unable to process response file %s",
-                 __func__, iters, srcstr, tharg->str);
+        biffAddf(HEST, "%s%s(iter %u, on %s) unable to process response file %s", _ME_,
+                 iters, srcstr, tharg->str);
         return 1;
       }
       // have just added response file to stack, next iter will start reading from it
@@ -610,7 +608,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     havec->harg[havec->len - 1]->source = topHin->source;
   }
   if (hist->len && nast == nastEmpty) {
-    biffAddf(HEST, "%s: non-empty stack (depth %u) can't generate args???", __func__,
+    biffAddf(HEST, "%s%snon-empty stack (depth %u) can't generate args???", _ME_,
              hist->len);
     return 1;
   }
@@ -685,20 +683,21 @@ identStr(char *ident, const hestOpt *opt) {
 }
 
 static int
-havecTransfer(hestArgVec *hvdst, hestArgVec *hvsrc, uint srcIdx, uint num) {
+havecTransfer(hestArgVec *hvdst, hestArgVec *hvsrc, uint srcIdx, uint num,
+              const hestParm *hparm) {
   if (!(hvdst && hvsrc)) {
-    biffAddf(HEST, "%s: got NULL dst %p or src %p", __func__, AIR_VOIDP(hvdst),
+    biffAddf(HEST, "%s%sgot NULL dst %p or src %p", _ME_, AIR_VOIDP(hvdst),
              AIR_VOIDP(hvsrc));
     return 1;
   }
   if (num) {
     if (!(srcIdx < hvsrc->len)) {
-      biffAddf(HEST, "%s: starting index %u in source beyond its length %u", __func__,
+      biffAddf(HEST, "%s%sstarting index %u in source beyond its length %u", _ME_,
                srcIdx, hvsrc->len);
       return 1;
     }
     if (!(srcIdx + num <= hvsrc->len)) {
-      biffAddf(HEST, "%s: have only %u args but want %u starting at %u", __func__,
+      biffAddf(HEST, "%s%shave only %u args but want %u starting at %u", _ME_,
                hvsrc->len, num, srcIdx);
       return 1;
     }
@@ -758,14 +757,14 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   uint argIdx = 0;
   hestOpt *theOpt = NULL;
   while (argIdx < havec->len) { // NOTE: havec->len may decrease within an interation!
-    if (hparm->verbosity) {
+    if (hparm->verbosity > 1) {
       printf("%s: ------------- argIdx = %u (of %u) -> argv[argIdx] = |%s|\n", __func__,
              argIdx, havec->len, havec->harg[argIdx]->str);
     }
     uint optIdx = whichOptFlag(opt, havec->harg[argIdx]->str, hparm);
     if (UINT_MAX == optIdx) {
       // havec->harg[argIdx]->str is not a flag for any option, move on to next arg
-      if (hparm->verbosity) {
+      if (hparm->verbosity > 2) {
         printf("%s: |%s| not a flag arg, continue\n", __func__,
                havec->harg[argIdx]->str);
       }
@@ -811,26 +810,26 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     if (parmNum < theOpt->min) { // didn't get required min # parameters
       if (hitEnd) {
         biffAddf(HEST,
-                 "%s: hit end of args before getting %u parameter%s "
+                 "%s%shit end of args before getting %u parameter%s "
                  "for %s (got %u)",
-                 __func__, theOpt->min, theOpt->min > 1 ? "s" : "",
-                 identStr(ident1, theOpt), parmNum);
+                 _ME_, theOpt->min, theOpt->min > 1 ? "s" : "", identStr(ident1, theOpt),
+                 parmNum);
       } else if (hitVPS) {
         biffAddf(HEST,
-                 "%s: hit \"-%c\" (variable-parameter-stop flag) before getting %u "
+                 "%s%shit \"-%c\" (variable-parameter-stop flag) before getting %u "
                  "parameter%s for %s (got %u)",
-                 __func__, VAR_PARM_STOP_FLAG, theOpt->min, theOpt->min > 1 ? "s" : "",
+                 _ME_, VAR_PARM_STOP_FLAG, theOpt->min, theOpt->min > 1 ? "s" : "",
                  identStr(ident1, theOpt), parmNum);
       } else if (UINT_MAX != nextOptIdx) {
-        biffAddf(HEST, "%s: saw %s before getting %u parameter%s for %s (got %d)",
-                 __func__, identStr(ident2, opt + nextOptIdx), theOpt->min,
+        biffAddf(HEST, "%s%ssaw %s before getting %u parameter%s for %s (got %d)", _ME_,
+                 identStr(ident2, opt + nextOptIdx), theOpt->min,
                  theOpt->min > 1 ? "s" : "", identStr(ident1, theOpt), parmNum);
       } else {
         biffAddf(HEST,
-                 "%s: sorry, confused about not getting %u "
+                 "%s%ssorry, confused about not getting %u "
                  "parameter%s for %s (got %d)",
-                 __func__, theOpt->min, theOpt->min > 1 ? "s" : "",
-                 identStr(ident1, theOpt), parmNum);
+                 _ME_, theOpt->min, theOpt->min > 1 ? "s" : "", identStr(ident1, theOpt),
+                 parmNum);
       }
       return 1;
     }
@@ -850,8 +849,8 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       sprintf(info, "main havec after losing argIdx %u", argIdx);
       hestArgVecPrint(__func__, info, havec);
     }
-    if (havecTransfer(theOpt->havec, havec, argIdx, parmNum)) {
-      biffAddf(HEST, "%s: trouble transferring %u args for %s", __func__, parmNum,
+    if (havecTransfer(theOpt->havec, havec, argIdx, parmNum, hparm)) {
+      biffAddf(HEST, "%s%strouble transferring %u args for %s", _ME_, parmNum,
                identStr(ident1, theOpt));
       return 1;
     }
@@ -884,7 +883,7 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       }
       // if needs to be set but hasn't been
       if (needing && hestSourceUnknown == theOpt->source) {
-        biffAddf(HEST, "%s: didn't get required %s", __func__, identStr(ident1, theOpt));
+        biffAddf(HEST, "%s%sdidn't get required %s", _ME_, identStr(ident1, theOpt));
         return 1;
       }
     }
@@ -958,8 +957,9 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     if (hparm->verbosity) {
       printf("%s: looking at opi = %u kind %d\n", __func__, opi, opt[opi].kind);
     }
-    if (havecTransfer(opt[opi].havec, havec, 0, opt[opi].min /* min == max */)) {
-      biffAddf(HEST, "%s: trouble getting args for %s", __func__,
+    opt[opi].source = havec->harg[0]->source;
+    if (havecTransfer(opt[opi].havec, havec, 0, opt[opi].min /* min == max */, hparm)) {
+      biffAddf(HEST, "%s%strouble getting args for %s", _ME_,
                identStr(ident, opt + opi));
       return 1;
     }
@@ -976,9 +976,9 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     uint opi = nextUnflagged(unflagVar + 1, opt);
     uint np = opt[opi].min;
     biffAddf(HEST,
-             "%s: remaining %u args not enough for the %u parameter%s "
+             "%s%sremaining %u args not enough for the %u parameter%s "
              "needed for %s or later options",
-             __func__, havec->len, np, np > 1 ? "s" : "", identStr(ident, opt + opi));
+             _ME_, havec->len, np, np > 1 ? "s" : "", identStr(ident, opt + opi));
     return 1;
   }
   /* else we had enough args for all the unflagged options following
@@ -986,8 +986,9 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   for (uint opi = nextUnflagged(unflagVar + 1, opt); opi < optNum;
        opi = nextUnflagged(opi + 1, opt)) {
     // HEY check the nvp start
-    if (havecTransfer(opt[opi].havec, havec, nvp, opt[opi].min /* min == max */)) {
-      biffAddf(HEST, "%s: trouble getting args for %s", __func__,
+    if (havecTransfer(opt[opi].havec, havec, nvp, opt[opi].min /* min == max */,
+                      hparm)) {
+      biffAddf(HEST, "%s%strouble getting args for %s", _ME_,
                identStr(ident, opt + opi));
       return 1;
     }
@@ -1010,13 +1011,13 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       triggered this error message when there were zero given parms, but the default
       could have supplied them */
       if (nvp < AIR_INT(opt[unflagVar].min)) {
-        biffAddf(HEST, "%s: didn't get minimum of %d arg%s for %s (got %d)", __func__,
+        biffAddf(HEST, "%s%sdidn't get minimum of %d arg%s for %s (got %d)", _ME_,
                  opt[unflagVar].min, opt[unflagVar].min > 1 ? "s" : "",
                  identStr(ident, opt + unflagVar), nvp);
         return 1;
       }
-      if (havecTransfer(opt[unflagVar].havec, havec, 0, nvp)) {
-        biffAddf(HEST, "%s: trouble getting args for %s", __func__,
+      if (havecTransfer(opt[unflagVar].havec, havec, 0, nvp, hparm)) {
+        biffAddf(HEST, "%s%strouble getting args for %s", _ME_,
                  identStr(ident, opt + unflagVar));
         return 1;
       }
@@ -1031,9 +1032,9 @@ anythingleft:
   }
   if (havec->len) {
     biffAddf(HEST,
-             "%s: after handling %u unflagged opts, still have unexpected %u args "
+             "%s%safter handling %u unflagged opts, still have unexpected %u args "
              "left in (starting with \"%s\")",
-             __func__, unflagNum, havec->len, havec->harg[0]->str);
+             _ME_, unflagNum, havec->len, havec->harg[0]->str);
     return 1;
   }
   return 0;
@@ -1077,11 +1078,12 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
 
   // error string song and dance
 #define DO_ERR(WUT)                                                                     \
+  biffAddf(HEST, "%s%s" WUT, _MEV_(HPARM->verbosity));                                  \
   char *err = biffGetDone(HEST);                                                        \
   if (errP) {                                                                           \
     *errP = err;                                                                        \
   } else {                                                                              \
-    fprintf(stderr, "%s: " WUT ":\n%s", __func__, err);                                 \
+    fprintf(stderr, "%s: problem:\n%s", __func__, err);                                 \
     free(err);                                                                          \
   }
 
@@ -1125,6 +1127,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
 
   // --2--2--2--2--2-- extract args associated with flagged and unflagged opt
   if (havecExtractFlagged(opt, havec, HPARM)
+      // this will detect extraneous args after unflaggeds are extracted
       || havecExtractUnflagged(opt, havec, HPARM)) {
     DO_ERR("problem extracting args for options");
     airMopError(mop);
