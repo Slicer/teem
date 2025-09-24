@@ -34,7 +34,7 @@ main(int argc, const char **argv) {
   hestParm *hparm = hestParmNew();
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->responseFileEnable = AIR_TRUE;
-  hparm->verbosity = 10;
+  hparm->verbosity = 3;
 
   int verb;
   hestOptAdd_1_Int(&opt, "v", "verb", &verb, "0", "verbosity");
@@ -44,6 +44,8 @@ main(int argc, const char **argv) {
                     &slen);
   int flag;
   hestOptAdd_Flag(&opt, "b,bingo", &flag, "a flag");
+  int glaf;
+  hestOptAdd_Flag(&opt, "c,cingo", &glaf, "a flag");
   char *err = NULL;
   if (hestParse2(opt, argc - 1, argv + 1, &err, hparm)) {
     fprintf(stderr, "%s: problem:\n%s\n", argv[0], err);

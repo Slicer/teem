@@ -201,8 +201,8 @@ typedef struct {
   void *valueP;       /* storage of parsed values */
   char *dflt,         /* default value(s) written out as string */
     *info;            /* description to be printed with "glossary" info */
-  unsigned int *sawP; /* used ONLY for multiple variable parameter options
-                         (min < max >= 2): storage of # of parsed values */
+  unsigned int *sawP; /* really OUTPUT: used ONLY for multiple variable parameter
+                         options (min < max >= 2): storage of # of parsed values */
   const airEnum *enm; /* used ONLY for airTypeEnum options */
   const hestCB *CB;   /* used ONLY for airTypeOther options */
 

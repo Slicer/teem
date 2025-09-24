@@ -629,11 +629,11 @@ If there is no match, returns UINT_MAX.
 static uint
 whichOptFlag(const hestOpt *opt, const char *flarg, const hestParm *hparm) {
   uint optNum = opt->arrLen;
-  if (hparm->verbosity)
+  if (hparm->verbosity > 3)
     printf("%s: looking for maybe-is-flag |%s| in optNum=%u options\n", __func__, flarg,
            optNum);
   for (uint optIdx = 0; optIdx < optNum; optIdx++) {
-    if (hparm->verbosity)
+    if (hparm->verbosity > 3)
       printf("%s:      optIdx %u |%s| ?\n", __func__, optIdx,
              opt[optIdx].flag ? opt[optIdx].flag : "(nullflag)");
     const char *optFlag = opt[optIdx].flag;
@@ -660,7 +660,7 @@ whichOptFlag(const hestOpt *opt, const char *flarg, const hestParm *hparm) {
       free(buff);
     }
   }
-  if (hparm->verbosity) printf("%s: no match, returning UINT_MAX\n", __func__);
+  if (hparm->verbosity > 3) printf("%s: no match, returning UINT_MAX\n", __func__);
   return UINT_MAX;
 }
 
@@ -682,6 +682,51 @@ identStr(char *ident, const hestOpt *opt) {
     sprintf(ident, "\"<%s>\" option", opt->name);
   }
   return ident;
+}
+
+static int
+havecTransfer(hestArgVec *hvdst, hestArgVec *hvsrc, uint srcIdx, uint num) {
+  if (!(hvdst && hvsrc)) {
+    biffAddf(HEST, "%s: got NULL dst %p or src %p", __func__, AIR_VOIDP(hvdst),
+             AIR_VOIDP(hvsrc));
+    return 1;
+  }
+  if (num) {
+    if (!(srcIdx < hvsrc->len)) {
+      biffAddf(HEST, "%s: starting index %u in source beyond its length %u", __func__,
+               srcIdx, hvsrc->len);
+      return 1;
+    }
+    if (!(srcIdx + num < hvsrc->len)) {
+      biffAddf(HEST, "%s: %u args starting at index %u |%s| goes past length %u",
+               __func__, num, srcIdx, hvsrc->harg[srcIdx]->str, hvsrc->len);
+      return 1;
+    }
+    // okay now do the work, starting with empty destination
+    hestArgVecReset(hvdst);
+    for (uint ai = 0; ai < num; ai++) {
+      hestArgVecAppendArg(hvdst, hestArgVecRemove(hvsrc, srcIdx));
+    }
+  }
+  return 0;
+}
+
+void
+hestOptPrint(const char *fname, const char *ctx, const hestOpt *allopt) {
+  printf("%s: %s:\n", fname, ctx);
+  printf("%s: v.v.v.v.v.v.v.v.v hestOpt %p has %u options (allocated for %u):\n", fname,
+         AIR_VOIDP(allopt), allopt->arrLen, allopt->arrAlloc);
+  for (uint opi = 0; opi < allopt->arrLen; opi++) {
+    const hestOpt *opt = allopt + opi;
+    printf("--- opt %u:\tflag|%s|\tname|%s|\t k%d (%u)--(%d) \t%s \tdflt|%s|\n", opi,
+           opt->flag ? opt->flag : "(null)", opt->name ? opt->name : "(null)", opt->kind,
+           opt->min, opt->max, _hestTypeStr[opt->type],
+           opt->dflt ? opt->dflt : "(null)");
+    printf("    source %s\n", airEnumStr(hestSource, opt->source));
+    hestArgVecPrint("", "    havec:", opt->havec);
+  }
+  printf("%s: ^'^'^'^'^'^'^'^'^\n", fname);
+  return;
 }
 
 /*
@@ -804,13 +849,10 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       sprintf(info, "main havec after losing argIdx %u", argIdx);
       hestArgVecPrint(__func__, info, havec);
     }
-    // empty any prior parm args learned for this option
-    hestArgVecReset(theOpt->havec);
-    for (uint pidx = 0; pidx < parmNum; pidx++) {
-      if (hparm->verbosity) {
-        printf("%s: moving |%s| to theOpt->havec\n", __func__, havec->harg[argIdx]->str);
-      }
-      hestArgVecAppendArg(theOpt->havec, hestArgVecRemove(havec, argIdx));
+    if (havecTransfer(theOpt->havec, havec, argIdx, parmNum)) {
+      biffAddf(HEST, "%s: trouble transferring %u args for %s", __func__, parmNum,
+               identStr(ident1, theOpt));
+      return 1;
     }
     if (hitVPS) {
       // drop the variable-parameter-stop flag
@@ -841,11 +883,151 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       }
       // if needs to be set but hasn't been
       if (needing && hestSourceUnknown == theOpt->source) {
-        biffAddf(HEST, "%s: didn't get required %s\n", __func__,
-                 identStr(ident1, theOpt));
+        biffAddf(HEST, "%s: didn't get required %s", __func__, identStr(ident1, theOpt));
         return 1;
       }
     }
+  }
+
+  if (hparm->verbosity) {
+    hestOptPrint(__func__, "end of havecExtractFlagged", opt);
+    hestArgVecPrint(__func__, "end of havecExtractFlagged", havec);
+  }
+  return 0;
+}
+
+static uint
+nextUnflagged(uint opi, hestOpt *opt) {
+  uint optNum = opt->arrLen;
+  for (; opi < optNum; opi++) {
+    if (!opt[opi].flag) break;
+  }
+  return opi;
+}
+
+/*
+havecExtractUnflagged()
+
+extracts the parameter args associated with all unflagged options (of `hestOpt *opt`)
+from the given `hestArgVec *havec` and (like havecExtractFlagged) extracts those args and
+saves them in the corresponding opt[].havec
+
+This is the function that has to handle the trickly logic of allowing there to be
+multiple unflagged options, only one of which may have a variable number of parms; that
+one has to be extracted last.
+*/
+static int
+havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
+  char ident[AIR_STRLEN_HUGE + 1];
+  uint optNum = opt->arrLen;
+  uint unflagNum = 0;
+  for (uint opi = 0; opi < optNum; opi++) {
+    unflagNum += !opt[opi].flag;
+  }
+  if (!unflagNum) {
+    /* no unflagged options; we're done */
+    goto anythingleft;
+  }
+  uint unflag1st = nextUnflagged(0, opt);
+  if (hparm->verbosity) {
+    printf("%s: optNum %u != unflag1st %u: have %u (of %u) unflagged options\n",
+           __func__, optNum, unflag1st, unflagNum, optNum);
+  }
+  uint unflagVar;             // the index of the unflagged variable parm option
+  for (unflagVar = unflag1st; //
+       unflagVar < optNum;
+       unflagVar = nextUnflagged(unflagVar + 1, opt)) {
+    if (opt[unflagVar].kind > 3) {
+      // kind 4 = single variable parm;  kind 5 = multiple variable parm
+      break;
+    }
+  }
+  /* now, if there is a variable parameter unflagged opt (NOTE that _hestOPCheck()
+     ensured that there is at most one of these), then unflagVar is its index in opt[].
+     If there is no variable parameter unflagged opt, unflagVar is optNum. */
+  if (hparm->verbosity) {
+    printf("%s: unflagVar %d\n", __func__, unflagVar);
+  }
+
+  /* grab parameters for all unflagged opts before opt[unflagVar] */
+  for (uint opi = nextUnflagged(0, opt); opi < unflagVar;
+       opi = nextUnflagged(opi + 1, opt)) {
+    if (hparm->verbosity) {
+      printf("%s: looking at opi = %u (unflagVar = %u)\n", __func__, opi, unflagVar);
+    }
+    if (havecTransfer(opt[opi].havec, havec, 0, opt[opi].min /* min == max */)) {
+      biffAddf(HEST, "%s: trouble getting args for %s", __func__,
+               identStr(ident, opt + opi));
+    }
+  }
+  /* we skip over the variable parameter unflagged option, subtract from havec->len the
+  number of parameters in all the opts which follow it, in order to get the number of
+  parameters in the sole variable parameter option; store this in nvp */
+  int nvp = AIR_INT(havec->len);
+  for (uint opi = nextUnflagged(unflagVar + 1, opt); opi < optNum;
+       opi = nextUnflagged(opi + 1, opt)) {
+    nvp -= AIR_INT(opt[opi].min); // min == max
+  }
+  if (nvp < 0) {
+    uint opi = nextUnflagged(unflagVar + 1, opt);
+    uint np = opt[opi].min;
+    biffAddf(HEST,
+             "%s: remaining %u args not enough for the %u parameter%s "
+             "needed for %s or later options",
+             __func__, havec->len, np, np > 1 ? "s" : "", identStr(ident, opt + opi));
+    return 1;
+  }
+  /* else we had enough args for all the unflagged options following
+     the sole variable parameter unflagged option, so snarf them up */
+  for (uint opi = nextUnflagged(unflagVar + 1, opt); opi < optNum;
+       opi = nextUnflagged(opi + 1, opt)) {
+    // HEY check the nvp start
+    if (havecTransfer(opt[opi].havec, havec, nvp, opt[opi].min /* min == max */)) {
+      biffAddf(HEST, "%s: trouble getting args for %s", __func__,
+               identStr(ident, opt + opi));
+    }
+  }
+
+  /* now, finally, we grab the parameters of the sole variable parameter unflagged opt,
+     if it exists (unflagVar < optNum) */
+  if (hparm->verbosity) {
+    printf("%s: (still here) unflagVar %u vs optNum %u (nvp %d)\n", __func__, unflagVar,
+           optNum, nvp);
+  }
+  if (unflagVar < optNum) { // so there is a variable parameter unflagged opt
+    if (hparm->verbosity) {
+      printf("%s: unflagVar=%u: min, nvp, max = %u %d %d\n", __func__, unflagVar,
+             opt[unflagVar].min, nvp, _hestMax(opt[unflagVar].max));
+    }
+    /* we'll do error checking for unexpected args later */
+    if (nvp) {
+      /* pre-2023: this check used to be done regardless of nvp, but that incorrectly
+      triggered this error message when there were zero given parms, but the default
+      could have supplied them */
+      if (nvp < AIR_INT(opt[unflagVar].min)) {
+        biffAddf(HEST, "%s: didn't get minimum of %d arg%s for %s (got %d)", __func__,
+                 opt[unflagVar].min, opt[unflagVar].min > 1 ? "s" : "",
+                 identStr(ident, opt + unflagVar), nvp);
+        return 1;
+      }
+      if (havecTransfer(opt[unflagVar].havec, havec, 0, nvp)) {
+        biffAddf(HEST, "%s: trouble getting args for %s", __func__,
+                 identStr(ident, opt + unflagVar));
+      }
+    }
+  } else {
+    hestArgVecReset(opt[unflagVar].havec);
+  }
+anythingleft:
+  if (hparm->verbosity) {
+    hestOptPrint(__func__, "end of havecExtractUnflagged", opt);
+    hestArgVecPrint(__func__, "end of havecExtractUnflagged", havec);
+  }
+  if (havec->len) {
+    biffAddf(HEST,
+             "%s: after handling %u unflagged opts, still have unexpected %u args "
+             "left in (starting with \"%s\")",
+             __func__, unflagNum, havec->len, havec->harg[0]->str);
   }
   return 0;
 }
@@ -857,12 +1039,13 @@ an error, an error message string describing it in detail is generated and
  - if errP: *errP is set to the newly allocated error message string
    NOTE: it is the caller's responsibility to free() it later
  - if !errP: the error message is fprintf'ed to stderr
+
 The basic phases of parsing are:
 0) Error checking on given `opt` array
 1) Generate internal representation of command-line that includes expanding any response
-   files; this is the `hestArgVec *havec`.
+   files; this all goes into the `hestArgVec *havec`.
 2) From `havec`, extract the args that are attributable to flagged and unflagged options,
-   moving each `hestArg` instead into per-hestOpt opt->havec
+   moving each `hestArg` out of main `havec` and into the per-hestOpt opt->havec
 3) For options not user-supplied, process the opt's `dflt` string to set opt->havec
 4) Now, every option should have a opt->havec set, regardless of where it came from.
    So parse those per-opt args to set final values for the user to see
@@ -934,14 +1117,12 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
   }
 
   // --2--2--2--2--2-- extract args associated with flagged and unflagged opt
-  // HEY initialize internal working fields of each opt
-  if (havecExtractFlagged(opt, havec, HPARM) /*
-      || havecExtractUnflagged(opt, havec, HPARM) */) {
+  if (havecExtractFlagged(opt, havec, HPARM)
+      || havecExtractUnflagged(opt, havec, HPARM)) {
     DO_ERR("problem extracting args for options");
     airMopError(mop);
     return 1;
   }
-  // HEY: verify that there were no errant extra args?
 
 #if 0
   /* --3--3--3--3--3-- process defaults strings for opts that weren't user-supplied

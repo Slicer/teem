@@ -586,12 +586,27 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
       }
     }
     if (opt[opi].flag) {
-      char *tbuff = airStrdup(opt[opi].flag);
-      if (!tbuff) {
-        biffAddf(HEST, "%s: could not strdup() opi[%u].flag", __func__, opi);
+      const char *flag = opt[opi].flag;
+      uint fslen = AIR_UINT(strlen(flag));
+      if (fslen > AIR_STRLEN_SMALL / 2) {
+        biffAddf(HEST, "%s: strlen(opt[%u].flag) %u is too big", __func__, opi, fslen);
         return 1;
       }
-      // no map, have to call free(tbuff) !
+      if (strchr(flag, '-')) {
+        biffAddf(HEST, "%s: opt[%u].flag \"%s\" contains '-', which will confuse things",
+                 __func__, opi, flag);
+        return 1;
+      }
+      for (uint chi = 0; chi < fslen; chi++) {
+        if (!isprint(flag[chi])) {
+          biffAddf(HEST, "%s: opt[%u].flag \"%s\" char %u '%c' non-printing", __func__,
+                   opi, flag, chi, flag[chi]);
+          return 1;
+        }
+      }
+      char *tbuff = airStrdup(flag);
+      assert(tbuff);
+      // no mop, have to call free(tbuff) !
       char *sep;
       if ((sep = strchr(tbuff, MULTI_FLAG_SEP))) {
         *sep = '\0';
@@ -609,18 +624,24 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                    __func__, sep + 1, opi);
           return (free(tbuff), 1);
         }
+        if (strchr(sep + 1, MULTI_FLAG_SEP)) {
+          biffAddf(HEST,
+                   "%s: opt[%u] flag string \"%s\" has more than one instance of "
+                   "short/long separation character '%c'",
+                   __func__, opi, flag, MULTI_FLAG_SEP);
+          return (free(tbuff), 1);
+        }
       } else {
         if (!strlen(opt[opi].flag)) {
           biffAddf(HEST, "%s: opt[%u].flag is zero length", __func__, opi);
           return (free(tbuff), 1);
         }
       }
-      if (hparm->respectDashBraceComments
-          && (strchr(opt[opi].flag, '{') || strchr(opt[opi].flag, '}'))) {
+      if (hparm->respectDashBraceComments && (strchr(flag, '{') || strchr(flag, '}'))) {
         biffAddf(HEST,
                  "%s: requested hparm->respectDashBraceComments but opt[%u]'s flag "
                  "\"%s\" confusingly contains '{' or '}'",
-                 __func__, opi, opt[opi].flag);
+                 __func__, opi, flag);
         return (free(tbuff), 1);
       }
       if (4 == opt[opi].kind) {
@@ -669,8 +690,8 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                __func__, opi);
       return 1;
     }
-    varNum += ((int)opt[opi].min < _hestMax(opt[opi].max)
-               && (NULL == opt[opi].flag)); /* HEY scrutinize casts */
+    // kind 4 = single variable parm;  kind 5 = multiple variable parm
+    varNum += (opt[opi].kind > 3 && (NULL == opt[opi].flag));
   }
   if (varNum > 1) {
     biffAddf(HEST, "%s: can't have %u unflagged min<max options, only one", __func__,

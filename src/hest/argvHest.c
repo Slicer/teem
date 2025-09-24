@@ -198,13 +198,15 @@ hestArgVecPrint(const char *caller, const char *info, const hestArgVec *havec) {
     'r', // 2: hestSourceResponseFile
     'd', // 3: hestSourceDefault
   };
-  printf("%s: %s hestArgVec %p has %u args:\n", caller, info, havec, havec->len);
+  printf("%s%s%s hestArgVec %p has %u args:\n   ", airStrlen(caller) ? caller : "", //
+         airStrlen(caller) ? ": " : "",                                             //
+         info, havec, havec->len);
   for (uint idx = 0; idx < havec->hargArr->len; idx++) {
     const hestArg *harg;
     harg = havec->harg[idx];
     // fprintf(stderr, "!%s harg@%p=%u:<%s>\n", "", AIR_VOIDP(harg), idx,
     //        harg->str ? harg->str : "NULL");
-    printf("  %u%c:<%s>", idx, srcch[harg->source], harg->str ? harg->str : "NULL");
+    printf(" %u%c:<%s>", idx, srcch[harg->source], harg->str ? harg->str : "NULL");
   }
   printf("\n");
 }
