@@ -551,9 +551,9 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     topHin = (hist->len //
                 ? hist->hin + hist->len - 1
                 : NULL);
-    printf("!%s: nast = %s, |stack| = %u, topHin = %p\n", __func__,
-           airEnumStr(nast_ae, nast), hist->len, AIR_VOIDP(topHin));
-    // we have a token, is it turning off commenting?
+    // printf("!%s: nast = %s, |stack| = %u, topHin = %p\n", __func__,
+    //        airEnumStr(nast_ae, nast), hist->len, AIR_VOIDP(topHin));
+    //  we have a token, is it turning off commenting?
     if (hparm->respectDashBraceComments && !strcmp("}-", tharg->str)) {
       if (!topHin) {
         biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (0)", _ME_, iters,
