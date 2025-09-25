@@ -104,11 +104,11 @@ DEF_ = definition = declaration + implementation
 _T_ = simple scalar types
 _E_ = airEnum
 _O_ = Other (needs hestCB)
-_1 = single parameter, either fixed (kind 2) or variable (kind 4)
+_1 = single parameter, either fixed (kind 2) or variadic (kind 4)
 _M = 2, 3, or 4 = COMPILE-TIME fixed # of parameters (kind 3)
      (these exist as a convenience, covering many common hest uses)
 _N = RUN_TIME user-given fixed # of parameters (still kind 3)
-_V = RUN_TIME variable # of parameters (kind 5)
+_V = RUN_TIME variadic # of parameters (kind 5)
 
 */
 
@@ -122,7 +122,7 @@ _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1
 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1
 */
 
-/* "_1v_" functions (declared via _DCL_T_0) are for a single variable parm opt (kind 4),
+/* "_1v_" functions (declared via _DCL_T_0) are for a single variadic parm opt (kind 4),
     "_1_" functions (declared via _DCL_T_1) are for a single fixed parm opt (kind 2)
 */
 #define _DCL_T_0(ATYP, CTYP)                                                            \

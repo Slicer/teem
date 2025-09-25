@@ -137,7 +137,7 @@ So "--" marks the end of some "option-arguments".
 
 But hestParse does not know or care about "operands": *every* element of the given argv
 will be interpreted as the argument to some option, including an unflagged option (a
-variable unflagged option is how hest would support something like "cksum *.txt").  For
+variadic unflagged option is how hest would support something like "cksum *.txt").  For
 hest to implement the expected behavior for "--", hest has to care about "--" only in the
 context of collecting parameters to *flagged* options. But copyArgv() is upstream of that
 awareness (of flagged vs unflagged), so we do not act on "--" here.
@@ -392,7 +392,7 @@ The sawP information is not set here, since it is better set at value parsing ti
 happens after defaults are enstated.
 
 This is where, thanks to the action of whichOptFlag(), "--" (and only "--" due to
-VAR_PARM_STOP_FLAG) is used as a marker for the end of a *flagged* variable parameter
+VAR_PARM_STOP_FLAG) is used as a marker for the end of a *flagged* variadic parameter
 option.  AND, the "--" marker is removed from the argv.
 */
 static int
@@ -528,7 +528,7 @@ them in optParms[] as a single VTAB-separated string (VTABs originating in extra
 recording the number of parameters in optParmNum[].
 
 This is the function that has to handle the trickly logic of allowing there to be
-multiple unflagged options, one of which may have a variable number of parms; that
+multiple unflagged options, one of which may have a variadic number of parms; that
 one has to be extracted last.
 */
 static int
@@ -556,7 +556,7 @@ extractUnflagged(char **optParms, unsigned int *optParmNum, int *argcP, char **a
       break;
     }
   }
-  /* now, if there is a variable parameter unflagged opt, unflagVar is its
+  /* now, if there is a variadic parameter unflagged opt, unflagVar is its
      index in opt[], or else unflagVar is optNum */
   if (hparm->verbosity) {
     printf("%sunflagVar %d\n", me, unflagVar);
@@ -579,9 +579,9 @@ extractUnflagged(char **optParms, unsigned int *optParmNum, int *argcP, char **a
     airMopAdd(pmop, optParms[op], airFree, airMopAlways);
     optParmNum[op] = np;
   }
-  /* we skip over the variable parameter unflagged option,
+  /* we skip over the variadic parameter unflagged option,
   subtract from *argcP the number of parameters in all the opts which follow it,
-  in order to get the number of parameters in the sole variable parameter option,
+  in order to get the number of parameters in the sole variadic parameter option,
   store this in nvp */
   nvp = *argcP;
   for (op = nextUnflagged(unflagVar + 1, opt, optNum); op < optNum;
@@ -596,7 +596,7 @@ extractUnflagged(char **optParms, unsigned int *optParmNum, int *argcP, char **a
     return 1;
   }
   /* else we had enough args for all the unflagged options following
-     the sole variable parameter unflagged option, so snarf them up */
+     the sole variadic parameter unflagged option, so snarf them up */
   for (op = nextUnflagged(unflagVar + 1, opt, optNum); op < optNum;
        op = nextUnflagged(op + 1, opt, optNum)) {
     np = opt[op].min;
@@ -605,7 +605,7 @@ extractUnflagged(char **optParms, unsigned int *optParmNum, int *argcP, char **a
     optParmNum[op] = np;
   }
 
-  /* now we grab the parameters of the sole variable parameter unflagged opt,
+  /* now we grab the parameters of the sole variadic parameter unflagged opt,
      if it exists (unflagVar < optNum) */
   if (hparm->verbosity) {
     printf("%s (still here) unflagVar %d vs optNum %d (nvp %d)\n", me, unflagVar, optNum,
@@ -675,7 +675,7 @@ _hestDefaults(char **optParms, int *optDfltd, unsigned int *optParmNum,
       optDfltd[optIdx] = opt[optIdx].flag && !optAprd[optIdx];
       break;
     case 4:
-      /* -------- optional single variables -------- */
+      /* -------- optional single variadics -------- */
       /* if the flag appeared (if there is a flag) but the parameter didn't, we'll
          "invert" the default; if the flag didn't appear (or if there isn't a flag) and
          the parameter also didn't appear, we'll use the default.  In either case,
@@ -1036,7 +1036,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
       }
       break;
     case 4:
-      /* -------- optional single variables -------- */
+      /* -------- optional single variadics -------- */
       if (optParms[op] && vP) {
         int pret;
         switch (type) {
@@ -1087,8 +1087,8 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           break;
         case airTypeOther:
           /* we're parsing an single "other".  We will not perform the special flagged
-          single variable parameter games as done above, so whether this option is
-          flagged or unflagged, we're going to treat it like an unflagged single variable
+          single variadic parameter games as done above, so whether this option is
+          flagged or unflagged, we're going to treat it like an unflagged single variadic
           parameter option: if the parameter didn't appear, we'll parse it from the
           default, if it did appear, we'll parse it from the command line.  Setting up
           optParms[op] thusly has already been done by _hestDefaults() */
@@ -1130,7 +1130,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
       }
       break;
     case 5:
-      /* -------- multiple variable parameters -------- */
+      /* -------- multiple variadic parameters -------- */
       if (optParms[op] && vP) {
         if (1 == whichCase(opt, optDfltd, optParmNum, appr, op)) {
           *((void **)vP) = NULL;
@@ -1385,7 +1385,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **errP,
     } else {
       fprintf(stderr,
               "%sunexpected end-of-parameters flag \"%s\": "
-              "not ending a flagged variable-parameter option\n",
+              "not ending a flagged variadic-parameter option\n",
               ME, stops);
     }
     airMopError(mop);

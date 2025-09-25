@@ -164,7 +164,7 @@ typedef struct {
 ** for when the thing you want to parse from the command-line is airTypeOther: not a
 ** simple boolean, number, string, or airEnum.  hestParse() will not allocate anything to
 ** store individual things, though it may allocate an array in the case of a multiple
-** variable parameter option.  If your things are actually pointers to things, then you
+** variadic parameter option.  If your things are actually pointers to things, then you
 ** do the allocation in the parse() callback.  In this case, you set destroy() to be
 ** your "destructor", and it will be called on the result of derefencing the argument
 ** to parse().
@@ -201,7 +201,7 @@ typedef struct {
   void *valueP;       /* storage of parsed values */
   char *dflt,         /* default value(s) written out as string */
     *info;            /* description to be printed with "glossary" info */
-  unsigned int *sawP; /* really OUTPUT: used ONLY for multiple variable parameter
+  unsigned int *sawP; /* really OUTPUT: used ONLY for multiple variadic parameter
                          options (min < max >= 2): storage of # of parsed values */
   const airEnum *enm; /* used ONLY for airTypeEnum options */
   const hestCB *CB;   /* used ONLY for airTypeOther options */
@@ -217,8 +217,8 @@ typedef struct {
                1: min == max == 0       stand-alone flag; no parameters
                2: min == max == 1       single fixed parameter
                3: min == max >= 2       multiple fixed parameters
-               4: min == 0; max == 1;   single variable parameter
-               5: min < max; max >= 2   multiple variable parameters
+               4: min == 0; max == 1;   single variadic parameter
+               5: min < max; max >= 2   multiple variadic parameters
               This is set by hest functions as part of building up an array of hestOpt,
               and informs the later action of hestOptFree */
     alloc;  /* Information (set by hestParse) about whether flag is non-NULL, and what
@@ -258,7 +258,7 @@ typedef struct {
   string (storing zero or many parameters), from which hestParse ultimately parsed
   whatever values were set in *valueP above. Internally, hest maintains an argc,argv-like
   representation of the info to parse, but here it is joined back together into a
-  space-delimited single string. Note that in the case of single variable parameter
+  space-delimited single string. Note that in the case of single variadic parameter
   options used without a parameter, the value stored will be "inverted" from the string
   here. */
   char *parmStr;
@@ -418,8 +418,8 @@ kind  min, max             function family         description
  1    min == max == 0      hestOptAdd_Flag         (stand-alone flag; no parameters)
  2    min == max == 1      hestOptAdd_1_T          single fixed parameter
  3    min == max >= 2      hestOptAdd_{2,3,4,N}_T  multiple fixed parameters
- 4    min == 0; max == 1   hestOptAdd_1v_T         single variable parameter
- 5    min < max; max >= 2  hestOptAdd_Nv_T         multiple variable parameters
+ 4    min == 0; max == 1   hestOptAdd_1v_T         single variadic parameter
+ 5    min < max; max >= 2  hestOptAdd_Nv_T         multiple variadic parameters
 
 The type T can be (one for each airType enum value): Bool, Short, UShort, Int, UInt,
 Long, ULong, Size_t, Float, Double, Char, String, Enum, or Other. An `airEnum *enm` is

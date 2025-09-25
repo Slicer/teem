@@ -34,7 +34,7 @@ main(int argc, const char **argv) {
   hestParm *hparm = hestParmNew();
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->responseFileEnable = AIR_TRUE;
-  hparm->verbosity = 1;
+  hparm->verbosity = 10;
 
   int verb;
   hestOptAdd_1_Int(&opt, "v", "verb", &verb, "0", "verbosity");

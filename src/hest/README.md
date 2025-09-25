@@ -4,7 +4,9 @@
 
 The purpose of `hest` is to bridge the `int argc`, `char *argv[]` command-line arguments and a set of C variables that need to be set for a C program to run. The variables can be of most any type (boolean, `int`, `float`, `char *` strings, or user-defined types), and the variables can hold single values (such as `float thresh`) or multiple values (such as `float RGBA[4]`).
 
-`hest` was created in 2002 out of frustration with how limiting other C command-line parsing libraries were, and has become essential for the utility of tools like `unu`. To the extent that `hest` bridges the interactive command-line with compiled C code, it has taken on some of the roles that in other contexts are served by scripting languages with C extensions. The `hest` code was revisited in 2023 to add long-overdue support for `--help`, and to add typed functions for specifying options like `hestOptAdd_4_Float`. Re-writing the code in 2025 finally fixed long-standing bugs with how quoted strings were handled and how response files were parsed, and to add `-{`, `}-` comments.
+`hest` was created in 2002 out of frustration with how limited other C command-line parsing libraries were, and has become essential for the utility of tools like `unu`. To the extent that `hest` bridges the interactive command-line with compiled C code, it approaches some of the roles that in other contexts are served by scripting languages with C extensions. The `hest` code was revisited in 2023 to add long-overdue support for `--help`, and to add typed functions for specifying options like `hestOptAdd_4_Float`. Re-writing the code in 2025 finally fixed long-standing bugs with how quoted strings were handled and how response files were parsed, and to add `-{`, `}-` comments.
+
+`hest` is powerful and not simple. This note attempts to give a technical description useful for someone thinking about using `hest`, as well as anyone trying wrap their head around the `hest` source code, including its author.
 
 ## Terminology and concepts
 
@@ -17,12 +19,11 @@ The purpose of `hest` is to bridge the `int argc`, `char *argv[]` command-line a
 - Separately, and possibly confusingly, `hest`'s behavior has many knobs and controls, stored in the `hestParm` struct. The pointer-to-struct is always named `hparm` in the code, to try to distinguish it from the parameters appearing on the command-line.
 - An _option_ determines how to set one C variable. In the C code, one `hestOpt` struct stores everything about how to parse one option, _and_ the results of that parsing. An array of `hestOpt` structs (not pointers to structs) is how a `hest`-using program communicates what it wants to learn from the command-line. The `hestOpt` array is usually built up by calls to one of the `hestOptAdd` functions.
 - On the command-line, the option may be specified by a flag and its associated parms; this is a _flagged_ option. Options may also be _unflagged_, or what others call "positional" arguments, because which C variable is set by parsing that option is disambiguated by the option's position on the command-line, and the corresponding ordering of `hestOpt` structs in the `hestOpt` array.
-- `hest`'s goal is to process _all_ the args in the `argv` you give it. In this way `hest` is more like Python's `argparse` that tries to make sense of the entire command-line, rather than, say, POSIX `getopt` which sees some parts of `argv` as flag-prefixed options but leaves the rest as "operands" for something else downstream to interpret. `hest` doesn't know what an operand is, and tries to slot every `argv` element into an argument of some (possibly unflagged) option.
-- An option may have no parms, one parm, a fixed number of parms, or a variable number of parms. Unflagged options must have one or more parms. With `mv *.txt dir`, the `*.txt` filenames could be parsed as a variable number of parms for an unflagged option, and `dir` would be a fixed single parm for a second unflagged option. Flagged options can appear in any order on the command-line, and the same option can be repeated: later appearances over-ride earlier appearances.
-- Sometimes multiple command-line options need to be saved and re-used together, over a time span longer than one shell or any variables set it. Command-line options can thus be stored in _response files_, and the contents of response files effecively expanded into the command-line. Response files can have comments, and response files can name other response files.
+- An option may have no parms, one parm, a fixed number of parms, or a variable number of parms; `hest` calls these _variadic_ options to separate the description of the options from the information (the C _variable_) that the option describes. Unflagged options must have one or more parms. With `mv *.txt dir`, the `*.txt` filenames could be parsed as a variadic parm list for an unflagged option, and `dir` would be a fixed single parm for a second unflagged option.
+- Sometimes multiple command-line options need to be saved and re-used together, over a time span longer than any one shell. Command-line options can thus be stored in _response files_, and the contents of response files effecively expanded into the command-line. Response files can have comments (from `#` to end of line, just like shell scripts), and response files can in turn name other response files.
 - The main `hest` function that does the parsing is `hestParse`. Its job is to set one variable (which may have multiple components) for every `hestOpt`. Information for setting each variable can come from the command-line, or from the default string set in the `hestOpt`, but it has to come from somewhere. Essentially, if no default string is given, then the option _must_ be set on the command-line (or a response file named there). In this sense, `hest`'s "options" are badly named, because they are not really optional.
 
-Note that `hest` does not attempt to follow POSIX conventions (or terminology) for command-line descriptions, because those conventions don't empower the kind of expressivity and flexibility that motivated `hest`'s creation. POSIX does not encompass the scientific computing and visualization contexts that Teem was built for.
+Pre-dating `hest` are the [POSIX conventions for command-line arguments](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html#tag_12_01), wherein the elements of `argv` can be first "options" and then "operands", where "options" are indicated by an initial `-` character, and may have zero or more "option-arguments" (what `hest` calls "parameters"). However, `hest` does not attempt to follow POSIX conventions (or terminology) for command-line usage. In particular, `hest` has no idea of an "operand" while it tries to interpret _every_ the `argv` args as some argument of some (possibly unflagged) option. Disregard for POSIX has not limited `hest`'s expressivity and flexibility, or its utility for the scientific computing and visualization contexts that it was built for.
 
 ## The different `kind`s of options, and how to `hestOptAdd` them.
 
@@ -39,12 +40,12 @@ The _`kind`_ is `hest`'s term for a numeric identifier for the kind of option th
     |              .                   /       .       /
     |              .                /       .       /
     |       (5) multiple           | (3) multiple
- 2--|          variable            |    fixed
+ 2--|          variadic            |    fixed
     |           parms              |    parms
     |         hOA_Nv_T             |  hOA_{2,3,4,N}_T
     |.............................../
     |  (4) single   | (2) single
- 1--|    variable   |    fixed
+ 1--|    variadic   |    fixed
     |      parm     |    parm
     |    hOA_1v_T   |   hOA_1_T
     |...............|/
@@ -57,29 +58,36 @@ max          |              |              |
     min >    0              1              2
 ```
 
-The `kind` of option is mostly independent of whether it is flagged or unflagged, and independent of being optional (due to the `hestOpt` having a default string) versus required (when no default is given). The one wrinkle is that unflagged options must have at least one parameter (i.e. `min` > 0), either by the command-line or via a default string. An unflagged option allowed to have zero parameters has no textual existence and so is unactionable. Thus for unflagged options, `kind`s 1 and 4 are ruled out; kind 5 is possible with `min` >= 1. This is likely already too much low-level information: users of `hest` will likely not ever need to worry about `kind`, and certainly `kind` is not part of the API calls to create options and parse command-lines.
+The `kind` of option is mostly independent of whether it is flagged or unflagged, and independent of being optional (due to the `hestOpt` having a default string) versus required (when no default is given). The one wrinkle is that unflagged options must have at least one parameter (i.e. `min` > 0), either by the command-line or via a default string. An unflagged option allowed to have zero parameters has no explicit textual existence, which seems out-of-bounds for a command-line parser. Thus for unflagged options, `kind`s 1 and 4 are ruled out, and kind 5 is possible with `min` >= 1. This is likely already too much low-level information: users of `hest` will probably never need to worry about `kind`, and certainly `kind` is not part of the API calls to create options and parse command-lines.
 
 Some **concrete examples** may be helpful for understanding `hest`'s utility ... (IN PROGRESS) ...
 ... Give some specific examples, flagged and unflagged ...
 .. show a response file being used, show -{ }- commenting
 
-## Limits on what may be parsed, and the `--` flag
+## The over-all process `hestParse`, its limits, and the `--` flag
 
-If there are no variable parameter options (i.e. limiting oneself to kinds 1, 2, and 3), then there is no limit on options may be used, including the intermixing of flagged and unflagged options, because there is then zero ambiguity about how to attribute a given command-line argument to the parameters of some option.
+Given an `argc`,`argv` command-line and a `hestOpt` array describing the options to parse, `hestParse` must first answer: **which elements of `argv` are associated with which options?** If there are no variadic options (i.e. limiting oneself to kinds 1, 2, and 3), then the answer is straight-forward, even flagged options being able to appear on the command-line in any order. The option set has some fixed number of slots. The flag arguments for the flagged options, and the position of arguments of unflagged options, implies how to put each `argv` element into each slot.
 
-Things became more complicated with variable parameter options. ... two unflagged variable options wouldn't make sense ...
+Things became more complicated with variadic options. Suppose ... two unflagged variadic options wouldn't make sense ...
 
-In [POSIX command-lines](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html#tag_12_01), the elements of `argv` can be first "options" and then "operands", where "options" are
-indicated by something starting with `-`, and may have 0 or more "option-arguments" (what `hest` calls parameters). Then, according to Guideline 10:
+Understanding how `hest` attributes arguments to options starts with knowing the main phases of `hestParse`:
 
-> The first -- argument that is not an option-argument should be accepted as a
-> delimiter indicating the end of options. Any following arguments should be treated
-> as operands, even if they begin with the `-` character.
-> So `--` marks the end of some "option-arguments".
+0. Validate the given `hestOpt` array
+1. Convert given `argc`,`argv`, to an internal (`hestArgVec`) representation of the argument vector (called `havec` in the code). This is the phase in which response files are expanded and `-{`,`}-` comments are interpreted.
+1. 1. Extract from `havec` all the arguments associated with flagged options: the flag args, any immediately subsequent associated parm args.
+   1. What remains in `havec` are the concatenation of args associated with the unflagged (positional) options. As long as there is at most one unflagged variadic option, there is an unambigious assignment of arguments to options.
+1. For any options not yet processed, tokenize into arguments the option's default string, and save these per-option.
+1. Finally, parse the per-option arguments to set the value(s) of C variable pointed to by each `hestOpt`. Each `hestOpt` also remembers the source of information for setting the variable (e.g. command-line vs default string).
 
-Even though, as noted above, `hest` itself does not traffic in "operands", and is _not_ currently compliant with the POSIX behavior just quoted, it does make _limited_ use of the `--` flag.
+Fans of [POSIX Guidelines](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html#tag_12_02) may know that Guideline 10 describes the role of `--`:
 
-The limits in using variable parameter options are:
+> The first -- argument that is not an option-argument should be accepted as a delimiter indicating the end of options. Any following arguments should be treated as operands, even if they begin with the `-` character. So `--` marks the end of some "option-arguments".
 
-- There can be only one _unflagged_ multiple variable parameter option (kind 5). Having more than one creates ambiguity about which option consumes which arguments, and even though `--` could be used for demarcating them, this seems fragile and has not been implemented.
-- ... The `--` flag indicates the explicit end of a _flagged_ variable parameter options.
+Even though, as noted above, `hest` itself does not traffic in "operands" or follow POSIX, it does borrow `--` in a limited way to help with step 2.1 above: `--` marks the end of arguments for a _flagged_ variadic option, to demarcate them from any arguments intended for _unflagged_ options (variadic or not). In this sense, the `--` mark is more about seperating steps 2.1 and 2.2 above, than it is about separating options from operands.
+
+`hest`'s limitations in option variety and processing are:
+
+- There can be only one _unflagged_ multiple variadic option (kind 5). Having more than one creates ambiguity about which option consumes which arguments, and `hest` currently attempts nothing (not even `--`) to resolve this. There can be, however, more than one _flagged_ multiple variadic options.
+- The `--` flag indicates the explicit end of arguments for a _flagged_ variadic option.
+- `hest` strives to interpret the entire `argv` argument vector; there is currently no way to tell `hest` (via `--` or otherwise): "stop processing `argv` here, and leave the as operands for something else to interpret".
+- Flagged options can appear in any order on the command-line, and the same option can be repeated: the last appearances over-rides all earlier appearances. `hest` currently cannot remember a list of occurance of repeated options (unlike, say, `sed -e ... -e ... `. )

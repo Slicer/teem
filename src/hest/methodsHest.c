@@ -261,7 +261,7 @@ opt_kind(unsigned int min, int _max) {
     return 4;
   }
 
-  /* else multiple variable parameters */
+  /* else multiple variadic parameters */
   return 5;
 }
 
@@ -398,7 +398,7 @@ and the 99 non-var-args hestOptAdd_* functions also all call this.
 Like hestOptAdd has done since 2013: returns UINT_MAX in case of error.
 
 NOTE that we do NOT do here ANY error checking on the validity of the arguments passed,
-e.g. enforcing that we have a non-NULL sawP if min != max (a variable parameter option),
+e.g. enforcing that we have a non-NULL sawP if min != max (a variadic parameter option),
 or that without a flag (`flag` is NULL) we must have min > 0.  All of that is done later,
 in _hestOPCheck.
 */
@@ -526,7 +526,7 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
     return 1;
   }
   uint optNum = opt->arrLen;
-  uint varNum = 0; // number of variable-parameter options
+  uint varNum = 0; // number of variadic-parameter options
   for (uint opi = 0; opi < optNum; opi++) {
     if (!(AIR_IN_OP(airTypeUnknown, opt[opi].type, airTypeLast))) {
       biffAddf(HEST, "%s%sopt[%u].type (%d) not in valid range [%d,%d]", _ME_, opi,
@@ -545,7 +545,7 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
     }
     if (5 == opt[opi].kind && !(opt[opi].sawP)) {
       biffAddf(HEST,
-               "%s%sopt[%u] has multiple variable parameters (min=%u,max=%d), "
+               "%s%sopt[%u] has multiple variadic parameters (min=%u,max=%d), "
                "but sawP is NULL",
                _ME_, opi, opt[opi].min, opt[opi].max);
       return 1;
@@ -607,6 +607,15 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
           return 1;
         }
       }
+      if (1 == opt[opi].kind) {
+        if (opt[opi].dflt) {
+          biffAddf(HEST,
+                   "%s%sstand-alone flag (opt[%u] %s) should not give a default; will "
+                   "be ignored",
+                   _ME_, opi, opt[opi].flag);
+          return 1;
+        }
+      }
       char *tbuff = airStrdup(flag);
       assert(tbuff);
       // no mop, have to call free(tbuff) !
@@ -650,14 +659,14 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
       if (4 == opt[opi].kind) {
         if (!opt[opi].dflt) {
           biffAddf(HEST,
-                   "%s%sflagged single variable parameter must "
+                   "%s%sflagged single variadic parameter must "
                    "specify a default",
                    _ME_);
           return (free(tbuff), 1);
         }
         if (!strlen(opt[opi].dflt)) {
           biffAddf(HEST,
-                   "%s%sflagged single variable parameter default "
+                   "%s%sflagged single variadic parameter default "
                    "must be non-zero length",
                    _ME_);
           return (free(tbuff), 1);
@@ -694,12 +703,12 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
     }
     if (4 == opt[opi].kind && !opt[opi].dflt) {
       biffAddf(HEST,
-               "%s%sopt[%u] is single variable parameter, but "
+               "%s%sopt[%u] is single variadic parameter, but "
                "no default set",
                _ME_, opi);
       return 1;
     }
-    // kind 4 = single variable parm;  kind 5 = multiple variable parm
+    // kind 4 = single variadic parm;  kind 5 = multiple variadic parm
     varNum += (opt[opi].kind > 3 && (NULL == opt[opi].flag));
   }
   if (varNum > 1) {
