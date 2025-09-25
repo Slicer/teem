@@ -549,14 +549,15 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     }
     // annoyingly, we may get here with an empty stack (HEY fix this?)
     topHin = (hist->len //
-              ? hist->hin + hist->len - 1
-              : NULL);
-    printf("!%s: nast = %s, |stack| = %u, topHin = %p\n", __func__, airEnumStr(nast_ae, nast),
-           hist->len, AIR_VOIDP(topHin));
+                ? hist->hin + hist->len - 1
+                : NULL);
+    printf("!%s: nast = %s, |stack| = %u, topHin = %p\n", __func__,
+           airEnumStr(nast_ae, nast), hist->len, AIR_VOIDP(topHin));
     // we have a token, is it turning off commenting?
     if (hparm->respectDashBraceComments && !strcmp("}-", tharg->str)) {
       if (!topHin) {
-        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (0)", _ME_, iters, srcstr);
+        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (0)", _ME_, iters,
+                 srcstr);
         return 1;
       }
       if (topHin->dashBraceComment) {
@@ -577,7 +578,8 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     // not ending comment, are we starting (or deepening) one?
     if (hparm->respectDashBraceComments && !strcmp("-{", tharg->str)) {
       if (!topHin) {
-        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (1)", _ME_, iters, srcstr);
+        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (1)", _ME_, iters,
+                 srcstr);
         return 1;
       }
       topHin->dashBraceComment += 1;
@@ -598,7 +600,8 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     // else this arg is not in a comment and is not related to commenting
     if (hparm->respectDashDashHelp && !strcmp("--help", tharg->str)) {
       if (!topHin) {
-        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (2)", _ME_, iters, srcstr);
+        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (2)", _ME_, iters,
+                 srcstr);
         return 1;
       }
       if (hestSourceCommandLine == topHin->source) {
@@ -623,7 +626,8 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     }
     if (hparm->responseFileEnable && tharg->str[0] == RESPONSE_FILE_FLAG) {
       if (!topHin) {
-        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (3)", _ME_, iters, srcstr);
+        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (3)", _ME_, iters,
+                 srcstr);
         return 1;
       }
       if (hestSourceDefault == topHin->source) {
@@ -974,68 +978,102 @@ one has to be extracted last.
 static int
 havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   char ident[AIR_STRLEN_HUGE + 1];
-  uint optNum = opt->arrLen;
-  uint unflagNum = 0;
+  uint optNum = opt->arrLen; // number of options (flagged or unflagged)
+  uint ufOptNum = 0;         // number of unflagged options
+  uint ufParmMin = 0;        // over all the unflagged options, summing opt->min
   for (uint opi = 0; opi < optNum; opi++) {
-    unflagNum += !opt[opi].flag;
+    if (!opt[opi].flag) {
+      ufOptNum += 1;
+      ufParmMin += opt[opi].min;
+    }
   }
-  if (!unflagNum) {
+  if (!ufOptNum) {
     /* no unflagged options; we're ~done */
     goto finishingup;
   }
-  uint unflag1st = nextUnflagged(0, opt);
-  if (hparm->verbosity) {
-    printf("%s: optNum %u != unflag1st %u: have %u (of %u) unflagged options\n",
-           __func__, optNum, unflag1st, unflagNum, optNum);
+  /* simplify indexing into unflagged options, forward and backward,
+     with a little array of pairs of option indices */
+  uint *ufOpi2 = AIR_CALLOC(2 * ufOptNum, uint);
+  assert(ufOpi2);
+  uint upii = 0; // index into ufOpi2
+  for (uint opi = 0; opi < optNum; opi++) {
+    if (!opt[opi].flag) {
+      ufOpi2[2 * upii + 0] = opi;
+      upii++;
+    }
   }
-  uint unflagVar;             // the index of the unflagged variadic parm option
-  for (unflagVar = unflag1st; //
-       unflagVar < optNum;
-       unflagVar = nextUnflagged(unflagVar + 1, opt)) {
-    if (opt[unflagVar].kind > 3) {
-      if (4 == opt[unflagVar].kind) {
-        // (should have been enforced by _hestOPCheck)
-        biffAddf(HEST, "%s%sopt[%u] is (disallowed) unflagged single var parm (kind 4)",
-                 _ME_, unflagVar);
-        return 1;
-      } else {
-        // kind 5 = multiple variadic parm; we allow one of these
+  for (uint opi = optNum; opi-- > 0; opi--) {
+    if (!opt[opi].flag) {
+      upii--;
+      ufOpi2[2 * upii + 1] = opi;
+    }
+  }
+  if (hparm->verbosity) {
+    printf("%s: ufOpi2 helper array:\n up:", __func__);
+    for (upii = 0; upii < ufOptNum; upii++) {
+      printf(" \t%u", ufOpi2[2 * upii + 0]);
+    }
+    printf("\n down:");
+    for (upii = 0; upii < ufOptNum; upii++) {
+      printf(" \t%u", ufOpi2[2 * upii + 1]);
+    }
+    printf("\n");
+    exit(0);
+  }
+  /* if we need more args than we actually have, we assume that the opt->default strings
+  can be used to generate those args later, which shifts our logic for consuming args */
+  int asumDflt = ufParmMin > havec->len;
+  if (hparm->verbosity) {
+    printf("%s: ufParmMin %u vs havec->len %u --> asumDflt %d\n", __func__, ufParmMin,
+           havec->len, asumDflt);
+  }
+  uint ufVarOpi; // the index of the unflagged variadic parm option
+  for (ufVarOpi = nextUnflagged(0, opt); //
+       ufVarOpi < optNum;
+       ufVarOpi = nextUnflagged(ufVarOpi + 1, opt)) {
+    if (opt[ufVarOpi].kind > 3) {
+      if (5 == opt[ufVarOpi].kind) { // multiple variadic parm
         break;
       }
     }
   }
-  /* now, if there is a variadic parameter unflagged opt (NOTE that _hestOPCheck()
-     ensured that there is at most one of these), then unflagVar is its index in opt[].
-     If there is no variadic parameter unflagged opt, unflagVar is optNum. */
+  /* now, if there is an unflagged variadic option (NOTE that _hestOPCheck()
+     ensured that there is at most one of these), then ufVarOpi is its index in opt[].
+     If there is no unflagged variadic option, ufVarOpi is optNum. */
   if (hparm->verbosity) {
-    printf("%s: unflagVar %u %s\n", __func__, unflagVar,
-           (unflagVar == optNum ? "==> there is no unflagged var parm opt"
-                                : "is index of single unflagged var parm opt"));
+    printf("%s: ufVarOpi %u %s\n", __func__, ufVarOpi,
+           (ufVarOpi == optNum ? "==> there is no unflagged var parm opt"
+                               : "is index of single unflagged var parm opt"));
   }
 
-  /* grab parameters for all unflagged opts before opt[unflagVar] */
+  /* grab parameters for all unflagged opts before opt[ufVarOpi] */
   for (uint opi = nextUnflagged(0, opt); //
-       opi < unflagVar;
+       opi < ufVarOpi;
        opi = nextUnflagged(opi + 1, opt)) {
     if (hparm->verbosity) {
       printf("%s: looking at opi = %u kind %d\n", __func__, opi, opt[opi].kind);
     }
-    if (havecTransfer(opt + opi, havec, 0, opt[opi].min /* min == max */, hparm)) {
-      biffAddf(HEST, "%s%strouble getting args for unflagged %s", _ME_,
-               identStr(ident, opt + opi));
-      return 1;
+    /* either we're not leaning on the defaults (because we know we have enough args).
+       or we are learning on defaults, but this option doesn't have a default,
+       so we need to extract the args here */
+    if (!asumDflt || !opt[opi].dflt) {
+      if (havecTransfer(opt + opi, havec, 0, opt[opi].min /* min == max */, hparm)) {
+        biffAddf(HEST, "%s%strouble getting (early) args for unflagged %s", _ME_,
+                 identStr(ident, opt + opi));
+        return 1;
+      }
     }
   }
   /* we skip over the variadic parameter unflagged option, subtract from havec->len the
   number of parameters in all the opts which follow it, in order to get the number of
   parameters in the sole variadic parameter option; store this in nvp */
   int nvp = AIR_INT(havec->len);
-  for (uint opi = nextUnflagged(unflagVar + 1, opt); opi < optNum;
+  for (uint opi = nextUnflagged(ufVarOpi + 1, opt); opi < optNum;
        opi = nextUnflagged(opi + 1, opt)) {
     nvp -= AIR_INT(opt[opi].min); // min == max
   }
   if (nvp < 0) {
-    uint opi = nextUnflagged(unflagVar + 1, opt);
+    uint opi = nextUnflagged(ufVarOpi + 1, opt);
     uint np = opt[opi].min;
     biffAddf(HEST,
              "%s%sremaining %u args not enough for the %u parameter%s "
@@ -1045,7 +1083,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   }
   /* else we had enough args for all the unflagged options following
      the sole variadic parameter unflagged option, so snarf them up */
-  for (uint opi = nextUnflagged(unflagVar + 1, opt); opi < optNum;
+  for (uint opi = nextUnflagged(ufVarOpi + 1, opt); opi < optNum;
        opi = nextUnflagged(opi + 1, opt)) {
     if (havecTransfer(opt + opi, havec, nvp, opt[opi].min /* min == max */, hparm)) {
       biffAddf(HEST, "%s%strouble getting args for unflagged %s", _ME_,
@@ -1055,30 +1093,26 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   }
 
   /* now, finally, we grab the parameters of the sole variadic parameter unflagged opt,
-     if it exists (unflagVar < optNum) */
-  if (hparm->verbosity) {
-    printf("%s: (still here) unflagVar %u vs optNum %u (nvp %d)\n", __func__, unflagVar,
-           optNum, nvp);
-  }
-  if (unflagVar < optNum) { // so there is a variadic parameter unflagged opt
+     if it exists (ufVarOpi < optNum) */
+  if (ufVarOpi < optNum) { // so there is a variadic parameter unflagged opt
     if (hparm->verbosity) {
-      printf("%s: unflagVar=%u: min, nvp, max = %u %d %d\n", __func__, unflagVar,
-             opt[unflagVar].min, nvp, _hestMax(opt[unflagVar].max));
+      printf("%s: ufVarOpi=%u: min, nvp, max = %u %d %d\n", __func__, ufVarOpi,
+             opt[ufVarOpi].min, nvp, _hestMax(opt[ufVarOpi].max));
     }
     /* we'll do error checking for unexpected args next */
     if (nvp) {
       /* pre-2023: this check used to be done regardless of nvp, but that incorrectly
       triggered this error message when there were zero given parms, but the default
       could have supplied them */
-      if (nvp < AIR_INT(opt[unflagVar].min)) {
+      if (nvp < AIR_INT(opt[ufVarOpi].min)) {
         biffAddf(HEST, "%s%sdidn't get minimum of %d arg%s for %s (got %d)", _ME_,
-                 opt[unflagVar].min, opt[unflagVar].min > 1 ? "s" : "",
-                 identStr(ident, opt + unflagVar), nvp);
+                 opt[ufVarOpi].min, opt[ufVarOpi].min > 1 ? "s" : "",
+                 identStr(ident, opt + ufVarOpi), nvp);
         return 1;
       }
-      if (havecTransfer(opt + unflagVar, havec, 0, nvp, hparm)) {
+      if (havecTransfer(opt + ufVarOpi, havec, 0, nvp, hparm)) {
         biffAddf(HEST, "%s%strouble getting args for unflagged %s", _ME_,
-                 identStr(ident, opt + unflagVar));
+                 identStr(ident, opt + ufVarOpi));
         return 1;
       }
     }
@@ -1105,7 +1139,7 @@ finishingup:
     biffAddf(HEST,
              "%s%safter getting %u unflagged opts, have %u unexpected arg%s "
              "%s\"%s\"",
-             _ME_, unflagNum, havec->len, havec->len > 1 ? "s," : "",
+             _ME_, ufOptNum, havec->len, havec->len > 1 ? "s," : "",
              havec->len > 1 ? "starting with " : "", havec->harg[0]->str);
     return 1;
   }
@@ -1163,10 +1197,6 @@ optProcessDefaults(hestOpt *opt, hestArg *tharg, hestInputStack *hist,
       biffAddf(HEST, "%s%sproblem tokenizing opt[%u] %s default string", _ME_, opi,
                ident);
       return 1;
-    }
-    if (hparm->verbosity) {
-      printf("%s: DONE looking at opt[%u] %s default string |%s|\n", __func__, opi,
-             ident, opt[opi].dflt);
     }
     /* havecExtractFlagged and havecExtractUnflagged have done the work of ensuring that
     the minimum number of parm args have been extracted for each option. We have to do

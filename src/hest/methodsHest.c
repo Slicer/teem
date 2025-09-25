@@ -526,7 +526,7 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
     return 1;
   }
   uint optNum = opt->arrLen;
-  uint varNum = 0; // number of variadic-parameter options
+  uint ufvarNum = 0; // number of unflagged variadic-parameter options
   for (uint opi = 0; opi < optNum; opi++) {
     if (!(AIR_IN_OP(airTypeUnknown, opt[opi].type, airTypeLast))) {
       biffAddf(HEST, "%s%sopt[%u].type (%d) not in valid range [%d,%d]", _ME_, opi,
@@ -709,11 +709,11 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
       return 1;
     }
     // kind 4 = single variadic parm;  kind 5 = multiple variadic parm
-    varNum += (opt[opi].kind > 3 && (NULL == opt[opi].flag));
+    ufvarNum += (opt[opi].kind > 3 && (!opt[opi].flag));
   }
-  if (varNum > 1) {
-    biffAddf(HEST, "%s%scan't have %u unflagged min<max options, only one", _ME_,
-             varNum);
+  if (ufvarNum > 1) {
+    biffAddf(HEST, "%s%scan have at most 1 unflagged min<max options, not %u", _ME_,
+             ufvarNum);
     return 1;
   }
   return 0;
