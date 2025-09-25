@@ -820,7 +820,7 @@ option.  AND, the "--" marker is removed from `havec`.
 */
 static int
 havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
-  char ident1[AIR_STRLEN_HUGE + 1], ident2[AIR_STRLEN_HUGE + 1];
+  char *havStr, ident1[AIR_STRLEN_HUGE + 1], ident2[AIR_STRLEN_HUGE + 1];
   uint argIdx = 0;
   hestOpt *theOpt = NULL;
   while (argIdx < havec->len) { // NOTE: havec->len may decrease within an interation!
@@ -876,8 +876,8 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
              "parmNum=%u hitEnd=%d hitVPS=%d nextOptIdx=%u\n",
              __func__, optIdx, theOpt->flag, parmNum, hitEnd, hitVPS, nextOptIdx);
     if (parmNum < theOpt->min) { // didn't get required min # parameters
-      char *havStr = hestArgVecSprint(havec, AIR_TRUE);
-      biffAddf(HEST, "%s%sworking on argv: %s", _ME_, havStr);
+      havStr = hestArgVecSprint(havec, AIR_TRUE);
+      biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
       if (hitEnd) {
         biffAddf(HEST,
                  "%s%shit end of args before getting %u parameter%s "
@@ -915,11 +915,14 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     theOpt->source = havec->harg[argIdx]->source;
     // lose the flag argument
     hestArgNix(hestArgVecRemove(havec, argIdx));
+    havStr = hestArgVecSprint(havec, AIR_TRUE);
     if (havecTransfer(theOpt, havec, argIdx, parmNum, hparm)) {
+      biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
       biffAddf(HEST, "%s%strouble transferring %u args for %s", _ME_, parmNum,
                identStr(ident1, theOpt));
-      return 1;
+      return (free(havStr), 1);
     }
+    havStr = airFree(havStr);
     if (hitVPS) {
       // drop the variadic-parameter-stop flag
       hestArgNix(hestArgVecRemove(havec, argIdx));
@@ -949,7 +952,8 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       }
       // if needs to be set but hasn't been
       if (needing && hestSourceUnknown == theOpt->source) {
-        biffAddf(HEST, "%s%sdidn't see required %s", _ME_, identStr(ident1, theOpt));
+        biffAddf(HEST, "%s%sdidn't get required (default-less) %s[%u]", _ME_,
+                 identStr(ident1, theOpt), opi);
         return 1;
       }
     }
@@ -974,7 +978,7 @@ one has to be extracted last.
 */
 static int
 havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
-  char ident[AIR_STRLEN_HUGE + 1];
+  char *havStr, ident[AIR_STRLEN_HUGE + 1];
   uint optNum = opt->arrLen; // number of options (flagged or unflagged)
   uint ufOptNum = 0;         // number of unflagged options
   for (uint opi = 0; opi < optNum; opi++) {
@@ -1044,11 +1048,14 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     Either way, we try extracting the args; in the later case just to generate a
     descriptive error message about the situation */
     if (opt[opi].min /* == max */ < havec->len || !opt[opi].dflt) {
+      havStr = hestArgVecSprint(havec, AIR_TRUE);
       if (havecTransfer(opt + opi, havec, 0, opt[opi].min, hparm)) {
+        biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
         biffAddf(HEST, "%s%strouble getting args for %sunflagged %s[%u]", _ME_,
                  !opt[opi].dflt ? "default-less " : "", identStr(ident, opt + opi), opi);
-        return (free(ufOpi2), 1);
+        return (free(havStr), free(ufOpi2), 1);
       }
+      havStr = airFree(havStr);
     }
   }
   if (ufVarOpi == optNum) {
@@ -1071,11 +1078,14 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       uint idx0 = (opt[opi].min < havec->len     //
                      ? havec->len - opt[opi].min //
                      : 0);
+      havStr = hestArgVecSprint(havec, AIR_TRUE);
       if (havecTransfer(opt + opi, havec, idx0, opt[opi].min, hparm)) {
+        biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
         biffAddf(HEST, "%s%strouble getting args for (later) %sunflagged %s[%u]", _ME_,
                  !opt[opi].dflt ? "default-less " : "", identStr(ident, opt + opi), opi);
-        return (free(ufOpi2), 1);
+        return (free(havStr), free(ufOpi2), 1);
       }
+      havStr = airFree(havStr);
     }
   }
 
@@ -1087,11 +1097,13 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   }
   uint minArg = opt[ufVarOpi].min; /* min < max ! */
   if (minArg > havec->len && !opt[ufVarOpi].dflt) {
+    havStr = hestArgVecSprint(havec, AIR_TRUE);
+    biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
     biffAddf(HEST,
              "%s%shave only %u args left but need %u for "
              "(default-less) variadic unflagged %s[%u]",
              _ME_, havec->len, minArg, identStr(ident, opt + ufVarOpi), ufVarOpi);
-    return (free(ufOpi2), 1);
+    return (free(havStr), free(ufOpi2), 1);
   }
   // else minArg <= havec->len, or, minArg > havec->len and do have default
   if (minArg <= havec->len) {
@@ -1101,9 +1113,11 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       getArg = AIR_MIN(getArg, AIR_UINT(opt[ufVarOpi].max));
     }
     if (havecTransfer(opt + ufVarOpi, havec, 0, getArg, hparm)) {
+      havStr = hestArgVecSprint(havec, AIR_TRUE);
+      biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
       biffAddf(HEST, "%s%strouble getting args for variadic unflagged %s[%u]", _ME_,
                identStr(ident, opt + ufVarOpi), ufVarOpi);
-      return (free(ufOpi2), 1);
+      return (free(havStr), free(ufOpi2), 1);
     }
   }
   // else minArg > havec->len so can't satisfy from havec,
@@ -1113,7 +1127,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   for (upii = 0; upii < ufOptNum; upii++) {
     uint opi = ufOpi2[2 * upii + 0];
     if (!(opt[opi].dflt) && hestSourceUnknown == opt[opi].source) {
-      biffAddf(HEST, "%s%sdidn't see required (unflagged) %s[%u]", _ME_,
+      biffAddf(HEST, "%s%sdidn't see required (default-less) unflagged %s[%u]", _ME_,
                identStr(ident, opt + opi), opi);
       return (free(ufOpi2), 1);
     }
@@ -1125,14 +1139,16 @@ finishingup:
     hestArgVecPrint(__func__, "end of havecExtractUnflagged", havec);
   }
   if (havec->len) {
+    havStr = hestArgVecSprint(havec, AIR_TRUE);
+    biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
     biffAddf(HEST,
              "%s%safter getting %u unflagged opts, have %u unexpected arg%s "
              "%s\"%s\"",
              _ME_, ufOptNum, havec->len, havec->len > 1 ? "s," : "",
              havec->len > 1 ? "starting with " : "", havec->harg[0]->str);
-    return (airFree(ufOpi2), 1);
+    return (free(havStr), airFree(ufOpi2), 1);
   }
-  return (airFree(ufOpi2), 0);
+  return (airFree(havStr), airFree(ufOpi2), 0);
 }
 
 /* optProcessDefaults

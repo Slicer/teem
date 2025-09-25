@@ -50,7 +50,7 @@ main(int argc, const char **argv) {
 
   int *unpB;
   unsigned int sawB;
-  hestOptAdd_Nv_Int(&opt, NULL, "B B", 1, -1, &unpB, /* "BBBB" */ NULL, "unflagged B",
+  hestOptAdd_Nv_Int(&opt, NULL, "B B", 2, -1, &unpB, /* "BBBB" */ NULL, "unflagged B",
                     &sawB);
   /* int unpB[2];
      hestOptAdd_2_Int(&opt, NULL, "B B", unpB, NULL, "unflagged B"); */
