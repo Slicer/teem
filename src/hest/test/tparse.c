@@ -54,7 +54,7 @@ main(int argc, const char **argv) {
   int glaf;
   hestOptAdd_Flag(&opt, "c,cingo", &glaf, "a flag");
   int unpC[2];
-  hestOptAdd_2_Int(&opt, NULL, "C C", unpC, NULL, "unflagged C");
+  hestOptAdd_2_Int(&opt, NULL, "C C", unpC, "dfltC0", "unflagged C");
   /*
   int *unpC;
   unsigned int sawC;

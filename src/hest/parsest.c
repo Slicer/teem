@@ -310,8 +310,7 @@ histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
       }
       *nastP = nastTryAgain;
     }
-  } else {
-    // hin->source is hestSourceResponseFile or hestSourceDefault
+  } else if (hestSourceResponseFile == hin->source || hestSourceDefault == hin->source) {
     int icc; // the next character we read as int
     int state = argstStart;
     do {
@@ -354,6 +353,9 @@ histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
         }
       }
     } while (nastUnknown == *nastP);
+  } else {
+    biffAddf(HEST, "%s%sconfused about hin->source %d", _ME_, hin->source);
+    return 1;
   }
   return 0;
 }
@@ -514,10 +516,13 @@ even for the tmp arg holder `tharg`; that is passed in here and cleaned up calle
 static int
 histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack *hist,
             const hestParm *hparm) {
+  if (!hist->len) {
+    biffAddf(HEST, "%s%scannot process zero-height stack", _ME_);
+    return 1;
+  }
   if (helpWantedP) *helpWantedP = AIR_FALSE;
   int nast = nastUnknown;
   uint iters = 0;
-  hestInput *topHin;
   // printf("!%s: hello hist->len %u\n", __func__, hist->len);
   // initialize destination havec
   airArrayLenSet(havec->hargArr, 0);
@@ -526,12 +531,10 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
      Otherwise, we loop again. */
   while (1) {
     iters += 1;
-    /* if this loop just pushed a response file, the top hestInput is different
-       from what it was when this function started, so re-learn it. */
-    topHin = hist->hin + hist->len - 1;
-    /* printf("!%s: (iters %u) topHin(%p)->rfname = |%s|\n", __func__, iters,
-           AIR_VOIDP(topHin), topHin->rfname); */
-    const char *srcstr = airEnumStr(hestSource, topHin->source);
+    // learn ways to describe current input source
+    hestInput *topHin = hist->hin + hist->len - 1;
+    int srcval = topHin->source;
+    const char *srcstr = airEnumStr(hestSource, srcval);
     // read next arg into tharg
     if (histProcNextArg(&nast, tharg, hist, hparm)) {
       biffAddf(HEST, "%s%s(iter %u, on %s) unable to get next arg", _ME_, iters, srcstr);
@@ -544,8 +547,18 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
       }
       break;
     }
+    // annoyingly, we may get here with an empty stack (HEY fix this?)
+    topHin = (hist->len //
+              ? hist->hin + hist->len - 1
+              : NULL);
+    printf("!%s: nast = %s, |stack| = %u, topHin = %p\n", __func__, airEnumStr(nast_ae, nast),
+           hist->len, AIR_VOIDP(topHin));
     // we have a token, is it turning off commenting?
     if (hparm->respectDashBraceComments && !strcmp("}-", tharg->str)) {
+      if (!topHin) {
+        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (0)", _ME_, iters, srcstr);
+        return 1;
+      }
       if (topHin->dashBraceComment) {
         topHin->dashBraceComment -= 1;
         if (hparm->verbosity) {
@@ -563,6 +576,10 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     }
     // not ending comment, are we starting (or deepening) one?
     if (hparm->respectDashBraceComments && !strcmp("-{", tharg->str)) {
+      if (!topHin) {
+        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (1)", _ME_, iters, srcstr);
+        return 1;
+      }
       topHin->dashBraceComment += 1;
       if (hparm->verbosity) {
         printf("%s: topHin->dashBraceComment now %u\n", __func__,
@@ -571,7 +588,7 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
       continue;
     }
     // if in comment, move along
-    if (topHin->dashBraceComment) {
+    if (topHin && topHin->dashBraceComment) {
       if (hparm->verbosity > 1) {
         printf("%s: (iter %u, on %s) skipping commented-out |%s|\n", __func__, iters,
                srcstr, tharg->str);
@@ -580,6 +597,10 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
     }
     // else this arg is not in a comment and is not related to commenting
     if (hparm->respectDashDashHelp && !strcmp("--help", tharg->str)) {
+      if (!topHin) {
+        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (2)", _ME_, iters, srcstr);
+        return 1;
+      }
       if (hestSourceCommandLine == topHin->source) {
         /* user asking for help halts further parsing work: user is not looking
            for parsing results nor error messages about that process */
@@ -601,6 +622,10 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
              srcstr, tharg->str);
     }
     if (hparm->responseFileEnable && tharg->str[0] == RESPONSE_FILE_FLAG) {
+      if (!topHin) {
+        biffAddf(HEST, "%s%s(iter %u, on %s) unexpected empty stack (3)", _ME_, iters, srcstr);
+        return 1;
+      }
       if (hestSourceDefault == topHin->source) {
         biffAddf(HEST,
                  "%s%s(iter %u, on %s) %s response files not handled in this source",
@@ -624,7 +649,11 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
              srcstr, tharg->str, havec->len);
     }
     // set source in the hestArg we just appended
-    havec->harg[havec->len - 1]->source = topHin->source;
+    havec->harg[havec->len - 1]->source = srcval;
+    // bail if stack is empty
+    if (!topHin) {
+      break;
+    }
   }
   if (hist->len && nast == nastEmpty) {
     biffAddf(HEST, "%s%snon-empty stack (depth %u) can't generate args???", _ME_,
@@ -1010,7 +1039,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     uint np = opt[opi].min;
     biffAddf(HEST,
              "%s%sremaining %u args not enough for the %u parameter%s "
-             "needed for %s or later options",
+             "needed for unflagged %s or later options",
              _ME_, havec->len, np, np > 1 ? "s" : "", identStr(ident, opt + opi));
     return 1;
   }
@@ -1097,7 +1126,7 @@ optProcessDefaults(hestOpt *opt, hestArg *tharg, hestInputStack *hist,
   uint optNum = opt->arrLen;
   for (uint opi = 0; opi < optNum; opi++) {
     if (hparm->verbosity) {
-      printf("%s: INCOMING", __func__);
+      printf(" -> %s incoming", __func__);
       optPrint(opt + opi, opi);
     }
     if (opt[opi].source) {
@@ -1111,7 +1140,7 @@ optProcessDefaults(hestOpt *opt, hestArg *tharg, hestInputStack *hist,
          opt[opi].dflt is enforced to be NULL) so there is no default string to tokenize,
          but we above set source to default for sake of completeness, and to signal that
          the flag was not given by user */
-      continue;
+      goto nextopt;
     }
     char ident[AIR_STRLEN_HUGE + 1];
     identStr(ident, opt + opi);
@@ -1149,8 +1178,9 @@ optProcessDefaults(hestOpt *opt, hestArg *tharg, hestInputStack *hist,
         _ME_, opi, ident, opt[opi].havec->len, opt[opi].min);
       return 1;
     }
+  nextopt:
     if (hparm->verbosity) {
-      printf("%s: OUTGOING", __func__);
+      printf("<-  %s: outgoing", __func__);
       optPrint(opt + opi, opi);
     }
   }
