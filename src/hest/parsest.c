@@ -1039,8 +1039,8 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     descriptive error message about the situation */
     if (opt[opi].min /* == max */ < havec->len || !opt[opi].dflt) {
       if (havecTransfer(opt + opi, havec, 0, opt[opi].min, hparm)) {
-        biffAddf(HEST, "%s%strouble getting args for unflagged %s[%u]", _ME_,
-                 identStr(ident, opt + opi), opi);
+        biffAddf(HEST, "%s%strouble getting args for %sunflagged %s[%u]", _ME_,
+                 !opt[opi].dflt ? "default-less " : "", identStr(ident, opt + opi), opi);
         return (free(ufOpi2), 1);
       }
     }
@@ -1066,8 +1066,8 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
                      ? havec->len - opt[opi].min //
                      : 0);
       if (havecTransfer(opt + opi, havec, idx0, opt[opi].min, hparm)) {
-        biffAddf(HEST, "%s%strouble getting args for (later) unflagged %s[%u]", _ME_,
-                 identStr(ident, opt + opi), opi);
+        biffAddf(HEST, "%s%strouble getting args for (later) %sunflagged %s[%u]", _ME_,
+                 !opt[opi].dflt ? "default-less " : "", identStr(ident, opt + opi), opi);
         return (free(ufOpi2), 1);
       }
     }
