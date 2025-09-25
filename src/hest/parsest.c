@@ -877,7 +877,7 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
              __func__, optIdx, theOpt->flag, parmNum, hitEnd, hitVPS, nextOptIdx);
     if (parmNum < theOpt->min) { // didn't get required min # parameters
       char *havStr = hestArgVecSprint(havec, AIR_TRUE);
-      biffAddf(HEST, "%s%sworking on argv: %s", havStr);
+      biffAddf(HEST, "%s%sworking on argv: %s", _ME_, havStr);
       if (hitEnd) {
         biffAddf(HEST,
                  "%s%shit end of args before getting %u parameter%s "
