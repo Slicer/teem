@@ -90,14 +90,28 @@ hestArgAddChar(hestArg *harg, char cc) {
   return;
 }
 
-void
-hestArgSetString(hestArg *harg, const char *str) {
+static void
+arg_AddOrSet_String(hestArg *harg, int resetFirst, const char *str) {
   assert(harg && str);
-  hestArgReset(harg);
+  if (resetFirst) {
+    hestArgReset(harg);
+  }
   uint len = AIR_UINT(strlen(str));
   for (uint si = 0; si < len; si++) {
     hestArgAddChar(harg, str[si]);
   }
+  return;
+}
+
+void
+hestArgSetString(hestArg *harg, const char *str) {
+  arg_AddOrSet_String(harg, AIR_TRUE, str);
+  return;
+}
+
+void
+hestArgAddString(hestArg *harg, const char *str) {
+  arg_AddOrSet_String(harg, AIR_FALSE, str);
   return;
 }
 
@@ -145,6 +159,7 @@ hestArgVecNix(hestArgVec *havec) {
   return NULL;
 }
 
+// return havec->harg[popIdx] and shift higher indices down
 hestArg *
 hestArgVecRemove(hestArgVec *havec, uint popIdx) {
   hestArg *ret = NULL;
@@ -152,24 +167,105 @@ hestArgVecRemove(hestArgVec *havec, uint popIdx) {
     ret = havec->harg[popIdx];
     uint ai;
     for (ai = popIdx; ai < havec->len - 1; ai++) {
-      // shuffle down info inside the hestArg elements of havec->harg
       havec->harg[ai] = havec->harg[ai + 1];
-      // hestArgSetString(havec->harg + ai, (havec->harg + ai + 1)->str);
-      // (havec->harg + ai)->source = (havec->harg + ai + 1)->source;
-      /* why cannot just memcpy:
-         because then the last hestArg element of havec->harg
-           (the one that is being forgotten)
-         and the second-to-last element (the last one being kept)
-         will share ->str pointers.
-         When hargDone is called on the last hestArg's address
-         as the callack from airArrayLenIncr(), then it will also
-         free the str inside the second-to-last element; oops */
     }
     // NULL out final out, using final value of ai
     havec->harg[ai] = NULL;
     // decrement the nominal length of havec->harg
     airArrayLenIncr(havec->hargArr, -1);
   }
+  return ret;
+}
+
+/* hestArgVecSprint goes is opposite of the shell-style tokenization of
+parsest.c/argstGo: generate a single human-friendly string that could be tokenized to
+recover the hestArgVec we started with.
+ChatGPT helped with prototyping.
+Here are instructive examples of the same kind of argv pretty-printing:
+https://github.com/git/git/blob/master/quote.c
+and here https://www.opencoverage.net/coreutils/index_html/source_213.html
+with its (more baroque) quotearg_buffer_restyled() function
+*/
+
+// plainWord(str) is true if nothing in str needs quoting or escaping
+static int
+plainWord(const char *s) {
+  if (*s == '\0') {
+    // wut - we got the empty string, yes needs quoting
+    return 0;
+  }
+  int plain = AIR_TRUE;
+  for (; *s; s++) {
+    plain &= (isalnum(*s)               //
+              || *s == '_' || *s == '-' //
+              || *s == '.' || *s == '/');
+    if (!plain) break;
+  }
+  return plain;
+}
+
+/* Assuming that `str` needs some quoting or ecaping to be retokenized as a single arg
+then figure out if that should be via single or double quoting, by doing both and picking
+the shorter one */
+void
+argAddQuotedString(hestArg *harg, const char *str) {
+  hestArg *singQ = hestArgNew();
+  hestArg *doubQ = hestArgNew();
+  hestArgAddChar(singQ, '\'');
+  hestArgAddChar(doubQ, '"');
+  const char *src = str;
+  for (; *src; src++) {
+    // -- single quoting to singQ
+    if ('\'' == *src) {
+      // can't escape ' inside ''-quoting, so have to:
+      // stop ''-quoting, write (escaped) \', then re-start ''-quoting
+      hestArgAddString(singQ, "'\\''");
+    } else {
+      hestArgAddChar(singQ, *src);
+    }
+    // -- double quoting to doubQ
+    if ('"' == *src || '\\' == *src || '`' == *src || '$' == *src) {
+      // this character needs escaping
+      hestArgAddChar(doubQ, '\\');
+    }
+    hestArgAddChar(doubQ, *src);
+  }
+  hestArgAddChar(singQ, '\'');
+  hestArgAddChar(doubQ, '"');
+  // use single-quoting when it is shorter, else double-quoting
+  hestArgAddString(harg, singQ->len < doubQ->len ? singQ->str : doubQ->str);
+  hestArgNix(singQ);
+  hestArgNix(doubQ);
+}
+
+char *
+hestArgVecSprint(const hestArgVec *havec, int showIdx) {
+  if (!havec) {
+    return NULL;
+  }
+  hestArg *retArg = hestArgNew();
+  for (uint ai = 0; ai < havec->len; ai++) {
+    if (ai) {
+      // add the space between previous and this arg
+      hestArgAddChar(retArg, ' ');
+    }
+    if (showIdx) {
+      char buff[AIR_STRLEN_SMALL + 1];
+      sprintf(buff, "%u", ai);
+      hestArgAddString(retArg, buff);
+      hestArgAddChar(retArg, ':');
+    }
+    const char *astr = havec->harg[ai]->str;
+    if (plainWord(astr)) {
+      hestArgAddString(retArg, astr);
+    } else {
+      argAddQuotedString(retArg, astr);
+    }
+  }
+  // the real hestArgNix: keep the string but lose everything around it
+  char *ret = retArg->str;
+  airArrayNix(retArg->strArr);
+  free(retArg);
   return ret;
 }
 
@@ -209,6 +305,11 @@ hestArgVecPrint(const char *caller, const char *info, const hestArgVec *havec) {
     printf(" %u%c:<%s>", idx, srcch[harg->source], harg->str ? harg->str : "NULL");
   }
   printf("\n");
+  char *ppargs = hestArgVecSprint(havec, AIR_FALSE);
+  printf("%s%s%s OR pretty-printed as:\n%s\n", airStrlen(caller) ? caller : "", //
+         airStrlen(caller) ? ": " : "", info, ppargs);
+  free(ppargs);
+  return;
 }
 
 /* ------------------------- hestInput = hin = hestInput = hin --------------------- */

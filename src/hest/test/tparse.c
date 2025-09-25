@@ -34,27 +34,28 @@ main(int argc, const char **argv) {
   hestParm *hparm = hestParmNew();
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->responseFileEnable = AIR_TRUE;
-  hparm->verbosity = 10;
+  hparm->verbosity = 4;
 
-  int verb;
-  hestOptAdd_1_Int(&opt, "v", "verb", &verb, "0", "verbosity");
-  int *res;
-  int unpA[2];
-  hestOptAdd_2_Int(&opt, NULL, "A A", unpA, NULL, "unflagged A");
-  unsigned int slen;
-  hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 0, -1, &res, NULL, "image resolutions",
-                    &slen);
-  int *unpB;
-  unsigned int sawB;
-  hestOptAdd_Nv_Int(&opt, NULL, "B B", 1, -1, &unpB, "BBBB", "unflagged B", &sawB);
-  /* int unpB[2];
-     hestOptAdd_2_Int(&opt, NULL, "B B", unpB, NULL, "unflagged B"); */
   int flag;
   hestOptAdd_Flag(&opt, "b,bingo", &flag, "a flag");
-  int glaf;
-  hestOptAdd_Flag(&opt, "c,cingo", &glaf, "a flag");
+  int verb;
+  hestOptAdd_1_Int(&opt, "v", "verb", &verb, "0", "verbosity");
+  int unpA[2];
+  hestOptAdd_2_Int(&opt, NULL, "A A", unpA, NULL, "unflagged A");
+
+  int *size;
+  unsigned int slen;
+  hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 2, -1, &size, NULL, "image resolutions",
+                    &slen);
+
+  int *unpB;
+  unsigned int sawB;
+  hestOptAdd_Nv_Int(&opt, NULL, "B B", 1, -1, &unpB, /* "BBBB" */ NULL, "unflagged B",
+                    &sawB);
+  /* int unpB[2];
+     hestOptAdd_2_Int(&opt, NULL, "B B", unpB, NULL, "unflagged B"); */
   int unpC[2];
-  hestOptAdd_2_Int(&opt, NULL, "C C", unpC, "dfltC0 dfltC1", "unflagged C");
+  hestOptAdd_2_Int(&opt, NULL, "C C", unpC, /* "dfltC0 dfltC1" */ NULL, "unflagged C");
   /*
   int *unpC;
   unsigned int sawC;

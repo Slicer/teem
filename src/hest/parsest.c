@@ -88,6 +88,7 @@ https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18
 (although hest does not do rule 5 about parameter expansion, command substitution,
 or arithmetic expansion), and here are the details about quoting:
 https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_02
+ChatGPT helped with prototyping.
 Here is instructive example code https://github.com/nyuichi/dash.git
   in src/parser.c see the readtoken1() function and the DFA there.
 */
@@ -327,7 +328,7 @@ histProcNextArgTry(int *nastP, hestArg *tharg, hestInputStack *hist,
         biffAddf(HEST, "%s%sconfused by input source %d", _ME_, hin->source);
         return 1;
       }
-      if (argstGo(nastP, tharg, &state, icc, hparm->verbosity > 3)) {
+      if (argstGo(nastP, tharg, &state, icc, hparm->verbosity > 4)) {
         if (hestSourceResponseFile == hin->source) {
           biffAddf(HEST, "%s%strouble at character %u of %s \"%s\"", _ME_, hin->carIdx,
                    airEnumStr(hestSource, hin->source), hin->rfname);
@@ -756,7 +757,7 @@ havecTransfer(hestOpt *opt, hestArgVec *hvsrc, uint srcIdx, uint num,
       return 1;
     }
     if (!(srcIdx + num <= hvsrc->len)) {
-      biffAddf(HEST, "%s%shave only %u args but want %u starting at %u", _ME_,
+      biffAddf(HEST, "%s%shave only %u args but want %u starting at index %u", _ME_,
                hvsrc->len, num, srcIdx);
       return 1;
     }
@@ -775,9 +776,10 @@ static void
 optPrint(const hestOpt *opt, uint opi) {
   printf("--- opt %u:", opi);
   printf("\t%s%s", opt->flag ? "flag-" : "", opt->flag ? opt->flag : "UNflag");
-  printf("\tname|%s|\t k%d (%u)--(%d) \t%s \tdflt|%s|\n",
-         opt->name ? opt->name : "(null)", opt->kind, opt->min, opt->max,
-         _hestTypeStr[opt->type], opt->dflt ? opt->dflt : "(null)");
+  printf("\tname|%s|\t k%d (%u)--(%d) \t%s ", opt->name ? opt->name : "(null)",
+         opt->kind, opt->min, opt->max, _hestTypeStr[opt->type]);
+  printf("\t%sdflt%s%s%s\n", opt->dflt ? "" : "NO-", opt->dflt ? "|" : "",
+         opt->dflt ? opt->dflt : "", opt->dflt ? "|" : "");
   printf("    source %s\n", airEnumStr(hestSource, opt->source));
   hestArgVecPrint("", "    havec:", opt->havec);
   return;
@@ -850,7 +852,8 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     uint nextOptIdx = 0, // what is index of option who's flag we hit next
       parmNum = 0,       // how many parm args have we counted up
       pai;               // tmp parm arg index
-    while (              // parmNum is plausible # parms
+
+    while ( // parmNum is plausible # parms
       AIR_INT(parmNum) < _hestMax(theOpt->max)
       // and looking ahead by parmNum still gives us a valid index pai
       && !(hitEnd = !((pai = argIdx + 1 + parmNum) < havec->len))
@@ -873,6 +876,8 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
              "parmNum=%u hitEnd=%d hitVPS=%d nextOptIdx=%u\n",
              __func__, optIdx, theOpt->flag, parmNum, hitEnd, hitVPS, nextOptIdx);
     if (parmNum < theOpt->min) { // didn't get required min # parameters
+      char *havStr = hestArgVecSprint(havec, AIR_TRUE);
+      biffAddf(HEST, "%s%sworking on argv: %s", havStr);
       if (hitEnd) {
         biffAddf(HEST,
                  "%s%shit end of args before getting %u parameter%s "
@@ -896,6 +901,7 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
                  _ME_, theOpt->min, theOpt->min > 1 ? "s" : "", identStr(ident1, theOpt),
                  parmNum);
       }
+      free(havStr);
       return 1;
     }
     if (hparm->verbosity) {

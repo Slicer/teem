@@ -340,10 +340,12 @@ HEST_EXPORT hestArg *hestArgNix(hestArg *harg);
 HEST_EXPORT void hestArgReset(hestArg *harg);
 HEST_EXPORT void hestArgAddChar(hestArg *harg, char cc);
 HEST_EXPORT void hestArgSetString(hestArg *harg, const char *str);
+HEST_EXPORT void hestArgAddString(hestArg *harg, const char *str);
 HEST_EXPORT hestArgVec *hestArgVecNew(void);
 HEST_EXPORT void hestArgVecReset(hestArgVec *havec);
 HEST_EXPORT hestArgVec *hestArgVecNix(hestArgVec *havec);
 HEST_EXPORT hestArg *hestArgVecRemove(hestArgVec *havec, unsigned int popIdx);
+HEST_EXPORT char *hestArgVecSprint(const hestArgVec *havec, int showIndices);
 HEST_EXPORT void hestArgVecAppendString(hestArgVec *havec, const char *str);
 HEST_EXPORT void hestArgVecAppendArg(hestArgVec *havec, hestArg *harg);
 HEST_EXPORT void hestArgVecPrint(const char *caller, const char *info,
