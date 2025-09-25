@@ -244,6 +244,7 @@ hestArgVecSprint(const hestArgVec *havec, int showIdx) {
     return NULL;
   }
   hestArg *retArg = hestArgNew();
+  // if we got an empty havec, then we'll leave with an appropriately empty string
   for (uint ai = 0; ai < havec->len; ai++) {
     if (ai) {
       // add the space between previous and this arg
