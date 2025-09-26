@@ -397,21 +397,6 @@ main(int argc, const char **argv) {
   printf("(err = %s)\n", err ? err : "(null)");
   printf("flag = %d\n\n", flag);
 
-  printf("b1 = %d\n", b1);
-  printf("i1 = %d\n", i1);
-  printf("ui1 = %u\n", ui1);
-  printf("li1 = %ld\n", li1);
-  printf("uli1 = %lu\n", uli1);
-  printf("sz1 = %zu\n", sz1);
-  printf("fl1 = %g\n", fl1);
-  printf("db1 = %g\n", db1);
-  printf("c1 = |%c| (%d)\n", c1, c1);
-  printf("s1 = |%s|\n", s1);
-  printf("e1 = %d\n", e1);
-  printf("p1 = %g,%g\n", p1[0], p1[1]);
-  printf("q1 (@ %p) = %g(%s)\n", q1, q1->val, q1->str);
-  printf("\n");
-
   printf("b1v = %d\n", b1v);
   printf("i1v = %d\n", i1v);
   printf("ui1v = %u\n", ui1v);
@@ -430,6 +415,21 @@ main(int argc, const char **argv) {
   printf("\n");
 
 #if 0
+  printf("b1 = %d\n", b1);
+  printf("i1 = %d\n", i1);
+  printf("ui1 = %u\n", ui1);
+  printf("li1 = %ld\n", li1);
+  printf("uli1 = %lu\n", uli1);
+  printf("sz1 = %zu\n", sz1);
+  printf("fl1 = %g\n", fl1);
+  printf("db1 = %g\n", db1);
+  printf("c1 = |%c| (%d)\n", c1, c1);
+  printf("s1 = |%s|\n", s1);
+  printf("e1 = %d\n", e1);
+  printf("p1 = %g,%g\n", p1[0], p1[1]);
+  printf("q1 (@ %p) = %g(%s)\n", q1, q1->val, q1->str);
+  printf("\n");
+
   printf("b2 = %d %d\n", b2[0], b2[1]);
   printf("i2 = %d %d\n", i2[0], i2[1]);
   printf("ui2 = %u %u\n", ui2[0], ui2[1]);
