@@ -468,16 +468,16 @@ AIR_EXPORT int airJSFRandSanity(void);
  *   *** added airTypeShort and airTypeUShort
  *   *** renamed airTypeLongInt --> airTypeLong
  *   *** renamed airTypeULongInt --> airTypeULong
- *** Removed the following from air to hest, renamed them, and made them private.
+ *** Moved the following from air to hest, renamed them, and made them private.
  *   They were only used to implement hest, no where else in Teem, so they never
  *   deserved to be in air:
  *     #define AIR_TYPE_MAX --> _HEST_TYPE_MAX
  *     const char airTypeStr[HEST_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1] --> _hestTypeStr
  *     const size_t airTypeSize[HEST_TYPE_MAX + 1] --> _hestTypeSize
+ *** Removed the following, since it was only used in the pre-TeemV2 hest
  *     unsigned int (*const airParseStr[AIR_TYPE_MAX + 1])(void *,
  *                                                         const char *, *const char *,
  *                                                         *unsigned int);
- *                      --> _hestParseStr
  */
 /* parseAir.c */
 AIR_EXPORT double airAtod(const char *str);
