@@ -64,10 +64,133 @@ _hestTypeSize[_HEST_TYPE_MAX+1] = {
   sizeof(char),
   sizeof(char*),
   sizeof(int),
-  0   /* we don't know anything about type "other" */
+  0   /* we don't know anything about size of type "other" */
 };
 /* clang-format on */
 
+/* now (in 2025) that we've done all this work to preserve the command-line argv[]
+tokens, and to properly tokenize default strings and response files, we should stop using
+the airParseStrT functions that internally did airStrtok(): we have exactly one token to
+parse. These functions thus return non-zero in case of error, instead of returning the
+number of parsed values. */
+static int
+parseSingleB(void *_out, const char *str, const void *ptr) {
+  AIR_UNUSED(ptr);
+  // we got NULL, there's nothing to do
+  if (!(_out && str)) return 1;
+  int *out = (int *)_out;
+  *out = airEnumVal(airBool, str);
+  return (airEnumUnknown(airBool) /* which is -1 */ == *out);
+}
+
+#define _PARSE_1_ARGS(type) void *out, const char *str, const void *ptr
+#define _PARSE_1_BODY(format)                                                           \
+  AIR_UNUSED(ptr);                                                                      \
+  /* we got NULL, there's nothing to do  */                                             \
+  if (!(out && str)) return 1;                                                          \
+  return (1 != airSingleSscanf(str, format, out))
+
+// clang-format off
+static int parseSingleH (_PARSE_1_ARGS(short))             { _PARSE_1_BODY("%hd"); }
+static int parseSingleUH(_PARSE_1_ARGS(unsigned short))    { _PARSE_1_BODY("%hu"); }
+static int parseSingleI (_PARSE_1_ARGS(int))               { _PARSE_1_BODY("%d");  }
+static int parseSingleUI(_PARSE_1_ARGS(unsigned int))      { _PARSE_1_BODY("%u");  }
+static int parseSingleL (_PARSE_1_ARGS(long int))          { _PARSE_1_BODY("%ld"); }
+static int parseSingleUL(_PARSE_1_ARGS(unsigned long int)) { _PARSE_1_BODY("%lu"); }
+static int parseSingleZ (_PARSE_1_ARGS(size_t))            { _PARSE_1_BODY("%z");  }
+static int parseSingleF (_PARSE_1_ARGS(float))             { _PARSE_1_BODY("%f");  }
+static int parseSingleD (_PARSE_1_ARGS(double))            { _PARSE_1_BODY("%lf"); }
+// clang-format on
+static int
+parseSingleC(void *_out, const char *str, const void *ptr) {
+  AIR_UNUSED(ptr);
+  // we got NULL, there's nothing to do
+  if (!(_out && str)) return 1;
+  if (1 != strlen(str)) {
+    // really just want single char
+    return 1;
+  }
+  char *out = (char *)_out;
+  *out = str[0];
+  return 0;
+}
+static int
+parseSingleS(void *_out, const char *str, const void *ptr) {
+  AIR_UNUSED(ptr);
+  // we got NULL, there's nothing to do
+  if (!(_out && str)) return 1;
+  char **out = (char **)_out;
+  *out = airStrdup(str);
+  return !!(*out); // check that we got a non-NULL strdup
+}
+static int
+parseSingleE(void *_out, const char *str, const void *_enm) {
+  // we got NULL, there's nothing to do
+  if (!(_out && str && _enm)) return 1;
+  int *out = (int *)_out;
+  const airEnum *enm = (const airEnum *)_enm;
+  *out = airEnumVal(enm, str);
+  return (airEnumUnknown(enm) == *out);
+}
+
+int (*const _hestParseSingle[_HEST_TYPE_MAX + 1])(void *, const char *, const void *) = {
+  NULL,          //
+  parseSingleB,  //
+  parseSingleH,  //
+  parseSingleUH, //
+  parseSingleI,  //
+  parseSingleUI, //
+  parseSingleL,  //
+  parseSingleUL, //
+  parseSingleZ,  //
+  parseSingleF,  //
+  parseSingleD,  //
+  parseSingleC,  //
+  parseSingleS,  //
+  parseSingleE,
+  NULL // "other"
+};
+
+#define _INVERT_SCALAR(TT, ctype)                                                       \
+  static void _invertScalar##TT(void *_valP) {                                          \
+    ctype *valP = (ctype *)_valP;                                                       \
+    ctype val = *valP;                                                                  \
+    *valP = !val;                                                                       \
+  }
+_INVERT_SCALAR(B, int)
+_INVERT_SCALAR(H, short)
+_INVERT_SCALAR(UH, unsigned short)
+_INVERT_SCALAR(I, int)
+_INVERT_SCALAR(UI, unsigned int)
+_INVERT_SCALAR(L, long)
+_INVERT_SCALAR(UL, unsigned long)
+_INVERT_SCALAR(Z, size_t)
+_INVERT_SCALAR(F, float)
+_INVERT_SCALAR(D, double)
+// not: C, char
+// not: S, char *
+// not: E, int
+// not: ?, "other"
+
+void (*const _hestInvertScalar[_HEST_TYPE_MAX + 1])(void *) = {
+  NULL,            //
+  _invertScalarB,  //
+  _invertScalarH,  //
+  _invertScalarUH, //
+  _invertScalarI,  //
+  _invertScalarUI, //
+  _invertScalarL,  //
+  _invertScalarUL, //
+  _invertScalarZ,  //
+  _invertScalarF,  //
+  _invertScalarD,  //
+  NULL,            // not C, char
+  NULL,            // not S, char *
+  NULL,            // not E, int
+  NULL             // not ?, "other"
+};
+
+// HEY these are sticking around just for the old implementation of hestParse
 unsigned int (*const _hestParseStr[_HEST_TYPE_MAX + 1])(void *, const char *,
                                                         const char *, unsigned int)
   = {NULL,
@@ -229,55 +352,47 @@ _hestMax(int max) {
   return max;
 }
 
-/* opt_kind determines the kind (1,2,3,4, or 5) of an opt,
-  from being passed its min and max fields */
+/* minmaxKind determines the kind (1,2,3,4, or 5) of an opt,
+   based on the min and max fields from the hestOpt */
 static int
-opt_kind(unsigned int min, int _max) {
-  int max;
-
-  max = _hestMax(_max);
-  if (!(AIR_INT(min) <= max)) {
+minmaxKind(unsigned int min, int _max) {
+  int ret;
+  int max = _hestMax(_max);
+  if (AIR_INT(min) > max) {
     /* invalid */
-    return -1;
+    ret = -1;
+  } else { // else min <= max
+    if (AIR_INT(min) == max) {
+      if (0 == min) {
+        // stand-alone flag
+        ret = 1;
+      } else if (1 == min) {
+        // single fixed parm
+        ret = 2;
+      } else { // min==max >= 2
+        // multiple fixed parms
+        ret = 3;
+      }
+    } else { // else min < max
+      if (0 == min && 1 == max) {
+        // weirdo: single optional parameter
+        ret = 4;
+      } else {
+        // multiple variadic parameters
+        ret = 5;
+      }
+    }
   }
-
-  if (0 == min && 0 == max) {
-    /* flag */
-    return 1;
-  }
-
-  if (1 == min && 1 == max) {
-    /* single fixed parameter */
-    return 2;
-  }
-
-  if (2 <= min && 2 <= max && AIR_INT(min) == max) {
-    /* multiple fixed parameters */
-    return 3;
-  }
-
-  if (0 == min && 1 == max) {
-    /* single optional parameter */
-    return 4;
-  }
-
-  /* else multiple variadic parameters */
-  return 5;
+  return ret;
 }
 
-/* "private" wrapper around opt_kind, taking a hestOpt pointer */
-int
-_hestKind(const hestOpt *opt) {
-
-  return opt_kind(opt->min, opt->max);
-}
-
-/* opt_init initializes all of a hestOpt, even arrAlloc and arrLen */
+/* initializes all of a hestOpt, even arrAlloc and arrLen */
 static void
-opt_init(hestOpt *opt) {
+optInit(hestOpt *opt) {
 
-  opt->flag = opt->name = NULL;
-  opt->type = airTypeUnknown; /* == 0 */
+  opt->flag = NULL;
+  opt->name = NULL;
+  opt->type = airTypeUnknown; /* h== 0 */
   opt->min = 0;
   opt->max = 0;
   opt->valueP = NULL;
@@ -310,12 +425,12 @@ hestOptNum(const hestOpt *opt) {
 
 /* like airArrayNew: create an initial segment of the hestOpt array */
 static void
-optarr_new(hestOpt **optP) {
+optarrNew(hestOpt **optP) {
   unsigned int opi;
   hestOpt *ret = AIR_CALLOC(INCR, hestOpt);
   assert(ret);
   for (opi = 0; opi < INCR; opi++) {
-    opt_init(ret + opi);
+    optInit(ret + opi);
   }
   ret->arrAlloc = INCR;
   ret->arrLen = 0;
@@ -326,7 +441,7 @@ optarr_new(hestOpt **optP) {
 /* line airArrayLenIncr(1): increments logical length by 1,
 and returns index of newly-available element */
 static unsigned int
-optarr_incr(hestOpt **optP) {
+optarrIncr(hestOpt **optP) {
   unsigned int olen, nlen;
   olen = (*optP)->arrLen; /* == index of new element */
   nlen = olen + 1;
@@ -338,7 +453,7 @@ optarr_incr(hestOpt **optP) {
     memcpy(nopt, *optP, olen * sizeof(hestOpt));
     nopt->arrAlloc = (*optP)->arrAlloc + INCR;
     for (opi = olen; opi < nopt->arrAlloc; opi++) {
-      opt_init(nopt + opi);
+      optInit(nopt + opi);
     }
     free(*optP);
     *optP = nopt;
@@ -368,7 +483,7 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
   opt->dflt = airStrdup(dflt);
   opt->info = airStrdup(info);
   // need to set kind now so can be used in later conditionals
-  opt->kind = opt_kind(min, max);
+  opt->kind = minmaxKind(min, max);
   // deal with (what used to be) var args
   opt->sawP = (5 == opt->kind /* */
                  ? sawP
@@ -382,7 +497,7 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
   // alloc set by hestParse
   opt->havec = hestArgVecNew();
   // leave arrAlloc, arrLen untouched: managed by caller
-  // yes, redundant with opt_init()
+  // yes, redundant with optInit()
   opt->source = hestSourceUnknown;
   opt->parmStr = NULL;
   opt->helpWanted = AIR_FALSE;
@@ -393,14 +508,14 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
 hestOptAdd_nva: A new (as of 2023) non-var-args ("_nva") version of hestOptAdd;
 The per-hestOpt logic (including setting opt->kind) has now been moved to
 hestOptSingleSet. The venerable var-args hestOptAdd is now a wrapper around this.
-and the 99 non-var-args hestOptAdd_* functions also all call this.
+and all the 99 non-var-args fully typed hestOptAdd_* functions also call this.
 
 Like hestOptAdd has done since 2013: returns UINT_MAX in case of error.
 
 NOTE that we do NOT do here ANY error checking on the validity of the arguments passed,
-e.g. enforcing that we have a non-NULL sawP if min != max (a variadic parameter option),
-or that without a flag (`flag` is NULL) we must have min > 0.  All of that is done later,
-in _hestOPCheck.
+e.g. enforcing that we have a non-NULL sawP iff this is a multi-variadic parameter
+option, or that without a flag (`flag` is NULL) we must have min > 0.  All of that is
+done later, in _hestOPCheck.
 */
 unsigned int
 hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,
@@ -413,10 +528,10 @@ hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,
   if (!optP) return UINT_MAX;
   /* initialize hestOpt array if necessary */
   if (!(*optP)) {
-    optarr_new(optP);
+    optarrNew(optP);
   }
   /* increment logical length of hestOpt array; return index of opt being set here */
-  retIdx = optarr_incr(optP);
+  retIdx = optarrIncr(optP);
   /* set all elements of the opt */
   hestOptSingleSet(*optP + retIdx, flag, name, type, min, max, /* */
                    valueP, dflt, info,                         /* */
@@ -436,8 +551,8 @@ hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,
  * hestOptAdd_Nv_T for T=Bool, Short, UShort, Int, UInt, LongInt, ULongInt, Size_t,
  * Float, Double, Char, String, Enum, or Other.
  *
- * This returns the index of the option just added, to so the caller can remember it and
- * this speed up later checking the `hestOpt->source` to learn where how the option was
+ * This returns the index of the option just added, so the caller can remember it and
+ * thus speed up later checking the `hestOpt->source` to learn where how the option was
  * parsed. Returns UINT_MAX in case of error.
  */
 unsigned int
@@ -451,7 +566,7 @@ hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type,
 
   if (!optP) return UINT_MAX;
   /* deal with var args */
-  if (5 == opt_kind(min, max)) {
+  if (5 == minmaxKind(min, max)) {
     va_start(ap, info);
     sawP = va_arg(ap, unsigned int *);
     va_end(ap);
@@ -533,58 +648,35 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                opt[opi].type, airTypeUnknown + 1, airTypeLast - 1);
       return 1;
     }
-    if (!(opt[opi].valueP)) {
-      biffAddf(HEST, "%s%sopt[%u]'s valueP is NULL!", _ME_, opi);
-      return 1;
-    }
     // `kind` set by hestOptSingleSet
     if (-1 == opt[opi].kind) {
       biffAddf(HEST, "%s%sopt[%u]'s min (%d) and max (%d) incompatible", _ME_, opi,
                opt[opi].min, opt[opi].max);
       return 1;
     }
-    if (5 == opt[opi].kind && !(opt[opi].sawP)) {
-      biffAddf(HEST,
-               "%s%sopt[%u] has multiple variadic parameters (min=%u,max=%d), "
-               "but sawP is NULL",
-               _ME_, opi, opt[opi].min, opt[opi].max);
+    if (!(opt[opi].valueP)) {
+      biffAddf(HEST, "%s%sopt[%u]'s valueP is NULL!", _ME_, opi);
       return 1;
     }
-    if (airTypeEnum == opt[opi].type) {
-      if (!(opt[opi].enm)) {
-        biffAddf(HEST,
-                 "%s%sopt[%u] (%s) is type \"enum\", but no "
-                 "airEnum pointer given",
-                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
+    if (1 == opt[opi].kind) {
+      if (!opt[opi].flag) {
+        biffAddf(HEST, "%s%sstand-alone flag opt[%u] must have a flag", _ME_, opi);
         return 1;
       }
-    }
-    if (airTypeOther == opt[opi].type) {
-      if (!(opt[opi].CB)) {
-        biffAddf(HEST,
-                 "%s%sopt[%u] (%s) is type \"other\", but no "
-                 "callbacks given",
-                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
+      if (opt[opi].dflt) {
+        biffAddf(HEST, "%s%sstand-alone flag (opt[%u] %s) should not have a default",
+                 _ME_, opi, opt[opi].flag);
         return 1;
       }
-      if (!(opt[opi].CB->size > 0)) {
-        biffAddf(HEST, "%s%sopt[%u]'s \"size\" (%u) invalid", _ME_, opi,
-                 (uint)(opt[opi].CB->size));
+      if (opt[opi].name) {
+        biffAddf(HEST, "%s%sstand-alone flag (opt[%u] %s) should not have a name", _ME_,
+                 opi, opt[opi].flag);
         return 1;
       }
-      if (!(opt[opi].CB->type)) {
-        biffAddf(HEST, "%s%sopt[%u]'s \"type\" is NULL", _ME_, opi);
-        return 1;
-      }
-      if (!(opt[opi].CB->parse)) {
-        biffAddf(HEST, "%s%sopt[%u]'s \"parse\" callback NULL", _ME_, opi);
-        return 1;
-      }
-      if (opt[opi].CB->destroy && (sizeof(void *) != opt[opi].CB->size)) {
-        biffAddf(HEST,
-                 "%s%sopt[%u] has a \"destroy\", but size %lu isn't "
-                 "sizeof(void*)",
-                 _ME_, opi, (unsigned long)(opt[opi].CB->size));
+    } else { // ------ end of if (1 == opt[opi].kind)
+      if (!opt[opi].name) {
+        biffAddf(HEST, "%s%sopt[%u] isn't stand-alone flag: must have \"name\"", _ME_,
+                 opi);
         return 1;
       }
     }
@@ -606,13 +698,9 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                    flag, chi, flag[chi]);
           return 1;
         }
-      }
-      if (1 == opt[opi].kind) {
-        if (opt[opi].dflt) {
-          biffAddf(HEST,
-                   "%s%sstand-alone flag (opt[%u] %s) should not give a default; will "
-                   "be ignored",
-                   _ME_, opi, opt[opi].flag);
+        if (strchr(AIR_WHITESPACE, flag[chi])) {
+          biffAddf(HEST, "%s%sopt[%u].flag \"%s\" char %u '%c' is whitespace", _ME_, opi,
+                   flag, chi, flag[chi]);
           return 1;
         }
       }
@@ -643,6 +731,7 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                    _ME_, opi, flag, MULTI_FLAG_SEP);
           return (free(tbuff), 1);
         }
+        free(tbuff);
       } else {
         if (!strlen(opt[opi].flag)) {
           biffAddf(HEST, "%s%sopt[%u].flag is zero length", _ME_, opi);
@@ -662,50 +751,105 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                    "%s%sflagged single variadic parameter must "
                    "specify a default",
                    _ME_);
-          return (free(tbuff), 1);
+          return 1;
         }
         if (!strlen(opt[opi].dflt)) {
           biffAddf(HEST,
                    "%s%sflagged single variadic parameter default "
                    "must be non-zero length",
                    _ME_);
-          return (free(tbuff), 1);
+          return 1;
         }
       }
-      /*
-      sprintf(tbuff, "-%s", opt[op].flag);
-      if (1 == sscanf(tbuff, "%f", &tmpF)) {
-        if (err)
-          sprintf(err, "%sopt[%u].flag (\"%s\") is numeric, bad news",
-                  ME, op, opt[op].flag);
-        return 1;
-      }
-      */
-      free(tbuff);
     } else { // ------ end of if (opt[opi].flag)
       // opt[opi] is unflagged
       if (!opt[opi].min) {
+        // this rules out all unflagged kind 1 and kind 4
+        // and prevents unflagged kind 5 w/ min=0
         biffAddf(HEST, "%s%sunflagged opt[%u] (name %s) must have min >= 1, not 0", _ME_,
                  opi, opt[opi].name ? opt[opi].name : "not set");
         return 1;
       }
     }
-    if (1 == opt[opi].kind) {
-      if (!opt[opi].flag) {
-        biffAddf(HEST, "%s%sopt[%u] flag must have a flag", _ME_, opi);
+    if (4 == opt[opi].kind) { // single variadic parameter
+      // immediately above have ruled out unflagged kind 4
+      if (!opt[opi].dflt) {
+        biffAddf(HEST,
+                 "%s%sopt[%u] -%s is single variadic parameter, but "
+                 "no default set",
+                 _ME_, opi, opt[opi].flag);
         return 1;
       }
-    } else {
-      if (!opt[opi].name) {
-        biffAddf(HEST, "%s%sopt[%u] isn't a flag: must have \"name\"", _ME_, opi);
+      /* pre 2025, these types were allowed kind 4, but the semantics are just so weird
+         and thus hard to test + debug, that it no longer makes sense to support them */
+      if (airTypeChar == opt[opi].type || airTypeString == opt[opi].type
+          || airTypeEnum == opt[opi].type || airTypeOther == opt[opi].type) {
+        biffAddf(HEST,
+                 "%s%sopt[%u] -%s is single variadic parameter, but sorry, "
+                 "type %s no longer supported",
+                 _ME_, opi, opt[opi].flag, _hestTypeStr[opt[opi].type]);
         return 1;
       }
     }
-    if (4 == opt[opi].kind && !opt[opi].dflt) {
+    if (5 == opt[opi].kind && !(opt[opi].sawP)) {
       biffAddf(HEST,
-               "%s%sopt[%u] is single variadic parameter, but "
-               "no default set",
-               _ME_, opi);
+               "%s%sopt[%u] has multiple variadic parameters (min=%u,max=%d), "
+               "but sawP is NULL",
+               _ME_, opi, opt[opi].min, opt[opi].max);
+      return 1;
+    }
+    if (opt[opi].sawP && 5 != opt[opi].kind) {
+      biffAddf(HEST,
+               "%s%sopt[%u] has non-NULL sawP but is not a (kind=5) "
+               "multiple variadic parm option (min=%u,max=%d)",
+               _ME_, opi, opt[opi].min, opt[opi].max);
+      return 1;
+    }
+    if (airTypeEnum == opt[opi].type && !(opt[opi].enm)) {
+      biffAddf(HEST,
+               "%s%sopt[%u] (%s) is type \"enum\", but no "
+               "airEnum pointer given",
+               _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
+      return 1;
+    }
+    if (opt[opi].enm && airTypeEnum != opt[opi].type) {
+      biffAddf(HEST,
+               "%s%sopt[%u] (%s) has non-NULL airEnum pointer, but is not airTypeEnum",
+               _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
+      return 1;
+    }
+    if (airTypeOther == opt[opi].type) {
+      if (!(opt[opi].CB)) {
+        biffAddf(HEST,
+                 "%s%sopt[%u] (%s) is type \"other\", but no "
+                 "callbacks given",
+                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
+        return 1;
+      }
+      if (!(opt[opi].CB->size > 0)) {
+        biffAddf(HEST, "%s%sopt[%u]'s \"size\" (%u) invalid", _ME_, opi,
+                 (uint)(opt[opi].CB->size));
+        return 1;
+      }
+      if (!(opt[opi].CB->type)) {
+        biffAddf(HEST, "%s%sopt[%u]'s \"type\" is NULL", _ME_, opi);
+        return 1;
+      }
+      if (!(opt[opi].CB->parse)) {
+        biffAddf(HEST, "%s%sopt[%u]'s \"parse\" callback NULL", _ME_, opi);
+        return 1;
+      }
+      if (opt[opi].CB->destroy && (sizeof(void *) != opt[opi].CB->size)) {
+        biffAddf(HEST,
+                 "%s%sopt[%u] has a \"destroy\", but size %lu isn't "
+                 "sizeof(void*)",
+                 _ME_, opi, (unsigned long)(opt[opi].CB->size));
+        return 1;
+      }
+    }
+    if (opt[opi].CB && airTypeOther != opt[opi].type) {
+      biffAddf(HEST, "%s%sopt[%u] (%s) has non-NULL callbacks, but is not airTypeOther",
+               _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
       return 1;
     }
     // kind 4 = single variadic parm;  kind 5 = multiple variadic parm
