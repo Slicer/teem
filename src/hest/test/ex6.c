@@ -84,7 +84,7 @@ main(int argc, const char **argv) {
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->noArgsIsNoProblem = AIR_TRUE;
   hparm->dieLessVerbose = AIR_TRUE;
-  hparm->verbosity = 0;
+  hparm->verbosity = 1;
 
   opt = NULL;
   /* going past C89 to have declarations here */
@@ -111,7 +111,7 @@ main(int argc, const char **argv) {
   char c1;
   hestOptAdd_1_Char(&opt, "c1", "char1", &c1, "x", "test of hestOptAdd_1_Char");
   char *s1;
-  hestOptAdd_1_String(&opt, "s1", "string1", &s1, "bingo bob",
+  hestOptAdd_1_String(&opt, "s1", "string1", &s1, "\"bingo bob\"",
                       "test of hestOptAdd_1_String");
   int e1;
   hestOptAdd_1_Enum(&opt, "e1", "enum1", &e1, "little", "test of hestOptAdd_1_Enum",
@@ -376,7 +376,6 @@ main(int argc, const char **argv) {
   hestOptAdd_Nv_Other(&opt, "qv", "quat1", 1, -1, &qv, "12.34  43.21",
                       "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
   hestParse2(opt, argc - 1, argv + 1, NULL, hparm);
-  exit(0);
   /*
   hestParseOrDie(opt, argc - 1, argv + 1, hparm, argv[0], info, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
@@ -421,7 +420,7 @@ main(int argc, const char **argv) {
   printf("sz1v = %zu\n", sz1v);
   printf("fl1v = %g\n", fl1v);
   printf("db1v = %g\n", db1v);
-  /*
+  /* gone in 2025
   printf("c1v = |%c| (%d)\n", c1v, c1v);
   printf("s1v = |%s|\n", s1v);
   printf("e1v = %d\n", e1v);
@@ -430,6 +429,7 @@ main(int argc, const char **argv) {
   */
   printf("\n");
 
+#if 0
   printf("b2 = %d %d\n", b2[0], b2[1]);
   printf("i2 = %d %d\n", i2[0], i2[1]);
   printf("ui2 = %u %u\n", ui2[0], ui2[1]);
@@ -561,6 +561,7 @@ main(int argc, const char **argv) {
   }
   printf("\n");
 
+#endif
   /* free the memory allocated by parsing ... */
   hestParseFree(opt);
   /* ... and the other stuff */

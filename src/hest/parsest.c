@@ -1228,7 +1228,7 @@ optProcessDefaults(hestOpt *opt, hestArg *tharg, hestInputStack *hist,
     int haveArg = AIR_INT(opt[opi].havec->len);
     if (!(AIR_INT(opt[opi].min) <= haveArg && haveArg <= maxArg)) {
       biffAddf(HEST,
-               "%s%s %s[%u] got (from user or from default) %u args, but that is "
+               "%s%s%s[%u] got (from user or from default) %u args, but that is "
                "outside [min,max]=[%u,%d] range",
                _ME_, ident, opi, opt[opi].havec->len, opt[opi].min, maxArg);
       return 1;
