@@ -978,7 +978,7 @@ one has to be extracted last.
 */
 static int
 havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
-  char *havStr, ident[AIR_STRLEN_HUGE + 1];
+  char *havStr = NULL, ident[AIR_STRLEN_HUGE + 1];
   uint optNum = opt->arrLen; // number of options (flagged or unflagged)
   uint ufOptNum = 0;         // number of unflagged options
   for (uint opi = 0; opi < optNum; opi++) {
