@@ -72,19 +72,19 @@ hestCB quatCB = {sizeof(Quat *), "quatty", quat_parse, (airMopper)quat_free};
 int
 main(int argc, const char **argv) {
   hestOpt *opt = NULL;
-  hestParm *parm;
+  hestParm *hparm;
   char *err = NULL,
        info[] = "This program does nothing in particular, though it does attempt "
                 "to pose as some sort of command-line image processing program. "
                 "As usual, any implied functionality is purely coincidental, "
                 "especially since this is the output of a gray-haired unicyclist.";
 
-  parm = hestParmNew();
-  parm->responseFileEnable = AIR_TRUE;
-  parm->respectDashDashHelp = AIR_TRUE;
-  parm->noArgsIsNoProblem = AIR_TRUE;
-  parm->dieLessVerbose = AIR_TRUE;
-  parm->verbosity = 0;
+  hparm = hestParmNew();
+  hparm->responseFileEnable = AIR_TRUE;
+  hparm->respectDashDashHelp = AIR_TRUE;
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hparm->dieLessVerbose = AIR_TRUE;
+  hparm->verbosity = 0;
 
   opt = NULL;
   /* going past C89 to have declarations here */
@@ -143,6 +143,7 @@ main(int argc, const char **argv) {
   double db1v;
   hestOptAdd_1v_Double(&opt, "db1v", "double1", &db1v, "4.2",
                        "test of hestOptAdd_1v_Double");
+  /* gone in 2025
   char c1v;
   hestOptAdd_1v_Char(&opt, "c1v", "char1", &c1v, "x", "test of hestOptAdd_1v_Char");
   char *s1v;
@@ -157,7 +158,7 @@ main(int argc, const char **argv) {
   Quat *q1v;
   hestOptAdd_1v_Other(&opt, "q1v", "quat", &q1v, "12.34",
                       "test of hestOptAdd_1v_Other B", &quatCB);
-
+  */
   int b2[2];
   hestOptAdd_2_Bool(&opt, "b2", "bool1 bool2", b2, "true false",
                     "test of hestOptAdd_2_Bool");
@@ -374,8 +375,12 @@ main(int argc, const char **argv) {
   unsigned int qvSaw;
   hestOptAdd_Nv_Other(&opt, "qv", "quat1", 1, -1, &qv, "12.34  43.21",
                       "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
-  hestParseOrDie(opt, argc - 1, argv + 1, parm, argv[0], info, AIR_TRUE, AIR_TRUE,
+  hestParse2(opt, argc - 1, argv + 1, NULL, hparm);
+  exit(0);
+  /*
+  hestParseOrDie(opt, argc - 1, argv + 1, hparm, argv[0], info, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
+  */
 
   if (0) {
     unsigned int opi, numO;
@@ -416,11 +421,13 @@ main(int argc, const char **argv) {
   printf("sz1v = %zu\n", sz1v);
   printf("fl1v = %g\n", fl1v);
   printf("db1v = %g\n", db1v);
+  /*
   printf("c1v = |%c| (%d)\n", c1v, c1v);
   printf("s1v = |%s|\n", s1v);
   printf("e1v = %d\n", e1v);
   printf("p1v = %g,%g\n", p1v[0], p1v[1]);
   printf("q1v (@ %p) = %g(%s)\n", q1v, q1v->val, q1v->str);
+  */
   printf("\n");
 
   printf("b2 = %d %d\n", b2[0], b2[1]);
@@ -558,6 +565,6 @@ main(int argc, const char **argv) {
   hestParseFree(opt);
   /* ... and the other stuff */
   opt = hestOptFree(opt);
-  parm = hestParmFree(parm);
+  hparm = hestParmFree(hparm);
   exit(0);
 }
