@@ -514,6 +514,7 @@ AIR_EXPORT unsigned int airParseStrE(int *out, const char *s, const char *ct,
 AIR_EXPORT char *airStrdup(const char *s);
 AIR_EXPORT size_t airStrlen(const char *s);
 /* ---- BEGIN non-NrrdIO */
+AIR_EXPORT char *airStrtrunc(char *s, size_t bsize, size_t drop);
 AIR_EXPORT int airStrcmp(const char *s1, const char *s2);
 /* ---- END non-NrrdIO */
 AIR_EXPORT char *airStrtok(char *s, const char *ct, char **last);
