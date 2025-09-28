@@ -165,7 +165,9 @@ parseSingleO(void *out, const char *str, _hestPPack *hpp) {
   if (ret) {
     if (strlen(myerr)) {
       snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "error parsing \"%s\" as %s:\n%s\n", str,
-               hpp->CB->type, airStrtrunc(myerr, AIR_STRLEN_HUGE + 1, strlen(str) + strlen(hpp->CB->type) + 100));
+               hpp->CB->type,
+               airStrtrunc(myerr, AIR_STRLEN_HUGE + 1,
+                           strlen(str) + strlen(hpp->CB->type) + 100));
     } else {
       snprintf(hpp->err, AIR_STRLEN_HUGE + 1,
                "error parsing \"%s\" as %s: returned %d\n", str, hpp->CB->type, ret);
