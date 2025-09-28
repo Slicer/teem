@@ -324,7 +324,6 @@ main(int argc, const char **argv) {
                      "15.55  55.51  66.77  88.99  100.2", "test of hestOptAdd_N_Other B",
                      &quatCB);
 
-#if 0
   /* HEY also try 0, -1 */
   int *bv;
   unsigned int bvSaw;
@@ -378,7 +377,6 @@ main(int argc, const char **argv) {
   unsigned int qvSaw;
   hestOptAdd_Nv_Other(&opt, "qv", "quat1", 1, -1, &qv, "12.34  43.21",
                       "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
-#endif
   if (hestParse2(opt, argc - 1, argv + 1, NULL, hparm)) {
     // have already fprintf'd to stderr
     hestUsage(stderr, opt, argv[0], hparm);
@@ -509,7 +507,6 @@ main(int argc, const char **argv) {
          q5[1]->val, q5[1]->str, q5[2]->val, q5[2]->str, q5[3]->val, q5[3]->str,
          q5[4]->val, q5[4]->str);
 
-#if 0
   unsigned int ii;
   printf("bv (%u) =", bvSaw);
   for (ii = 0; ii < bvSaw; ii++) {
@@ -577,7 +574,6 @@ main(int argc, const char **argv) {
   }
   printf("\n");
 
-#endif
   /* free the memory allocated by parsing ... */
   hestParseFree(opt);
   /* ... and the other stuff */

@@ -872,7 +872,7 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
              __func__, optIdx, theOpt->flag, parmNum, hitEnd, hitVPS, nextOptIdx);
     if (parmNum < theOpt->min) { // didn't get required min # parameters
       havStr = hestArgVecSprint(havec, AIR_TRUE);
-      biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
+      biffAddf(HEST, "%s%sgiven (index: labeled) argv=|%s|", _ME_, havStr);
       if (hitEnd) {
         biffAddf(HEST,
                  "%s%shit end of args before getting %u parameter%s "
@@ -914,7 +914,7 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     hestArgNix(hestArgVecRemove(havec, argIdx));
     havStr = hestArgVecSprint(havec, AIR_TRUE);
     if (havecTransfer(theOpt, havec, argIdx, parmNum, hparm)) {
-      biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
+      biffAddf(HEST, "%s%sgiven (index: labeled) argv=|%s|", _ME_, havStr);
       biffAddf(HEST, "%s%strouble transferring %u args for %s", _ME_, parmNum,
                identStr(ident1, theOpt));
       return (free(havStr), 1);
@@ -1046,7 +1046,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     if (opt[opi].min /* == max */ < havec->len || !opt[opi].dflt) {
       havStr = hestArgVecSprint(havec, AIR_TRUE);
       if (havecTransfer(opt + opi, havec, 0, opt[opi].min, hparm)) {
-        biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
+        biffAddf(HEST, "%s%sgiven (index: labeled) argv=|%s|", _ME_, havStr);
         biffAddf(HEST, "%s%strouble getting args for %sunflagged %s[%u]", _ME_,
                  !opt[opi].dflt ? "default-less " : "", identStr(ident, opt + opi), opi);
         return (free(havStr), free(ufOpi2), 1);
@@ -1076,7 +1076,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
                      : 0);
       havStr = hestArgVecSprint(havec, AIR_TRUE);
       if (havecTransfer(opt + opi, havec, idx0, opt[opi].min, hparm)) {
-        biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
+        biffAddf(HEST, "%s%sgiven (index: labeled) argv=|%s|", _ME_, havStr);
         biffAddf(HEST, "%s%strouble getting args for (later) %sunflagged %s[%u]", _ME_,
                  !opt[opi].dflt ? "default-less " : "", identStr(ident, opt + opi), opi);
         return (free(havStr), free(ufOpi2), 1);
@@ -1093,7 +1093,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   uint minArg = opt[ufVarOpi].min; /* min < max ! */
   if (minArg > havec->len && !opt[ufVarOpi].dflt) {
     havStr = hestArgVecSprint(havec, AIR_TRUE);
-    biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
+    biffAddf(HEST, "%s%sgiven (index: labeled) argv=|%s|", _ME_, havStr);
     biffAddf(HEST,
              "%s%shave only %u args left but need %u for "
              "(default-less) variadic unflagged %s[%u]",
@@ -1109,7 +1109,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     }
     if (havecTransfer(opt + ufVarOpi, havec, 0, getArg, hparm)) {
       havStr = hestArgVecSprint(havec, AIR_TRUE);
-      biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
+      biffAddf(HEST, "%s%sgiven (index: labeled) argv=|%s|", _ME_, havStr);
       biffAddf(HEST, "%s%strouble getting args for unflagged variadic %s[%u]", _ME_,
                identStr(ident, opt + ufVarOpi), ufVarOpi);
       return (free(havStr), free(ufOpi2), 1);
@@ -1133,7 +1133,7 @@ finishingup:
   // currently it's an error to have un-accounted-for args left overå
   if (havec->len) {
     havStr = hestArgVecSprint(havec, AIR_TRUE);
-    biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
+    biffAddf(HEST, "%s%sgiven (index: labeled) argv=|%s|", _ME_, havStr);
     biffAddf(HEST,
              "%s%safter getting %u unflagged opts, have %u unexpected arg%s "
              "%s\"%s\"",
@@ -1250,7 +1250,6 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
   */
   void *valueP;
   char *cvalueP;
-  int *ivalueP;
   uint optNum = opt->arrLen;
   for (uint opi = 0; opi < optNum; opi++) {
     identStr(ident, opt + opi);
@@ -1272,8 +1271,6 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
                           ? opt[opi].CB->size
                           : _hestTypeSize[type]));
     valueP = opt[opi].valueP;
-    cvalueP = (char *)valueP;
-    ivalueP = (int *)valueP;
     if (hparm->verbosity) {
       printf("%s: opt[%u/%u]: havec_%c|%s| \t|%s| \t--> kind=%d, type=%d, size=%u\n",
              __func__, opi, optNum, airEnumStr(hestSource, opt[opi].source)[0],
@@ -1297,13 +1294,14 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
       // hpp->err set by parseSingleT
     }
     switch (opt[opi].kind) {
-    case 1: // -------- parameter-less boolean flags --------
+    case 1: { // -------- parameter-less boolean flags --------
       /* valueP is always assumed to be an int* */
+      int *ivalueP = (int *)valueP;
       *ivalueP = hestSourceDefault != opt[opi].source;
       if (hparm->verbosity) {
         printf("   --> set value %d\n", *ivalueP);
       }
-      break;
+    } break;
     case 4: { // -------- optional single variadics --------
       const char *strsrc;
       int invert;
@@ -1343,8 +1341,8 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
       if (invert) {
         _hestInvertScalar[type](valueP);
       }
-      break;
     } // end case 4 {
+    break;
     case 2: // -------- one required parameter --------
       if (_hestParseSingle[type](valueP, opt[opi].havec->harg[0]->str, hpp)) {
         biffAddf(HEST, "%s%sproblem parsing for %s[%u]: %s", _ME_, ident, opi, hpp->err);
@@ -1354,6 +1352,8 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
       break;
     case 3:
       /* -------- multiple required parameters -------- */
+      // user already allocated array at valueP
+      cvalueP = (char *)valueP;
       for (uint argi = 0; argi < opt[opi].havec->len; argi++) {
         if (_hestParseSingle[type](cvalueP + size * argi,
                                    opt[opi].havec->harg[argi]->str, hpp)) {
@@ -1365,130 +1365,42 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
       // (review alloc semantics in hest.h)
       opt[opi].alloc = 2 * hpp->alloc;
       break;
-#if 0
+      // (case 4 handled above)
     case 5:
       /* -------- multiple variadic parameters -------- */
-      if (optParms[opi] && valueP) {
-        if (1 == whichCase(opt, optDfltd, optParmNum, appr, opi)) {
-          *((void **)valueP) = NULL;
-          /* alloc and sawP set above */
-        } else {
-          if (airTypeString == type) {
-            /* this is sneakiness: we allocate one more element so that
-               the resulting char** is, like argv, NULL-terminated */
-            *((void **)valueP) = calloc(optParmNum[opi] + 1, size);
-          } else {
-            if (optParmNum[opi]) {
-              /* only allocate if there's something to allocate */
-              *((void **)valueP) = calloc(optParmNum[opi], size);
-            } else {
-              *((void **)valueP) = NULL;
-            }
-          }
-          if (hparm->verbosity) {
-            printf("%s: optParmNum[%d] = %u\n", me, opi, optParmNum[opi]);
-            printf("%s: new array (size %u*%u) is at 0x%p\n", me, optParmNum[opi],
-                   (unsigned int)size, *((void **)valueP));
-          }
-          if (*((void **)valueP)) {
-            airMopMem(pmop, valueP, airMopOnError);
-          }
-          *(opt[opi].sawP) = optParmNum[opi];
-          /* so far everything we've done is regardless of type */
-          switch (type) {
-          case airTypeEnum:
-            opt[opi].alloc = 1;
-            if (optParmNum[opi]
-                != airParseStrE((int *)(*((void **)valueP)), optParms[opi], " ",
-                                optParmNum[opi], opt[opi].enm)) {
-              fprintf(stderr, "%scouldn't parse %s\"%s\" as %u %s%s for %s\n", ME,
-                      optDfltd[opi] ? "(default) " : "", optParms[opi], optParmNum[opi],
-                      opt[opi].enm->name, optParmNum[opi] > 1 ? "s" : "", ident);
-              return 1;
-            }
-            break;
-          case airTypeOther:
-            cvalueP = (char *)(*((void **)valueP));
-            optParmsCopy = airStrdup(optParms[opi]);
-            opt[opi].alloc = (opt[opi].CB->destroy ? 3 : 1);
-            for (p = 0; p < (int)optParmNum[opi]; p++) { /* HEY scrutinize casts */
-              tok = airStrtok(!p ? optParmsCopy : NULL, " ", &last);
-              /* (Note from 2023-06-24: "hammerhead" was hammerhead.ucsd.edu, an Intel
-              Itanium ("IA-64") machine that GLK had access to in 2003, presumably with
-              an Intel compiler, providing a different debugging opportunity for this
-              code. Revision r1985 from 2003-12-20 documented some issues discovered, in
-              comments like the one below. Valgrind has hopefully resolved these issues
-              now, but the comment below is preserved out of respect for the goals of
-              Itanium, and nostalgia for that time at the end of grad school.)
-                 hammerhead problems went away when this line
-                 was replaced by the following one:
-                 strcpy(cberr, "");
-              */
-              cberr[0] = 0;
-              ret = opt[opi].CB->parse(cvalueP + p * size, tok, cberr);
-              if (ret) {
-                if (strlen(cberr))
-                  fprintf(stderr,
-                          "%serror parsing \"%s\" (in \"%s\") as %s "
-                          "for %s:\n%s\n",
-                          ME, tok, optParms[opi], opt[opi].CB->type, ident, cberr);
-
-                else
-                  fprintf(stderr,
-                          "%serror parsing \"%s\" (in \"%s\") as %s "
-                          "for %s: returned %d\n",
-                          ME, tok, optParms[opi], opt[opi].CB->type, ident, ret);
-                free(optParmsCopy);
-                return 1;
-              }
-            }
-            free(optParmsCopy);
-            if (opt[opi].CB->destroy) {
-              for (p = 0; p < (int)optParmNum[opi]; p++) { /* HEY scrutinize casts */
-                /* avert your eyes.  vP is the address of an array of void*s.
-                   We manage the void*s */
-                airMopAdd(pmop, (*((void ***)valueP)) + p, (airMopper)airSetNull,
-                          airMopOnError);
-                airMopAdd(pmop, *((*((void ***)valueP)) + p), opt[opi].CB->destroy,
-                          airMopOnError);
-              }
-            }
-            break;
-          case airTypeString:
-            opt[opi].alloc = 3;
-            if (optParmNum[opi]
-                != airParseStrS((char **)(*((void **)valueP)), optParms[opi], " ",
-                                optParmNum[opi] /*, hparm->greedySingleString */)) {
-              fprintf(stderr, "%scouldn't parse %s\"%s\" as %d %s%s for %s\n", ME,
-                      optDfltd[opi] ? "(default) " : "", optParms[opi], optParmNum[opi],
-                      _hestTypeStr[type], optParmNum[opi] > 1 ? "s" : "", ident);
-              return 1;
-            }
-            /* vP is the address of an array of char*s (a char ***), and
-               what we manage with airMop is the individual (*vP)[p],
-               as well as vP itself (above). */
-            for (p = 0; p < (int)optParmNum[opi]; p++) { /* HEY scrutinize casts */
-              airMopAdd(pmop, (*((char ***)valueP))[p], airFree, airMopOnError);
-            }
-            /* do the NULL-termination described above */
-            (*((char ***)valueP))[optParmNum[opi]] = NULL;
-            break;
-          default:
-            opt[opi].alloc = 1;
-            if (optParmNum[opi]
-                != _hestParseStr[type](*((void **)valueP), optParms[opi], " ",
-                                       optParmNum[opi])) {
-              fprintf(stderr, "%scouldn't parse %s\"%s\" as %d %s%s for %s\n", ME,
-                      optDfltd[opi] ? "(default) " : "", optParms[opi], optParmNum[opi],
-                      _hestTypeStr[type], optParmNum[opi] > 1 ? "s" : "", ident);
-              return 1;
-            }
-            break;
-          }
+      // we allocate the array to hold multiple values
+      // initialize pointer to NULL in case we have zero
+      *((void **)valueP) = NULL;
+      if (airTypeString == type) {
+        /* this is sneakiness: we allocate one more element so that
+           the resulting char** is, like argv, NULL-terminated */
+        *((void **)valueP) = calloc(opt[opi].havec->len + 1, size);
+      } else if (opt[opi].havec->len) {
+        // only allocate if there's a need to
+        *((void **)valueP) = calloc(opt[opi].havec->len, size);
+      }
+      if (*((void **)valueP)) {
+        airMopMem(cmop, valueP, airMopOnError);
+      }
+      *(opt[opi].sawP) = opt[opi].havec->len;
+      cvalueP = *((void **)valueP);
+      // RIP hammerhead.ucsd.edu and Intel Itanium
+      for (uint argi = 0; argi < opt[opi].havec->len; argi++) {
+        if (_hestParseSingle[type](cvalueP + size * argi,
+                                   opt[opi].havec->harg[argi]->str, hpp)) {
+          biffAddf(HEST, "%s%sproblem parsing arg %u (of %u) for %s[%u]: %s", _ME_, argi,
+                   opt[opi].havec->len, ident, opi, hpp->err);
+          return 1;
         }
       }
+      if (airTypeString == type) {
+        // finish NULL-termination sneakiness
+        char **argv = (char **)cvalueP;
+        argv[opt[opi].havec->len] = NULL;
+      }
+      // (review alloc semantics in hest.h)
+      opt[opi].alloc = 2 + hpp->alloc;
       break;
-#endif
     } // end switch
   } // for opi ...
   return 0;
