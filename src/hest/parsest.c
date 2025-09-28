@@ -1314,7 +1314,7 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
              --> value is set from the default
            - option flag appears, but with no parm
              --> default is parsed, say, as value V, then the value is set to !V
-                (*this* is the "inversion" that is mentioned at places in the code)
+                (*this* is the mysterious "inversion" mentioned at places in the code)
            - option flag appears, with single parm
              --> value is set from parsing that parm
          In any case, some string has to be parsed; we call it `strsrc` */
@@ -1352,81 +1352,20 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
       }
       opt[opi].alloc = hpp->alloc;
       break;
-#if 0
     case 3:
       /* -------- multiple required parameters -------- */
-      if (optParms[opi] && valueP) {
-        switch (type) {
-        case airTypeEnum:
-          if (opt[opi].min != /* min == max */
-              airParseStrE((int *)valueP, optParms[opi], " ", opt[opi].min,
-                           opt[opi].enm)) {
-            fprintf(stderr, "%scouldn't parse %s\"%s\" as %d %s%s for %s\n", ME,
-                    optDfltd[opi] ? "(default) " : "", optParms[opi], opt[opi].min,
-                    opt[opi].enm->name, opt[opi].min > 1 ? "s" : "", ident);
-            return 1;
-          }
-          break;
-        case airTypeOther:
-          optParmsCopy = airStrdup(optParms[opi]);
-          for (p = 0; p < (int)opt[opi].min; p++) { /* HEY scrutinize casts */
-            tok = airStrtok(!p ? optParmsCopy : NULL, " ", &last);
-            strcpy(cberr, "");
-            ret = opt[opi].CB->parse(cvalueP + p * size, tok, cberr);
-            if (ret) {
-              if (strlen(cberr))
-                fprintf(stderr,
-                        "%serror parsing \"%s\" (in \"%s\") as %s "
-                        "for %s:\n%s\n",
-                        ME, tok, optParms[opi], opt[opi].CB->type, ident, cberr);
-              else
-                fprintf(stderr,
-                        "%serror parsing \"%s\" (in \"%s\") as %s "
-                        "for %s: returned %d\n",
-                        ME, tok, optParms[opi], opt[opi].CB->type, ident, ret);
-              free(optParmsCopy);
-              return 1;
-            }
-          }
-          free(optParmsCopy);
-          if (opt[opi].CB->destroy) {
-            /* vP is an array of void*s, we manage the individual void*s */
-            opt[opi].alloc = 2;
-            for (p = 0; p < (int)opt[opi].min; p++) { /* HEY scrutinize casts */
-              airMopAdd(pmop, ((void **)valueP) + p, (airMopper)airSetNull,
-                        airMopOnError);
-              airMopAdd(pmop, *(((void **)valueP) + p), opt[opi].CB->destroy,
-                        airMopOnError);
-            }
-          }
-          break;
-        case airTypeString:
-          if (opt[opi].min != /* min == max */
-              _hestParseStr[type](valueP, optParms[opi], " ", opt[opi].min)) {
-            fprintf(stderr, "%scouldn't parse %s\"%s\" as %d %s%s for %s\n", ME,
-                    optDfltd[opi] ? "(default) " : "", optParms[opi], opt[opi].min,
-                    _hestTypeStr[type], opt[opi].min > 1 ? "s" : "", ident);
-            return 1;
-          }
-          /* vP is an array of char*s, (a char**), and what we manage
-             with airMop are the individual vP[p]. */
-          opt[opi].alloc = 2;
-          for (p = 0; p < (int)opt[opi].min; p++) { /* HEY scrutinize casts */
-            airMopMem(pmop, &(((char **)valueP)[p]), airMopOnError);
-          }
-          break;
-        default:
-          if (opt[opi].min != /* min == max */
-              _hestParseStr[type](valueP, optParms[opi], " ", opt[opi].min)) {
-            fprintf(stderr, "%scouldn't parse %s\"%s\" as %d %s%s for %s\n", ME,
-                    optDfltd[opi] ? "(default) " : "", optParms[opi], opt[opi].min,
-                    _hestTypeStr[type], opt[opi].min > 1 ? "s" : "", ident);
-            return 1;
-          }
-          break;
+      for (uint argi = 0; argi < opt[opi].havec->len; argi++) {
+        if (_hestParseSingle[type](cvalueP + size * argi,
+                                   opt[opi].havec->harg[argi]->str, hpp)) {
+          biffAddf(HEST, "%s%sproblem parsing arg %u (of %u) for %s[%u]: %s", _ME_, argi,
+                   opt[opi].havec->len, ident, opi, hpp->err);
+          return 1;
         }
       }
+      // (review alloc semantics in hest.h)
+      opt[opi].alloc = 2 * hpp->alloc;
       break;
+#if 0
     case 5:
       /* -------- multiple variadic parameters -------- */
       if (optParms[opi] && valueP) {

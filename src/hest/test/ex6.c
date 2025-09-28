@@ -85,6 +85,7 @@ main(int argc, const char **argv) {
   hparm->noArgsIsNoProblem = AIR_TRUE;
   hparm->dieLessVerbose = AIR_TRUE;
   hparm->verbosity = 0;
+  hestParmColumnsIoctl(hparm, 80);
 
   opt = NULL;
   /* going past C89 to have declarations here */
@@ -160,7 +161,6 @@ main(int argc, const char **argv) {
   hestOptAdd_1_Other(&opt, "q1", "quat", &q1, "12.34", "test of hestOptAdd_1_Other B",
                      &quatCB);
 
-#if 0
   int b2[2];
   hestOptAdd_2_Bool(&opt, "b2", "bool1 bool2", b2, "true false",
                     "test of hestOptAdd_2_Bool");
@@ -324,6 +324,7 @@ main(int argc, const char **argv) {
                      "15.55  55.51  66.77  88.99  100.2", "test of hestOptAdd_N_Other B",
                      &quatCB);
 
+#if 0
   /* HEY also try 0, -1 */
   int *bv;
   unsigned int bvSaw;
@@ -444,7 +445,6 @@ main(int argc, const char **argv) {
   printf("q1 (@ %p) = %g(%s)\n", q1, q1->val, q1->str);
   printf("\n");
 
-#if 0
   printf("b2 = %d %d\n", b2[0], b2[1]);
   printf("i2 = %d %d\n", i2[0], i2[1]);
   printf("ui2 = %u %u\n", ui2[0], ui2[1]);
@@ -509,6 +509,7 @@ main(int argc, const char **argv) {
          q5[1]->val, q5[1]->str, q5[2]->val, q5[2]->str, q5[3]->val, q5[3]->str,
          q5[4]->val, q5[4]->str);
 
+#if 0
   unsigned int ii;
   printf("bv (%u) =", bvSaw);
   for (ii = 0; ii < bvSaw; ii++) {
