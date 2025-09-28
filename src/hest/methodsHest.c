@@ -92,10 +92,6 @@ parseSingleB(void *_out, const char *str, _hestPPack *hpp) {
 #define _PARSE_1_BODY(typstr, format)                                                   \
   if (!(out && str && hpp)) return 1;                                                   \
   int ret = (1 != airSingleSscanf(str, format, out));                                   \
-  if (!strcmp("parseSingleI", __func__)) {                                              \
-    printf("!%s: sscanf(|%s|, %s, %p)-> (ret=%d) %d\n", __func__, str, format, out,     \
-           ret, *((int *)out));                                                         \
-  }                                                                                     \
   if (ret) {                                                                            \
     snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "couldn't parse \"%s\" as", typstr);        \
   } else {                                                                              \

@@ -380,7 +380,17 @@ main(int argc, const char **argv) {
   hestOptAdd_Nv_Other(&opt, "qv", "quat1", 1, -1, &qv, "12.34  43.21",
                       "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
 #endif
-  hestParse2(opt, argc - 1, argv + 1, NULL, hparm);
+  if (hestParse2(opt, argc - 1, argv + 1, NULL, hparm)) {
+    // have already fprintf'd to stderr
+    hestUsage(stderr, opt, argv[0], hparm);
+    hestOptFree(opt);
+    exit(0);
+  }
+  if (opt->helpWanted) {
+    hestGlossary(stdout, opt, hparm);
+    hestOptFree(opt);
+    exit(0);
+  }
   /*
   hestParseOrDie(opt, argc - 1, argv + 1, hparm, argv[0], info, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
