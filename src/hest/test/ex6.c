@@ -383,11 +383,13 @@ main(int argc, const char **argv) {
   if (hestParse2(opt, argc - 1, argv + 1, NULL, hparm)) {
     // have already fprintf'd to stderr
     hestUsage(stderr, opt, argv[0], hparm);
+    hestParmFree(hparm);
     hestOptFree(opt);
     exit(0);
   }
   if (opt->helpWanted) {
     hestGlossary(stdout, opt, hparm);
+    hestParmFree(hparm);
     hestOptFree(opt);
     exit(0);
   }
