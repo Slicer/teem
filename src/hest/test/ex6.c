@@ -150,7 +150,6 @@ main(int argc, const char **argv) {
   char *s1;
   hestOptAdd_1_String(&opt, "s1", "string1", &s1, "\"bingo bob\"",
                       "test of hestOptAdd_1_String");
-  /*
   int e1;
   hestOptAdd_1_Enum(&opt, "e1", "enum1", &e1, "little", "test of hestOptAdd_1_Enum",
                     airEndian);
@@ -160,7 +159,6 @@ main(int argc, const char **argv) {
   Quat *q1;
   hestOptAdd_1_Other(&opt, "q1", "quat", &q1, "12.34", "test of hestOptAdd_1_Other B",
                      &quatCB);
-  */
 
 #if 0
   int b2[2];
@@ -441,11 +439,9 @@ main(int argc, const char **argv) {
   printf("db1 = %g\n", db1);
   printf("c1 = |%c| (%d)\n", c1, c1);
   printf("s1 = |%s|\n", s1);
-  /*
   printf("e1 = %d\n", e1);
   printf("p1 = %g,%g\n", p1[0], p1[1]);
   printf("q1 (@ %p) = %g(%s)\n", q1, q1->val, q1->str);
-  */
   printf("\n");
 
 #if 0
