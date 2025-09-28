@@ -84,7 +84,7 @@ main(int argc, const char **argv) {
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->noArgsIsNoProblem = AIR_TRUE;
   hparm->dieLessVerbose = AIR_TRUE;
-  hparm->verbosity = 0;
+  hparm->verbosity = 1;
 
   opt = NULL;
   /* going past C89 to have declarations here */
@@ -147,10 +147,10 @@ main(int argc, const char **argv) {
                       "test of hestOptAdd_1_Double");
   char c1;
   hestOptAdd_1_Char(&opt, "c1", "char1", &c1, "x", "test of hestOptAdd_1_Char");
-  /*
   char *s1;
   hestOptAdd_1_String(&opt, "s1", "string1", &s1, "\"bingo bob\"",
                       "test of hestOptAdd_1_String");
+  /*
   int e1;
   hestOptAdd_1_Enum(&opt, "e1", "enum1", &e1, "little", "test of hestOptAdd_1_Enum",
                     airEndian);
@@ -428,8 +428,8 @@ main(int argc, const char **argv) {
   printf("fl1 = %g\n", fl1);
   printf("db1 = %g\n", db1);
   printf("c1 = |%c| (%d)\n", c1, c1);
-  /*
   printf("s1 = |%s|\n", s1);
+  /*
   printf("e1 = %d\n", e1);
   printf("p1 = %g,%g\n", p1[0], p1[1]);
   printf("q1 (@ %p) = %g(%s)\n", q1, q1->val, q1->str);

@@ -1347,7 +1347,7 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
     } // end case 4 {
     case 2: // -------- one required parameter --------
       if (_hestParseSingle[type](valueP, opt[opi].havec->harg[0]->str, hpp)) {
-        biffAddf(HEST, "%s%sproblem parsing for %s[%u]", _ME_, ident, opi);
+        biffAddf(HEST, "%s%sproblem parsing for %s[%u]: %s", _ME_, ident, opi, hpp->err);
         return 1;
       }
       opt[opi].alloc = hpp->alloc;
@@ -1610,7 +1610,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
     free(err);                                                                          \
   }
 
-  // --0--0--0--0--0-- check on validity of the hestOpt array
+  // --1--1--1--1--1-- check on validity of the hestOpt array
   if (_hestOPCheck(opt, HPARM)) {
     DO_ERR("problem with given hestOpt array");
     airMopError(mop);
@@ -1631,7 +1631,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
     printf("%s: parsing state allocated\n", __func__);
   }
 
-  // --1--1--1--1--1-- initialize input stack w/ given argc,argv, process it
+  // --2--2--2--2--2-- initialize input stack w/ given argc,argv, process it
   if (histPushCommandLine(hist, argc, argv, HPARM)
       || histProcess(havec, &(opt->helpWanted), tharg, hist, HPARM)) {
     DO_ERR("problem with initial processing of command-line");
@@ -1648,8 +1648,9 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
     return 0;
   }
 
-  // --2--2--2--2--2-- extract args associated with flagged and unflagged opt
+  // --3--3--3--3--3-- extract args associated with flagged options
   if (havecExtractFlagged(opt, havec, HPARM)
+      // --4--4--4--4--4-- extract args associated with unflagged options
       // this will detect extraneous args after unflagged opts are extracted
       || havecExtractUnflagged(opt, havec, HPARM)) {
     DO_ERR("problem extracting args for options");
@@ -1657,7 +1658,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
     return 1;
   }
 
-  /* --3--3--3--3--3-- process defaults strings for opts that weren't user-supplied
+  /* --5--5--5--5--5-- process defaults strings for opts that weren't user-supplied
   Like havecExtract{,Un}Flagged, this builds up opt->havec, but does not parse it */
   if (optProcessDefaults(opt, tharg, hist, HPARM)) {
     DO_ERR("problem with processing defaults");
@@ -1665,7 +1666,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
     return 1;
   }
 
-  // --4--4--4--4--4-- Finally, parse the args and set values
+  // --6--6--6--6--6-- Finally, parse the args and set values
   if (optSetValues(opt, HPARM, mop)) {
     DO_ERR("problem with setting values");
     airMopError(mop);

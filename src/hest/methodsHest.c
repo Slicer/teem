@@ -121,7 +121,8 @@ parseSingleC(void *_out, const char *str, _hestPPack *hpp) {
   int ret;
   if (1 != slen) {
     snprintf(hpp->err, AIR_STRLEN_HUGE + 1,
-             "expected single char but got string length %u", AIR_UINT(slen));
+             "expected single char but got string \"%s\" length %u", str,
+             AIR_UINT(slen));
     ret = 1;
   } else {
     char *out = (char *)_out;
