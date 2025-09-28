@@ -786,13 +786,13 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                    _ME_, opi, flag, MULTI_FLAG_SEP);
           return (free(tbuff), 1);
         }
-        free(tbuff);
       } else {
         if (!strlen(opt[opi].flag)) {
           biffAddf(HEST, "%s%sopt[%u].flag is zero length", _ME_, opi);
           return (free(tbuff), 1);
         }
       }
+      free(tbuff);
       if (hparm->respectDashBraceComments && (strchr(flag, '{') || strchr(flag, '}'))) {
         biffAddf(HEST,
                  "%s%srequested hparm->respectDashBraceComments but opt[%u]'s flag "
