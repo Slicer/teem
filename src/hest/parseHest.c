@@ -1455,7 +1455,7 @@ void *
 hestParseFree(hestOpt *opt) {
   uint optNum = opt->arrLen;
   for (uint op = 0; op < optNum; op++) {
-    hestArgVecNix(opt[op].havec);
+    airArrayLenSet(opt[op].havec->hargArr, 0); // but not hestArgVecNix(opt[op].havec);
     opt[op].parmStr = airFree(opt[op].parmStr);
     /*
     printf("!hestParseFree: op = %d/%d -> kind = %d; type = %d; alloc = %d\n",
