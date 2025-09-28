@@ -72,7 +72,7 @@ _hestTypeSize[_HEST_TYPE_MAX+1] = {
 tokens, and to properly tokenize default strings and response files, we should stop using
 the airParseStrT functions that internally use airStrtok(): we have exactly one token to
 parse. These functions thus return non-zero in case of error, instead of returning the
-number of parsed values. */
+number of parsed values. See also comment about _hestP(arse)Pack in privateHest.h */
 static int
 parseSingleB(void *_out, const char *str, _hestPPack *hpp) {
   if (!(_out && str && hpp)) return 1;

@@ -72,6 +72,15 @@ typedef unsigned int uint;
 HEST_EXPORT const char _hestTypeStr[_HEST_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1];
 HEST_EXPORT const size_t _hestTypeSize[_HEST_TYPE_MAX + 1];
 HEST_EXPORT void (*const _hestInvertScalar[_HEST_TYPE_MAX + 1])(void *);
+/* the _hestPPack (hest parse pack) struct is a 2025 idea for addressing one of the most
+annoying parts of hest's code: the special-casing of how values are parsed from strings,
+depending on type (scalar vs enum vs other-via-callbacks). Old code has long had nested
+switch statements: first for option kind, and then for option type. Fresh scrutiny of
+this code revealed how, now that there is no more airStrtok/airStrntok action because all
+individual args have been saved into per-option arg vectors, the parsing problem is just
+to get a single value, and, how to get a single value can be made entirely uniform across
+type; via the _hestParseSingle[] array. By putting the caller's mop in here too, that
+removes one layer of allocation tracking from hest's setting-values function. */
 typedef struct {
   airArray *cmop;                // caller's mop to clean up things if airMopError
   const airEnum *enm;            // for parsing an airTypeEnum value
