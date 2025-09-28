@@ -47,7 +47,7 @@ quat_parse(void *_ptr, const char *str, char *err) {
 
   ptrP = _ptr;
   ptr = (*ptrP) = AIR_MALLOC(1, Quat);
-  /* printf("%s: ptrP = %p  ---malloc-->  ptr = *ptrP = %p\n", __func__, ptrP, *ptrP); */
+  printf("%s: ptrP = %p  ---malloc-->  ptr = *ptrP = %p\n", __func__, ptrP, *ptrP);
   ptr->str = NULL;
   if (1 != sscanf(str, "%lf", &(ptr->val))) {
     sprintf(err, "didn't parse a double from %s", str);
@@ -84,44 +84,12 @@ main(int argc, const char **argv) {
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->noArgsIsNoProblem = AIR_TRUE;
   hparm->dieLessVerbose = AIR_TRUE;
-  hparm->verbosity = 1;
+  hparm->verbosity = 0;
 
   opt = NULL;
   /* going past C89 to have declarations here */
   int flag;
   hestOptAdd_Flag(&opt, "f,flag", &flag, "a flag created via hestOptAdd_Flag");
-
-  int b1;
-  hestOptAdd_1_Bool(&opt, "b1", "bool1", &b1, "false", "test of hestOptAdd_1_Bool");
-  int i1;
-  hestOptAdd_1_Int(&opt, "i1", "int1", &i1, "42", "test of hestOptAdd_1_Int");
-  unsigned int ui1;
-  hestOptAdd_1_UInt(&opt, "ui1", "uint1", &ui1, "42", "test of hestOptAdd_1_UInt");
-  long int li1;
-  hestOptAdd_1_Long(&opt, "li1", "lint1", &li1, "42", "test of hestOptAdd_1_Long");
-  unsigned long int uli1;
-  hestOptAdd_1_ULong(&opt, "uli1", "ulint1", &uli1, "42", "test of hestOptAdd_1_ULong");
-  size_t sz1;
-  hestOptAdd_1_Size_t(&opt, "sz1", "size1", &sz1, "42", "test of hestOptAdd_1_Size_t");
-  float fl1;
-  hestOptAdd_1_Float(&opt, "fl1", "float1", &fl1, "4.2", "test of hestOptAdd_1_Float");
-  double db1;
-  hestOptAdd_1_Double(&opt, "db1", "double1", &db1, "4.2",
-                      "test of hestOptAdd_1_Double");
-  char c1;
-  hestOptAdd_1_Char(&opt, "c1", "char1", &c1, "x", "test of hestOptAdd_1_Char");
-  char *s1;
-  hestOptAdd_1_String(&opt, "s1", "string1", &s1, "\"bingo bob\"",
-                      "test of hestOptAdd_1_String");
-  int e1;
-  hestOptAdd_1_Enum(&opt, "e1", "enum1", &e1, "little", "test of hestOptAdd_1_Enum",
-                    airEndian);
-  double p1[2];
-  hestOptAdd_1_Other(&opt, "p1", "pos", &p1, "1.5,5.25", "test of hestOptAdd_1_Other A",
-                     &posCB);
-  Quat *q1;
-  hestOptAdd_1_Other(&opt, "q1", "quat", &q1, "12.34", "test of hestOptAdd_1_Other B",
-                     &quatCB);
 
   int b1v;
   hestOptAdd_1v_Bool(&opt, "b1v", "bool1", &b1v, "false", "test of hestOptAdd_1v_Bool");
@@ -159,6 +127,42 @@ main(int argc, const char **argv) {
   hestOptAdd_1v_Other(&opt, "q1v", "quat", &q1v, "12.34",
                       "test of hestOptAdd_1v_Other B", &quatCB);
   */
+  int b1;
+  hestOptAdd_1_Bool(&opt, "b1", "bool1", &b1, "false", "test of hestOptAdd_1_Bool");
+  int i1;
+  printf("!%s: &i1 = %p (passed to hestOptAdd_1_Int)\n", __func__, AIR_VOIDP(&i1));
+  hestOptAdd_1_Int(&opt, "i1", "int1", &i1, "42", "test of hestOptAdd_1_Int");
+  unsigned int ui1;
+  hestOptAdd_1_UInt(&opt, "ui1", "uint1", &ui1, "42", "test of hestOptAdd_1_UInt");
+  long int li1;
+  hestOptAdd_1_Long(&opt, "li1", "lint1", &li1, "42", "test of hestOptAdd_1_Long");
+  unsigned long int uli1;
+  hestOptAdd_1_ULong(&opt, "uli1", "ulint1", &uli1, "42", "test of hestOptAdd_1_ULong");
+  size_t sz1;
+  hestOptAdd_1_Size_t(&opt, "sz1", "size1", &sz1, "42", "test of hestOptAdd_1_Size_t");
+  float fl1;
+  hestOptAdd_1_Float(&opt, "fl1", "float1", &fl1, "4.2", "test of hestOptAdd_1_Float");
+  double db1;
+  hestOptAdd_1_Double(&opt, "db1", "double1", &db1, "4.2",
+                      "test of hestOptAdd_1_Double");
+  char c1;
+  hestOptAdd_1_Char(&opt, "c1", "char1", &c1, "x", "test of hestOptAdd_1_Char");
+  /*
+  char *s1;
+  hestOptAdd_1_String(&opt, "s1", "string1", &s1, "\"bingo bob\"",
+                      "test of hestOptAdd_1_String");
+  int e1;
+  hestOptAdd_1_Enum(&opt, "e1", "enum1", &e1, "little", "test of hestOptAdd_1_Enum",
+                    airEndian);
+  double p1[2];
+  hestOptAdd_1_Other(&opt, "p1", "pos", &p1, "1.5,5.25", "test of hestOptAdd_1_Other A",
+                     &posCB);
+  Quat *q1;
+  hestOptAdd_1_Other(&opt, "q1", "quat", &q1, "12.34", "test of hestOptAdd_1_Other B",
+                     &quatCB);
+  */
+
+#if 0
   int b2[2];
   hestOptAdd_2_Bool(&opt, "b2", "bool1 bool2", b2, "true false",
                     "test of hestOptAdd_2_Bool");
@@ -375,6 +379,7 @@ main(int argc, const char **argv) {
   unsigned int qvSaw;
   hestOptAdd_Nv_Other(&opt, "qv", "quat1", 1, -1, &qv, "12.34  43.21",
                       "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
+#endif
   hestParse2(opt, argc - 1, argv + 1, NULL, hparm);
   /*
   hestParseOrDie(opt, argc - 1, argv + 1, hparm, argv[0], info, AIR_TRUE, AIR_TRUE,
@@ -414,7 +419,6 @@ main(int argc, const char **argv) {
   */
   printf("\n");
 
-#if 0
   printf("b1 = %d\n", b1);
   printf("i1 = %d\n", i1);
   printf("ui1 = %u\n", ui1);
@@ -424,12 +428,15 @@ main(int argc, const char **argv) {
   printf("fl1 = %g\n", fl1);
   printf("db1 = %g\n", db1);
   printf("c1 = |%c| (%d)\n", c1, c1);
+  /*
   printf("s1 = |%s|\n", s1);
   printf("e1 = %d\n", e1);
   printf("p1 = %g,%g\n", p1[0], p1[1]);
   printf("q1 (@ %p) = %g(%s)\n", q1, q1->val, q1->str);
+  */
   printf("\n");
 
+#if 0
   printf("b2 = %d %d\n", b2[0], b2[1]);
   printf("i2 = %d %d\n", i2[0], i2[1]);
   printf("ui2 = %u %u\n", ui2[0], ui2[1]);

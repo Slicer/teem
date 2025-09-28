@@ -180,7 +180,8 @@ hestArgVecRemove(hestArgVec *havec, uint popIdx) {
 /* hestArgVecSprint goes is opposite of the shell-style tokenization of
 parsest.c/argstGo: generate a single human-friendly string that could be tokenized to
 recover the hestArgVec we started with.
-ChatGPT helped with prototyping.
+ChatGPT helped with prototyping plainWord and argAddQuotedString
+(and in this file, only those two functions)
 Here are instructive examples of the same kind of argv pretty-printing:
 https://github.com/git/git/blob/master/quote.c
 and here https://www.opencoverage.net/coreutils/index_html/source_213.html

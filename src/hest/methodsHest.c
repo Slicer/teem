@@ -70,70 +70,121 @@ _hestTypeSize[_HEST_TYPE_MAX+1] = {
 
 /* now (in 2025) that we've done all this work to preserve the command-line argv[]
 tokens, and to properly tokenize default strings and response files, we should stop using
-the airParseStrT functions that internally did airStrtok(): we have exactly one token to
+the airParseStrT functions that internally use airStrtok(): we have exactly one token to
 parse. These functions thus return non-zero in case of error, instead of returning the
 number of parsed values. */
 static int
-parseSingleB(void *_out, const char *str, const void *ptr) {
-  AIR_UNUSED(ptr);
-  // we got NULL, there's nothing to do
-  if (!(_out && str)) return 1;
+parseSingleB(void *_out, const char *str, _hestPPack *hpp) {
+  if (!(_out && str && hpp)) return 1;
   int *out = (int *)_out;
   *out = airEnumVal(airBool, str);
-  return (airEnumUnknown(airBool) /* which is -1 */ == *out);
+  int ret = airEnumUnknown(airBool) /* which is -1 */ == *out;
+  if (ret) {
+    snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "couldnt parse \"%s\" as %s", str,
+             airBool->name);
+  } else {
+    hpp->err[0] = '\0';
+  }
+  return ret;
 }
 
-#define _PARSE_1_ARGS(type) void *out, const char *str, const void *ptr
-#define _PARSE_1_BODY(format)                                                           \
-  AIR_UNUSED(ptr);                                                                      \
-  /* we got NULL, there's nothing to do  */                                             \
-  if (!(out && str)) return 1;                                                          \
-  return (1 != airSingleSscanf(str, format, out))
+#define _PARSE_1_ARGS void *out, const char *str, _hestPPack *hpp
+#define _PARSE_1_BODY(typstr, format)                                                   \
+  if (!(out && str && hpp)) return 1;                                                   \
+  int ret = (1 != airSingleSscanf(str, format, out));                                   \
+  if (!strcmp("parseSingleI", __func__)) {                                              \
+    printf("!%s: sscanf(|%s|, %s, %p)-> (ret=%d) %d\n", __func__, str, format, out,     \
+           ret, *((int *)out));                                                         \
+  }                                                                                     \
+  if (ret) {                                                                            \
+    snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "couldn't parse \"%s\" as", typstr);        \
+  } else {                                                                              \
+    hpp->err[0] = '\0';                                                                 \
+  }                                                                                     \
+  return ret
 
 // clang-format off
-static int parseSingleH (_PARSE_1_ARGS(short))             { _PARSE_1_BODY("%hd"); }
-static int parseSingleUH(_PARSE_1_ARGS(unsigned short))    { _PARSE_1_BODY("%hu"); }
-static int parseSingleI (_PARSE_1_ARGS(int))               { _PARSE_1_BODY("%d");  }
-static int parseSingleUI(_PARSE_1_ARGS(unsigned int))      { _PARSE_1_BODY("%u");  }
-static int parseSingleL (_PARSE_1_ARGS(long int))          { _PARSE_1_BODY("%ld"); }
-static int parseSingleUL(_PARSE_1_ARGS(unsigned long int)) { _PARSE_1_BODY("%lu"); }
-static int parseSingleZ (_PARSE_1_ARGS(size_t))            { _PARSE_1_BODY("%z");  }
-static int parseSingleF (_PARSE_1_ARGS(float))             { _PARSE_1_BODY("%f");  }
-static int parseSingleD (_PARSE_1_ARGS(double))            { _PARSE_1_BODY("%lf"); }
+static int parseSingleH (_PARSE_1_ARGS) { _PARSE_1_BODY("short",          "%hd"); }
+static int parseSingleUH(_PARSE_1_ARGS) { _PARSE_1_BODY("unsigned short", "%hu"); }
+static int parseSingleI (_PARSE_1_ARGS) { _PARSE_1_BODY("int",            "%d" ); }
+static int parseSingleUI(_PARSE_1_ARGS) { _PARSE_1_BODY("unsigned int",   "%u" ); }
+static int parseSingleL (_PARSE_1_ARGS) { _PARSE_1_BODY("long",           "%ld"); }
+static int parseSingleUL(_PARSE_1_ARGS) { _PARSE_1_BODY("unsigned long",  "%lu"); }
+static int parseSingleZ (_PARSE_1_ARGS) { _PARSE_1_BODY("size_t",         "%z" ); }
+static int parseSingleF (_PARSE_1_ARGS) { _PARSE_1_BODY("float",          "%f" ); }
+static int parseSingleD (_PARSE_1_ARGS) { _PARSE_1_BODY("double",         "%lf"); }
 // clang-format on
 static int
-parseSingleC(void *_out, const char *str, const void *ptr) {
-  AIR_UNUSED(ptr);
-  // we got NULL, there's nothing to do
-  if (!(_out && str)) return 1;
-  if (1 != strlen(str)) {
-    // really just want single char
-    return 1;
+parseSingleC(void *_out, const char *str, _hestPPack *hpp) {
+  if (!(_out && str && hpp)) return 1;
+  size_t slen = strlen(str);
+  int ret;
+  if (1 != slen) {
+    snprintf(hpp->err, AIR_STRLEN_HUGE + 1,
+             "expected single char but got string length %u", AIR_UINT(slen));
+    ret = 1;
+  } else {
+    char *out = (char *)_out;
+    *out = str[0];
+    hpp->err[0] = '\0';
+    ret = 0;
   }
-  char *out = (char *)_out;
-  *out = str[0];
-  return 0;
+  return ret;
 }
 static int
-parseSingleS(void *_out, const char *str, const void *ptr) {
-  AIR_UNUSED(ptr);
-  // we got NULL, there's nothing to do
-  if (!(_out && str)) return 1;
+parseSingleS(void *_out, const char *str, _hestPPack *hpp) {
+  if (!(_out && str && hpp)) return 1;
   char **out = (char **)_out;
   *out = airStrdup(str);
-  return !!(*out); // check that we got a non-NULL strdup
+  int ret = !(*out); // a NULL pointer result of strdup is a problem
+  if (ret) {
+    snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "airStrdup failed!");
+  } else {
+    hpp->alloc = 1;
+    airMopMem(hpp->cmop, *out, airMopOnError);
+    hpp->err[0] = '\0';
+  }
+  return ret;
 }
 static int
-parseSingleE(void *_out, const char *str, const void *_enm) {
-  // we got NULL, there's nothing to do
-  if (!(_out && str && _enm)) return 1;
+parseSingleE(void *_out, const char *str, _hestPPack *hpp) {
+  if (!(_out && str && hpp)) return 1;
   int *out = (int *)_out;
-  const airEnum *enm = (const airEnum *)_enm;
-  *out = airEnumVal(enm, str);
-  return (airEnumUnknown(enm) == *out);
+  *out = airEnumVal(hpp->enm, str);
+  int ret = (airEnumUnknown(hpp->enm) == *out);
+  if (ret) {
+    snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "couldn't parse \"%s\" as %s", str,
+             hpp->enm->name);
+  } else {
+    hpp->err[0] = '\0';
+  }
+  return ret;
+}
+static int
+parseSingleO(void *out, const char *str, _hestPPack *hpp) {
+  if (!(out && str && hpp)) return 1;
+  char myerr[AIR_STRLEN_HUGE + 1];
+  int ret = hpp->CB->parse(out, str, myerr);
+  if (ret) {
+    if (strlen(myerr)) {
+      snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "error parsing \"%s\" as %s:\n%s\n", str,
+               hpp->CB->type, myerr);
+    } else {
+      snprintf(hpp->err, AIR_STRLEN_HUGE + 1,
+               "error parsing \"%s\" as %s: returned %d\n", str, hpp->CB->type, ret);
+    }
+  } else {
+    if (hpp->CB->destroy) {
+      /* out is the address of a void*, we manage the void* */
+      hpp->alloc = 1;
+      airMopAdd(hpp->cmop, (void **)out, (airMopper)airSetNull, airMopOnError);
+      airMopAdd(hpp->cmop, *((void **)out), hpp->CB->destroy, airMopOnError);
+    }
+  }
+  return ret;
 }
 
-int (*const _hestParseSingle[_HEST_TYPE_MAX + 1])(void *, const char *, const void *) = {
+int (*const _hestParseSingle[_HEST_TYPE_MAX + 1])(void *, const char *, _hestPPack *) = {
   NULL,          //
   parseSingleB,  //
   parseSingleH,  //
@@ -147,8 +198,8 @@ int (*const _hestParseSingle[_HEST_TYPE_MAX + 1])(void *, const char *, const vo
   parseSingleD,  //
   parseSingleC,  //
   parseSingleS,  //
-  parseSingleE,
-  NULL // "other"
+  parseSingleE,  //
+  parseSingleO   //
 };
 
 #define _INVERT_SCALAR(TT, ctype)                                                       \
@@ -501,6 +552,10 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
   opt->source = hestSourceUnknown;
   opt->parmStr = NULL;
   opt->helpWanted = AIR_FALSE;
+
+  if (airTypeInt == type && 1 == min && 1 == max) {
+    printf("!something like %s: got valueP %p\n", "hestOptAdd_1_Int", AIR_VOIDP(valueP));
+  }
   return;
 }
 

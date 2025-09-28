@@ -221,8 +221,7 @@ typedef struct {
                5: min < max; max >= 2   multiple variadic parameters
               This is set by hest functions as part of building up an array of hestOpt,
               and informs the later action of hestOptFree */
-    alloc;  /* Information (set by hestParse) about whether flag is non-NULL, and what
-               parameters were used, that determines whether or not memory was allocated
+    alloc;  /* Information (set by hestParse) about how (if at all) memory was allocated
                by hestParse(). Informs later action of hestParseFree():
                0: no free()ing needed
                1: free(*valueP), either because it is a single string, or because was a

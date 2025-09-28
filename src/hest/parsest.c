@@ -88,7 +88,7 @@ https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18
 (although hest does not do rule 5 about parameter expansion, command substitution,
 or arithmetic expansion), and here are the details about quoting:
 https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_02
-ChatGPT helped with prototyping.
+ChatGPT helped with prototyping argstGo (and in this file, only that function)
 Here is instructive example code https://github.com/nyuichi/dash.git
   in src/parser.c see the readtoken1() function and the DFA there.
 */
@@ -670,11 +670,9 @@ histProcess(hestArgVec *havec, int *helpWantedP, hestArg *tharg, hestInputStack 
 
 /* whichOptFlag(): for which option (by index) is this the flag?
 
-Given an arg string `flarg` (which may be an flag arg like "-size" or parm arg like
-"512"), this finds which one, of the options in the given hestOpt array `opt` is
-identified by `flarg`. Returns the index of the matching option, if there is a match.
-
-If there is no match, returns UINT_MAX.
+Given an arg string `flarg` (which may be an flag arg (like "-size") or not (like "512"),
+this finds which one, of the options in the given hestOpt array `opt`, is identified by
+`flarg`. If there is a match, returns the index of that option, else returns UINT_MAX.
 */
 static uint
 whichOptFlag(const hestOpt *opt, const char *flarg, const hestParm *hparm) {
@@ -735,13 +733,11 @@ identStr(char *ident, const hestOpt *opt) {
 }
 
 /* havecTransfer
-(if `num`) moves `num` args from `hvsrc` (starting at `srcIdx`) to `opt->havec`
-This takes `hestOpt *opt` instead of `opt->havec` so that we can also take this
-time to set `opt->source` according to the incoming `hvsrc->harg[]->source`. To
-minimize cleverness, we set `opt->source` with every transferred argument, which
-means that the per-option source remembered is the source of the *last* argument of the
-option.
-*/
+(if `num`) moves `num` args from `hvsrc` (starting at `srcIdx`) to `opt->havec`. This
+takes `hestOpt *opt` instead of `opt->havec` so that we can also set `opt->source`
+according to the incoming `hvsrc->harg[]->source`. To minimize cleverness, we set
+`opt->source` with every transferred argument, which means that the per-option source
+remembered is the source of the *last* argument of the option. */
 static int
 havecTransfer(hestOpt *opt, hestArgVec *hvsrc, uint srcIdx, uint num,
               const hestParm *hparm) {
@@ -761,7 +757,7 @@ havecTransfer(hestOpt *opt, hestArgVec *hvsrc, uint srcIdx, uint num,
                hvsrc->len, num, srcIdx);
       return 1;
     }
-    // okay now do the work, starting with empty destination havec
+    // okay now do the work, starting with emptying destination havec
     hestArgVecReset(opt->havec);
     for (uint ai = 0; ai < num; ai++) {
       hestArg *harg = hestArgVecRemove(hvsrc, srcIdx);
@@ -856,7 +852,7 @@ havecExtractFlagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
       AIR_INT(parmNum) < _hestMax(theOpt->max)
       // and looking ahead by parmNum still gives us a valid index pai
       && !(hitEnd = !((pai = argIdx + 1 + parmNum) < havec->len))
-      // and either this isn't a variadic parm opt
+      // and either this isn't a flagged variadic opt
       && (!varParm || // or, it is a varparm opt, and we aren't looking at "--"
           !(hitVPS = !strcmp(VPS, havec->harg[pai]->str)))
       && UINT_MAX // and we aren't looking at start of another flagged option
@@ -990,7 +986,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
    with a little Nx2 array ufOpi2 of option indices */
   uint *ufOpi2 = NULL;
   if (!ufOptNum) {
-    /* no unflagged options; we're ~done */
+    /* no unflagged options; we're done-ish */
     goto finishingup;
   }
   ufOpi2 = AIR_CALLOC(2 * ufOptNum, uint);
@@ -1043,10 +1039,10 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     if (hparm->verbosity) {
       printf("%s: looking at opi = %u kind %d\n", __func__, opi, opt[opi].kind);
     }
-    /* Either we're not using the defaults because we know we have enough args,
-    else we know we do not have enough args and yet we also don't have a default.
-    Either way, we try extracting the args; in the later case just to generate a
-    descriptive error message about the situation */
+    /* Either we have enough args to satisfy this option (and thus don't care if it has a
+    default), or, we do *not* have enough args and hence want to use the default.  In the
+    later case, we don't have a default, that's a problem that needs an error message.
+    So, either way, we try extracting the args and report any problems encountered. */
     if (opt[opi].min /* == max */ < havec->len || !opt[opi].dflt) {
       havStr = hestArgVecSprint(havec, AIR_TRUE);
       if (havecTransfer(opt + opi, havec, 0, opt[opi].min, hparm)) {
@@ -1075,7 +1071,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     }
     // same logic as above
     if (opt[opi].min /* == max */ < havec->len || !opt[opi].dflt) {
-      uint idx0 = (opt[opi].min < havec->len     //
+      uint idx0 = (opt[opi].min < havec->len     // index of first arg for this option
                      ? havec->len - opt[opi].min //
                      : 0);
       havStr = hestArgVecSprint(havec, AIR_TRUE);
@@ -1089,8 +1085,7 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
     }
   }
 
-  /* now, finally, we grab the parameters of the sole variadic parameter unflagged opt;
-     the one with index ufVarOpi < optNum (and we're only here because it exists) */
+  // We're here because there is an unflagged variadic option (index ufVarOpi < optNum)
   if (hparm->verbosity) {
     printf("%s: ufVarOpi=%u   min, have, max = %u %u %d\n", __func__, ufVarOpi,
            opt[ufVarOpi].min, havec->len, _hestMax(opt[ufVarOpi].max));
@@ -1109,35 +1104,33 @@ havecExtractUnflagged(hestOpt *opt, hestArgVec *havec, const hestParm *hparm) {
   if (minArg <= havec->len) {
     // can satisfy option from havec, no need to use default
     uint getArg = havec->len;      // want to grab as many args as possible
-    if (-1 != opt[ufVarOpi].max) { // but no more than needed
+    if (-1 != opt[ufVarOpi].max) { // but no more than the option asks for
       getArg = AIR_MIN(getArg, AIR_UINT(opt[ufVarOpi].max));
     }
     if (havecTransfer(opt + ufVarOpi, havec, 0, getArg, hparm)) {
       havStr = hestArgVecSprint(havec, AIR_TRUE);
       biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
-      biffAddf(HEST, "%s%strouble getting args for variadic unflagged %s[%u]", _ME_,
+      biffAddf(HEST, "%s%strouble getting args for unflagged variadic %s[%u]", _ME_,
                identStr(ident, opt + ufVarOpi), ufVarOpi);
       return (free(havStr), free(ufOpi2), 1);
     }
   }
-  // else minArg > havec->len so can't satisfy from havec,
-  // but its ok since we do have default
+  /* else minArg > havec->len so can't satisfy from havec, but that's ok for
+  opt[ufVarOpi] since it has default. The erroneous presence of extraneous args will be
+  caught next */
 
-  /* make sure that unflagged options without default were given */
+finishingup:
+
+  // make sure that unflagged options without default were given
   for (upii = 0; upii < ufOptNum; upii++) {
     uint opi = ufOpi2[2 * upii + 0];
     if (!(opt[opi].dflt) && hestSourceUnknown == opt[opi].source) {
-      biffAddf(HEST, "%s%sdidn't see required (default-less) unflagged %s[%u]", _ME_,
+      biffAddf(HEST, "%s%sdidn't get required (default-less) unflagged %s[%u]", _ME_,
                identStr(ident, opt + opi), opi);
       return (free(ufOpi2), 1);
     }
   }
-
-finishingup:
-  if (hparm->verbosity) {
-    optAllPrint(__func__, "end of havecExtractUnflagged", opt);
-    hestArgVecPrint(__func__, "end of havecExtractUnflagged", havec);
-  }
+  // currently it's an error to have un-accounted-for args left overå
   if (havec->len) {
     havStr = hestArgVecSprint(havec, AIR_TRUE);
     biffAddf(HEST, "%s%sgiven (labeled) argv=|%s|", _ME_, havStr);
@@ -1147,6 +1140,11 @@ finishingup:
              _ME_, ufOptNum, havec->len, havec->len > 1 ? "s," : "",
              havec->len > 1 ? "starting with " : "", havec->harg[0]->str);
     return (free(havStr), airFree(ufOpi2), 1);
+  }
+
+  if (hparm->verbosity) {
+    optAllPrint(__func__, "end of havecExtractUnflagged", opt);
+    hestArgVecPrint(__func__, "end of havecExtractUnflagged", havec);
   }
   return (airFree(havStr), airFree(ufOpi2), 0);
 }
@@ -1238,12 +1236,12 @@ optProcessDefaults(hestOpt *opt, hestArg *tharg, hestInputStack *hist,
 }
 
 /* optSetValues
-Does the parsing of opt[opi].havec to set values in whatever opt[opi].valueP points to.
-The parent mop `pmop` is passed so that we can remember what to free up ONLY IN CASE OF
-ERROR. Otherwise, the allocations persist with the successful return of hestParse(2), and
-are freed with hestParseFree. */
+Finally: the parsing of opt[opi].havec to set values in whatever opt[opi].valueP points
+to. The parent mop `pmop` is passed so that we can remember what to free up ONLY IN CASE
+OF ERROR. Otherwise, the allocations persist (pointed to by fields in hestOpt) with the
+successful return of hestParse(2), and are freed with hestParseFree. */
 static int
-optSetValues(hestOpt *opt, const hestParm *hparm, airArray *pmop) {
+optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
   char ident[AIR_STRLEN_HUGE + 1];
   /*
   char cberr[AIR_STRLEN_HUGE + 1], *tok, *last, *optParmsCopy;
@@ -1253,7 +1251,6 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *pmop) {
   void *valueP;
   char *cvalueP;
   int *ivalueP;
-
   uint optNum = opt->arrLen;
   for (uint opi = 0; opi < optNum; opi++) {
     identStr(ident, opt + opi);
@@ -1287,19 +1284,29 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *pmop) {
     if (opt[opi].sawP) {
       *(opt[opi].sawP) = 0;
     }
+    _hestPPack _hpp;
+    _hestPPack *hpp;
+    if (1 == opt[opi].kind) {
+      hpp = NULL;
+    } else {
+      hpp = &_hpp;
+      hpp->cmop = cmop;
+      hpp->enm = opt[opi].enm; // will be non-NULL when needed
+      hpp->CB = opt[opi].CB;
+      hpp->alloc = 0; // may get over-written
+      // hpp->err set by parseSingleT
+    }
     switch (opt[opi].kind) {
-    case 1:
-      /* -------- parameter-less boolean flags -------- */
+    case 1: // -------- parameter-less boolean flags --------
       /* valueP is always assumed to be an int* */
       *ivalueP = hestSourceDefault != opt[opi].source;
       if (hparm->verbosity) {
         printf("   --> set value %d\n", *ivalueP);
       }
       break;
-    case 4: {
+    case 4: { // -------- optional single variadics --------
       const char *strsrc;
       int invert;
-      /* -------- optional single variadics -------- */
       /* 2025 _hestOPCheck now restricts possible types; these are no longer allowed:
          airTypeChar, airTypeString, airTypeEnum, airTypeOther. As for the semantics,
          the old web page seems to be clear (though we now disallow unflagged kind 4):
@@ -1310,7 +1317,7 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *pmop) {
                 (*this* is the "inversion" that is mentioned at places in the code)
            - option flag appears, with single parm
              --> value is set from parsing that parm
-         In any case, some string has to be parsed */
+         In any case, some string has to be parsed; we call it `strsrc` */
       if (hestSourceDefault == opt[opi].source) {
         // option flag does not appear
         strsrc = opt[opi].dflt;
@@ -1328,7 +1335,7 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *pmop) {
                  opi, airEnumStr(hestSource, opt[opi].source), opt[opi].havec->len);
         return 1;
       }
-      if (_hestParseSingle[type](valueP, strsrc, NULL /* because type simple */)) {
+      if (_hestParseSingle[type](valueP, strsrc, hpp)) {
         biffAddf(HEST, "%s%sfor %s[%u] could not parse |%s| as single %s", _ME_, ident,
                  opi, strsrc, _hestTypeStr[type]);
         return 1;
@@ -1338,67 +1345,14 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *pmop) {
       }
       break;
     } // end case 4 {
-#if 0
-    case 2:
-      /* -------- one required parameter -------- */
-      /* 2023 GLK is really curious why "if (optParms[op] && valueP) {" is (​repeatedly)
-      guarding all the work in these blocks, and why that wasn't factored out */
-      if (optParms[opi] && valueP) {
-        switch (type) {
-        case airTypeEnum:
-          if (1 != airParseStrE((int *)valueP, optParms[opi], " ", 1, opt[opi].enm)) {
-            fprintf(stderr, "%scouldn\'t parse %s\"%s\" as %s for %s\n", ME,
-                    optDfltd[opi] ? "(default) " : "", optParms[opi], opt[opi].enm->name,
-                    ident);
-            return 1;
-          }
-          break;
-        case airTypeOther:
-          strcpy(cberr, "");
-          ret = opt[opi].CB->parse(valueP, optParms[opi], cberr);
-          if (ret) {
-            if (strlen(cberr)) {
-              fprintf(stderr, "%serror parsing \"%s\" as %s for %s:\n%s\n", ME,
-                      optParms[opi], opt[opi].CB->type, ident, cberr);
-            } else {
-              fprintf(stderr, "%serror parsing \"%s\" as %s for %s: returned %d\n", ME,
-                      optParms[opi], opt[opi].CB->type, ident, ret);
-            }
-            return ret;
-          }
-          if (opt[opi].CB->destroy) {
-            /* vP is the address of a void*, we manage the void * */
-            opt[opi].alloc = 1;
-            airMopAdd(pmop, (void **)valueP, (airMopper)airSetNull, airMopOnError);
-            airMopAdd(pmop, *((void **)valueP), opt[opi].CB->destroy, airMopOnError);
-          }
-          break;
-        case airTypeString:
-          if (1
-              != airParseStrS((char **)valueP, optParms[opi], " ", 1
-                              /*, hparm->greedySingleString */)) {
-            fprintf(stderr, "%scouldn't parse %s\"%s\" as %s for %s\n", ME,
-                    optDfltd[opi] ? "(default) " : "", optParms[opi], _hestTypeStr[type],
-                    ident);
-            return 1;
-          }
-          /* vP is the address of a char* (a char **), but what we
-             manage with airMop is the char * */
-          opt[opi].alloc = 1;
-          airMopMem(pmop, valueP, airMopOnError);
-          break;
-        default:
-          /* type isn't string or enum, so no last arg to hestParseStr[type] */
-          if (1 != _hestParseStr[type](valueP, optParms[opi], " ", 1)) {
-            fprintf(stderr, "%scouldn't parse %s\"%s\" as %s for %s\n", ME,
-                    optDfltd[opi] ? "(default) " : "", optParms[opi], _hestTypeStr[type],
-                    ident);
-            return 1;
-          }
-          break;
-        }
+    case 2: // -------- one required parameter --------
+      if (_hestParseSingle[type](valueP, opt[opi].havec->harg[0]->str, hpp)) {
+        biffAddf(HEST, "%s%sproblem parsing for %s[%u]", _ME_, ident, opi);
+        return 1;
       }
+      opt[opi].alloc = hpp->alloc;
       break;
+#if 0
     case 3:
       /* -------- multiple required parameters -------- */
       if (optParms[opi] && valueP) {

@@ -72,8 +72,15 @@ typedef unsigned int uint;
 HEST_EXPORT const char _hestTypeStr[_HEST_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1];
 HEST_EXPORT const size_t _hestTypeSize[_HEST_TYPE_MAX + 1];
 HEST_EXPORT void (*const _hestInvertScalar[_HEST_TYPE_MAX + 1])(void *);
+typedef struct {
+  airArray *cmop;                // caller's mop to clean up things if airMopError
+  const airEnum *enm;            // for parsing an airTypeEnum value
+  const hestCB *CB;              // for parsing an airTypeOther
+  int alloc;                     // our single-arg parsing work allocated something
+  char err[AIR_STRLEN_HUGE + 1]; // error message can go for any type
+} _hestPPack;
 HEST_EXPORT int (*const _hestParseSingle[_HEST_TYPE_MAX + 1])(void *, const char *,
-                                                              const void *);
+                                                              _hestPPack *);
 // HEY these are sticking around just for the old implementation of hestParse
 HEST_EXPORT unsigned int (*const _hestParseStr[_HEST_TYPE_MAX + 1])(void *, const char *,
                                                                     const char *,

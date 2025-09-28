@@ -47,11 +47,12 @@ main(int argc, const char **argv) {
   unsigned int slen;
   hestOptAdd_Nv_Int(&opt, "s,sizes", "sx sy", 2, -1, &size, NULL, "image resolutions",
                     &slen);
-
+#if 0
   int *unpB;
   unsigned int sawB;
   hestOptAdd_Nv_Int(&opt, NULL, "B B", 2, -1, &unpB, /* "BBBB" */ NULL, "unflagged B",
                     &sawB);
+#endif
   /* int unpB[2];
      hestOptAdd_2_Int(&opt, NULL, "B B", unpB, NULL, "unflagged B"); */
   int unpC[2];
@@ -68,7 +69,7 @@ main(int argc, const char **argv) {
     ret = 1;
   }
   if (opt->helpWanted) {
-    printf("%s: help wanted!\n", argv[0]);
+    printf("\n\n%s: help wanted!\n\n\n", argv[0]);
   }
 
   hestOptFree(opt);
