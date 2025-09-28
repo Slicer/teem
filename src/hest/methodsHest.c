@@ -551,10 +551,6 @@ hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
   opt->source = hestSourceUnknown;
   opt->parmStr = NULL;
   opt->helpWanted = AIR_FALSE;
-
-  if (airTypeInt == type && 1 == min && 1 == max) {
-    printf("!something like %s: got valueP %p\n", "hestOptAdd_1_Int", AIR_VOIDP(valueP));
-  }
   return;
 }
 
