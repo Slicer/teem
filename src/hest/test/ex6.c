@@ -84,7 +84,7 @@ main(int argc, const char **argv) {
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->noArgsIsNoProblem = AIR_TRUE;
   hparm->dieLessVerbose = AIR_TRUE;
-  hparm->verbosity = 1;
+  hparm->verbosity = 0;
 
   opt = NULL;
   /* going past C89 to have declarations here */
