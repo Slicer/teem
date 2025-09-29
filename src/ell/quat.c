@@ -388,8 +388,8 @@ ell_q_log_d(double q2[4], const double q1[4]) {
     ELL_3V_SET(axis, 1.0f, 0.0f, 0.0f);                                                 \
   }                                                                                     \
   sb = AIR_CAST(type, sin(b));                                                          \
-  ELL_4V_SET(q2, AIR_CAST(type, ea *cos(b)), ea *sb *axis[0], ea *sb *axis[1],          \
-             ea *sb *axis[2])
+  ELL_4V_SET(q2, AIR_CAST(type, ea *cos(b)), ea * sb * axis[0], ea * sb * axis[1],      \
+             ea * sb * axis[2])
 
 void
 ell_q_exp_f(float q2[4], const float q1[4]) {

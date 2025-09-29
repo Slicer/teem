@@ -212,15 +212,15 @@ typedef struct {
   up in the same struct as the input parameters above, but it also makes sense to keep
   all per-opt state in one place.  The const-correctness we might want of hestParse is
   thwarted by this internal state, but also by the important output fields, below. */
-  int kind; /* What kind of option is this, based on min and max:
-               0:                       (invalid; unset)
-               1: min == max == 0       stand-alone flag; no parameters
-               2: min == max == 1       single fixed parameter
-               3: min == max >= 2       multiple fixed parameters
-               4: min == 0; max == 1;   single variadic parameter
-               5: min < max; max >= 2   multiple variadic parameters
-              This is set by hest functions as part of building up an array of hestOpt,
-              and informs the later action of hestOptFree */
+  int kind;           /* What kind of option is this, based on min and max:
+                         0:                       (invalid; unset)
+                         1: min == max == 0       stand-alone flag; no parameters
+                         2: min == max == 1       single fixed parameter
+                         3: min == max >= 2       multiple fixed parameters
+                         4: min == 0; max == 1;   single variadic parameter
+                         5: min < max; max >= 2   multiple variadic parameters
+                        This is set by hest functions as part of building up an array of hestOpt,
+                        and informs the later action of hestOptFree */
   airArray *parseMop; /* If non-NULL: remembers what was allocated at or behind *valueP
                          as a result of running hestParse(). Free'ing or destroy'ing
                          callbacks added here (by _hestParseSingle[type]) with
@@ -229,7 +229,7 @@ typedef struct {
                          had fussy semantics that complicated hestParseFree()'s work.
                          Now hestParseFree just calls airMopDone on all these (non-NULL)
                          per-option parseMops. */
-  hestArgVec *havec; // the (non-flag) parm args attributed to this option
+  hestArgVec *havec;  // the (non-flag) parm args attributed to this option
   /* Since hest's beginning in 2002, the basic container for a set of options was an
   array of hestOpt structs (not pointers to them, which rules out argv-style
   NULL-termination of the array), also unfortunately with no other top-level container
@@ -381,7 +381,8 @@ HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
 HEST_EXPORT unsigned int hestOptNum(const hestOpt *hopt);
 HEST_EXPORT hestOpt *hestOptFree(hestOpt *hopt);
 HEST_EXPORT int hestOptCheck(const hestOpt *hopt, char **errP);
-HEST_EXPORT int hestOptParmCheck(const hestOpt *hopt, const hestParm *hparm, char **errP);
+HEST_EXPORT int hestOptParmCheck(const hestOpt *hopt, const hestParm *hparm,
+                                 char **errP);
 
 // parseHest.c
 HEST_EXPORT int hestParse(hestOpt *hopt, int argc, const char **argv, char **errP,

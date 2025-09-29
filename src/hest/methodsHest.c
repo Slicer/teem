@@ -170,14 +170,16 @@ parseSingleO(void *out, const char *str, _hestPPair *hpp) {
                          strlen(str) + strlen(hpp->hopt->CB->type) + 100));
     } else {
       snprintf(hpp->err, AIR_STRLEN_HUGE + 1,
-               "error parsing \"%s\" as %s: returned %d\n", str, hpp->hopt->CB->type, ret);
+               "error parsing \"%s\" as %s: returned %d\n", str, hpp->hopt->CB->type,
+               ret);
     }
   } else {
     if (hpp->hopt->CB->destroy) {
       /* out is the address of a void*, we manage the void* */
       if (!hpp->hopt->parseMop) hpp->hopt->parseMop = airMopNew();
       airMopAdd(hpp->hopt->parseMop, (void **)out, (airMopper)airSetNull, airMopAlways);
-      airMopAdd(hpp->hopt->parseMop, *((void **)out), hpp->hopt->CB->destroy, airMopAlways);
+      airMopAdd(hpp->hopt->parseMop, *((void **)out), hpp->hopt->CB->destroy,
+                airMopAlways);
     }
   }
   return ret;
@@ -451,7 +453,7 @@ optInit(hestOpt *hopt) {
   hopt->enm = NULL;
   hopt->CB = NULL;
   hopt->sawP = NULL;
-  hopt->kind = 0; /* means that this hestOpt has not been set */
+  hopt->kind = 0;        /* means that this hestOpt has not been set */
   hopt->parseMop = NULL; // will create with airMopNew() only as needed
   hopt->havec = NULL;
   hopt->arrAlloc = hopt->arrLen = 0;
@@ -536,14 +538,14 @@ hestOptSingleSet(hestOpt *hopt, const char *flag, const char *name, int type,
   hopt->kind = minmaxKind(min, max);
   // deal with (what used to be) var args
   hopt->sawP = (5 == hopt->kind /* */
-                 ? sawP
-                 : NULL);
+                  ? sawP
+                  : NULL);
   hopt->enm = (airTypeEnum == type /* */
-                ? enm
-                : NULL);
+                 ? enm
+                 : NULL);
   hopt->CB = (airTypeOther == type /* */
-               ? CB
-               : NULL);
+                ? CB
+                : NULL);
   // hopt->parseMop may be added to by hestParse and the parseSingleT functions it calls
   hopt->havec = hestArgVecNew();
   // leave arrAlloc, arrLen untouched: managed by caller
@@ -584,7 +586,7 @@ hestOptAdd_nva(hestOpt **hoptP, const char *flag, const char *name, int type,
   retIdx = optarrIncr(hoptP);
   /* set all elements of the opt */
   hestOptSingleSet(*hoptP + retIdx, flag, name, type, min, max, /* */
-                   valueP, dflt, info,                         /* */
+                   valueP, dflt, info,                          /* */
                    sawP, enm, CB);
   return retIdx;
 }
@@ -635,7 +637,7 @@ hestOptAdd(hestOpt **hoptP, const char *flag, const char *name, int type,
     va_end(ap);
   }
   return hestOptAdd_nva(hoptP, flag, name, type, min, max, /* */
-                        valueP, dflt, info,               /* */
+                        valueP, dflt, info,                /* */
                         sawP, enm, CB);
 }
 

@@ -1172,7 +1172,8 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           case airTypeOther:
             cP = (char *)(*((void **)vP));
             optParmsCopy = airStrdup(optParms[op]);
-            /* opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);  SORRY old code will leak */
+            /* opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);  SORRY old code will leak
+             */
             for (p = 0; p < (int)optParmNum[op]; p++) { /* HEY scrutinize casts */
               tok = airStrtok(!p ? optParmsCopy : NULL, " ", &last);
               /* (Note from 2023-06-24: "hammerhead" was hammerhead.ucsd.edu, an Intel
@@ -1453,16 +1454,17 @@ parseEnd:
 hestOpt *
 hestParseFree(hestOpt *opt) {
   if (opt) {
-  uint optNum = opt->arrLen;
-  for (uint opi = 0; opi < optNum; opi++) {
-    airArrayLenSet(opt[opi].havec->hargArr, 0); // but not hestArgVecNix(opt[opi].havec);
-    opt[opi].parmStr = airFree(opt[opi].parmStr);
-    /* this gloriously replaces what used to be a lot of dense logic around
-       opt[opi].alloc, opt[opi].type, and opt[opi].CB->destroy */
-    if (opt[opi].parseMop) {
-      opt[opi].parseMop = airMopOkay(opt[opi].parseMop);
+    uint optNum = opt->arrLen;
+    for (uint opi = 0; opi < optNum; opi++) {
+      airArrayLenSet(opt[opi].havec->hargArr,
+                     0); // but not hestArgVecNix(opt[opi].havec);
+      opt[opi].parmStr = airFree(opt[opi].parmStr);
+      /* this gloriously replaces what used to be a lot of dense logic around
+         opt[opi].alloc, opt[opi].type, and opt[opi].CB->destroy */
+      if (opt[opi].parseMop) {
+        opt[opi].parseMop = airMopOkay(opt[opi].parseMop);
+      }
     }
-  }
   }
   return opt;
 }
