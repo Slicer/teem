@@ -167,7 +167,7 @@ hestInfo(FILE *file, const char *argv0, const char *info, const hestParm *_hparm
   free(err)
 
 void
-hestUsage(FILE *f, const hestOpt *opt, const char *argv0, const hestParm *_hparm) {
+hestUsage(FILE *f, const hestOpt *hopt, const char *argv0, const hestParm *_hparm) {
   int i, numOpts;
   /* with a very large number of options, it is possible to overflow buff[].
   Previous to the 2023 revisit, it was for max lenth 2*AIR_STRLEN_HUGE, but
@@ -175,7 +175,7 @@ hestUsage(FILE *f, const hestOpt *opt, const char *argv0, const hestParm *_hparm
   char buff[64 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_SMALL + 1];
   hestParm *hparm = _hparm ? NULL : hestParmNew();
 
-  if (_hestOPCheck(opt, HPARM)) {
+  if (_hestOPCheck(hopt, HPARM)) {
     /* we can't continue; the opt array is botched */
     DO_ERR;
     if (hparm) {
@@ -184,7 +184,7 @@ hestUsage(FILE *f, const hestOpt *opt, const char *argv0, const hestParm *_hparm
     return;
   }
 
-  numOpts = hestOptNum(opt);
+  numOpts = hestOptNum(hopt);
   if (!(HPARM->noBlankLineBeforeUsage)) {
     fprintf(f, "\n");
   }
@@ -196,9 +196,9 @@ hestUsage(FILE *f, const hestOpt *opt, const char *argv0, const hestParm *_hparm
   }
   for (i = 0; i < numOpts; i++) {
     strcat(buff, " ");
-    if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt)) strcat(buff, "[");
-    _hestSetBuff(buff, opt + i, HPARM, AIR_TRUE, AIR_TRUE);
-    if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt)) strcat(buff, "]");
+    if (1 == hopt[i].kind || (hopt[i].flag && hopt[i].dflt)) strcat(buff, "[");
+    _hestSetBuff(buff, hopt + i, HPARM, AIR_TRUE, AIR_TRUE);
+    if (1 == hopt[i].kind || (hopt[i].flag && hopt[i].dflt)) strcat(buff, "]");
   }
 
   _hestPrintStr(f, AIR_UINT(strlen("Usage: ")), 0, HPARM->columns, buff, AIR_TRUE);
@@ -209,14 +209,14 @@ hestUsage(FILE *f, const hestOpt *opt, const char *argv0, const hestParm *_hparm
 }
 
 void
-hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
+hestGlossary(FILE *f, const hestOpt *hopt, const hestParm *_hparm) {
   int i, j, maxlen, numOpts;
   unsigned int len;
   /* See note above about overflowing buff[] */
   char buff[64 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_HUGE + 1];
   hestParm *hparm = _hparm ? NULL : hestParmNew();
 
-  if (_hestOPCheck(opt, HPARM)) {
+  if (_hestOPCheck(hopt, HPARM)) {
     /* we can't continue; the opt array is botched */
     DO_ERR;
     if (hparm) {
@@ -225,7 +225,7 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
     return;
   }
 
-  numOpts = hestOptNum(opt);
+  numOpts = hestOptNum(hopt);
 
   maxlen = 0;
   if (numOpts) {
@@ -233,7 +233,7 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
   }
   for (i = 0; i < numOpts; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, HPARM, AIR_TRUE, AIR_FALSE);
+    _hestSetBuff(buff, hopt + i, HPARM, AIR_TRUE, AIR_FALSE);
     maxlen = AIR_MAX((int)strlen(buff), maxlen);
   }
   if (HPARM->responseFileEnable) {
@@ -248,7 +248,7 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
   }
   for (i = 0; i < numOpts; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, HPARM, AIR_TRUE, AIR_FALSE);
+    _hestSetBuff(buff, hopt + i, HPARM, AIR_TRUE, AIR_FALSE);
     airOneLinify(buff);
     len = AIR_UINT(strlen(buff));
     for (j = len; j < maxlen; j++) {
@@ -257,9 +257,9 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
     fprintf(f, "%s", buff);
     strcpy(buff, "");
 #if 1
-    if (opt[i].flag && strchr(opt[i].flag, MULTI_FLAG_SEP)) {
+    if (hopt[i].flag && strchr(hopt[i].flag, MULTI_FLAG_SEP)) {
       /* there is a long-form flag as well as short */
-      _hestSetBuff(buff, opt + i, HPARM, AIR_FALSE, AIR_TRUE);
+      _hestSetBuff(buff, hopt + i, HPARM, AIR_FALSE, AIR_TRUE);
       strcat(buff, " = ");
       fprintf(f, " , ");
     } else {
@@ -269,46 +269,46 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
 #else
     fprintf(f, " = ");
 #endif
-    if (opt[i].info) {
-      strcat(buff, opt[i].info);
+    if (hopt[i].info) {
+      strcat(buff, hopt[i].info);
     }
-    if ((opt[i].min || _hestMax(opt[i].max))
-        && (!(2 == opt[i].kind && airTypeEnum == opt[i].type
+    if ((hopt[i].min || _hestMax(hopt[i].max))
+        && (!(2 == hopt[i].kind && airTypeEnum == hopt[i].type
               && HPARM->elideSingleEnumType))
-        && (!(2 == opt[i].kind && airTypeOther == opt[i].type
+        && (!(2 == hopt[i].kind && airTypeOther == hopt[i].type
               && HPARM->elideSingleOtherType))) {
       /* if there are newlines in the info, then we want to clarify the
          type by printing it on its own line */
-      if (opt[i].info && strchr(opt[i].info, '\n')) {
+      if (hopt[i].info && strchr(hopt[i].info, '\n')) {
         strcat(buff, "\n ");
       } else {
         strcat(buff, " ");
       }
       strcat(buff, "(");
-      if (opt[i].min == 0 && _hestMax(opt[i].max) == 1) {
+      if (hopt[i].min == 0 && _hestMax(hopt[i].max) == 1) {
         strcat(buff, "optional\t");
       } else {
-        if ((int)opt[i].min == _hestMax(opt[i].max)
-            && _hestMax(opt[i].max) > 1) { /* HEY scrutinize casts */
-          sprintf(tmpS, "%d\t", _hestMax(opt[i].max));
+        if ((int)hopt[i].min == _hestMax(hopt[i].max)
+            && _hestMax(hopt[i].max) > 1) { /* HEY scrutinize casts */
+          sprintf(tmpS, "%d\t", _hestMax(hopt[i].max));
           strcat(buff, tmpS);
-        } else if ((int)opt[i].min < _hestMax(opt[i].max)) { /* HEY scrutinize casts */
-          if (-1 == opt[i].max) {
-            sprintf(tmpS, "%d\tor\tmore\t", opt[i].min);
+        } else if ((int)hopt[i].min < _hestMax(hopt[i].max)) { /* HEY scrutinize casts */
+          if (-1 == hopt[i].max) {
+            sprintf(tmpS, "%d\tor\tmore\t", hopt[i].min);
           } else {
-            sprintf(tmpS, "%d..%d\t", opt[i].min, _hestMax(opt[i].max));
+            sprintf(tmpS, "%d..%d\t", hopt[i].min, _hestMax(hopt[i].max));
           }
           strcat(buff, tmpS);
         }
       }
       sprintf(tmpS, "%s%s",
-              (airTypeEnum == opt[i].type
-                 ? opt[i].enm->name
-                 : (airTypeOther == opt[i].type ? opt[i].CB->type
-                                                : _hestTypeStr[opt[i].type])),
-              (_hestMax(opt[i].max) > 1
-                 ? (airTypeOther == opt[i].type
-                        && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type) - 1]
+              (airTypeEnum == hopt[i].type
+                 ? hopt[i].enm->name
+                 : (airTypeOther == hopt[i].type ? hopt[i].CB->type
+                                                : _hestTypeStr[hopt[i].type])),
+              (_hestMax(hopt[i].max) > 1
+                 ? (airTypeOther == hopt[i].type
+                        && 'y' == hopt[i].CB->type[airStrlen(hopt[i].CB->type) - 1]
                         && HPARM->cleverPluralizeOtherY
                       ? "\bies"
                       : "s")
@@ -320,31 +320,31 @@ hestGlossary(FILE *f, const hestOpt *opt, const hestParm *_hparm) {
     fprintf(stderr, "!%s: HPARM->elideSingleOtherDefault = %d\n",
             "hestGlossary", HPARM->elideSingleOtherDefault);
     */
-    if (opt[i].dflt && (opt[i].min || _hestMax(opt[i].max))
-        && (!(2 == opt[i].kind
-              && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
-              && !AIR_EXISTS(airAtod(opt[i].dflt))
+    if (hopt[i].dflt && (hopt[i].min || _hestMax(hopt[i].max))
+        && (!(2 == hopt[i].kind
+              && (airTypeFloat == hopt[i].type || airTypeDouble == hopt[i].type)
+              && !AIR_EXISTS(airAtod(hopt[i].dflt))
               && HPARM->elideSingleNonExistFloatDefault))
-        && (!((3 == opt[i].kind || 5 == opt[i].kind)
-              && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
-              && !AIR_EXISTS(airAtod(opt[i].dflt))
+        && (!((3 == hopt[i].kind || 5 == hopt[i].kind)
+              && (airTypeFloat == hopt[i].type || airTypeDouble == hopt[i].type)
+              && !AIR_EXISTS(airAtod(hopt[i].dflt))
               && HPARM->elideMultipleNonExistFloatDefault))
-        && (!(2 == opt[i].kind && airTypeOther == opt[i].type
+        && (!(2 == hopt[i].kind && airTypeOther == hopt[i].type
               && HPARM->elideSingleOtherDefault))
-        && (!(2 == opt[i].kind && airTypeString == opt[i].type
-              && HPARM->elideSingleEmptyStringDefault && 0 == airStrlen(opt[i].dflt)))
-        && (!((3 == opt[i].kind || 5 == opt[i].kind) && airTypeString == opt[i].type
+        && (!(2 == hopt[i].kind && airTypeString == hopt[i].type
+              && HPARM->elideSingleEmptyStringDefault && 0 == airStrlen(hopt[i].dflt)))
+        && (!((3 == hopt[i].kind || 5 == hopt[i].kind) && airTypeString == hopt[i].type
               && HPARM->elideMultipleEmptyStringDefault
-              && 0 == airStrlen(opt[i].dflt)))) {
+              && 0 == airStrlen(hopt[i].dflt)))) {
       /* if there are newlines in the info, then we want to clarify the
          default by printing it on its own line */
-      if (opt[i].info && strchr(opt[i].info, '\n')) {
+      if (hopt[i].info && strchr(hopt[i].info, '\n')) {
         strcat(buff, "\n ");
       } else {
         strcat(buff, "; ");
       }
       strcat(buff, "default:\t");
-      strcpy(tmpS, opt[i].dflt);
+      strcpy(tmpS, hopt[i].dflt);
       airStrtrans(tmpS, ' ', '\t');
       strcat(buff, "\"");
       strcat(buff, tmpS);

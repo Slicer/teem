@@ -51,7 +51,7 @@ quat_parse(void *_ptr, const char *str, char *err) {
   ptr->str = NULL;
   if (1 != sscanf(str, "%lf", &(ptr->val))) {
     sprintf(err, "didn't parse a double from %s", str);
-    return 1;
+    return (free(ptr), 1);
   }
   ptr->str = airStrdup(str);
   return 0;
@@ -74,8 +74,7 @@ main(int argc, const char **argv) {
   hestOpt *opt = NULL;
   hestParm *hparm;
   char *err = NULL,
-       info[] = "This program does nothing in particular, though it does attempt "
-                "to pose as some sort of command-line image processing program. "
+       info[] = "Exercises the many new hest functions. "
                 "As usual, any implied functionality is purely coincidental, "
                 "especially since this is the output of a gray-haired unicyclist.";
 
@@ -93,14 +92,18 @@ main(int argc, const char **argv) {
 
   int b1v;
   hestOptAdd_1v_Bool(&opt, "b1v", "bool1", &b1v, "false", "test of hestOptAdd_1v_Bool");
+  short h1v;
+  hestOptAdd_1v_Short(&opt, "h1v", "short1", &h1v, "42", "test of hestOptAdd_1v_Short");
+  unsigned short uh1v;
+  hestOptAdd_1v_UShort(&opt, "uh1v", "ushort1", &uh1v, "42", "test of hestOptAdd_1v_UShort");
   int i1v;
   hestOptAdd_1v_Int(&opt, "i1v", "int1", &i1v, "42", "test of hestOptAdd_1v_Int");
   unsigned int ui1v;
   hestOptAdd_1v_UInt(&opt, "ui1v", "uint1", &ui1v, "42", "test of hestOptAdd_1v_UInt");
-  long int li1v;
-  hestOptAdd_1v_Long(&opt, "li1v", "lint1", &li1v, "42", "test of hestOptAdd_1v_Long");
-  unsigned long int uli1v;
-  hestOptAdd_1v_ULong(&opt, "uli1v", "ulint1", &uli1v, "42",
+  long int l1v;
+  hestOptAdd_1v_Long(&opt, "l1v", "lnt1", &l1v, "42", "test of hestOptAdd_1v_Long");
+  unsigned long int ul1v;
+  hestOptAdd_1v_ULong(&opt, "ul1v", "ulnt1", &ul1v, "42",
                       "test of hestOptAdd_1v_ULong");
   size_t sz1v;
   hestOptAdd_1v_Size_t(&opt, "sz1v", "size1", &sz1v, "42",
@@ -129,15 +132,18 @@ main(int argc, const char **argv) {
   */
   int b1;
   hestOptAdd_1_Bool(&opt, "b1", "bool1", &b1, "false", "test of hestOptAdd_1_Bool");
+  short h1;
+  hestOptAdd_1_Short(&opt, "h1", "short1", &h1, "42", "test of hestOptAdd_1_Short");
+  unsigned short uh1;
+  hestOptAdd_1_UShort(&opt, "uh1", "ushort1", &uh1, "42", "test of hestOptAdd_1_UShort");
   int i1;
-  printf("!%s: &i1 = %p (passed to hestOptAdd_1_Int)\n", __func__, AIR_VOIDP(&i1));
   hestOptAdd_1_Int(&opt, "i1", "int1", &i1, "42", "test of hestOptAdd_1_Int");
   unsigned int ui1;
   hestOptAdd_1_UInt(&opt, "ui1", "uint1", &ui1, "42", "test of hestOptAdd_1_UInt");
-  long int li1;
-  hestOptAdd_1_Long(&opt, "li1", "lint1", &li1, "42", "test of hestOptAdd_1_Long");
-  unsigned long int uli1;
-  hestOptAdd_1_ULong(&opt, "uli1", "ulint1", &uli1, "42", "test of hestOptAdd_1_ULong");
+  long int l1;
+  hestOptAdd_1_Long(&opt, "l1", "lnt1", &l1, "42", "test of hestOptAdd_1_Long");
+  unsigned long int ul1;
+  hestOptAdd_1_ULong(&opt, "ul1", "ulnt1", &ul1, "42", "test of hestOptAdd_1_ULong");
   size_t sz1;
   hestOptAdd_1_Size_t(&opt, "sz1", "size1", &sz1, "42", "test of hestOptAdd_1_Size_t");
   float fl1;
@@ -163,16 +169,21 @@ main(int argc, const char **argv) {
   int b2[2];
   hestOptAdd_2_Bool(&opt, "b2", "bool1 bool2", b2, "true false",
                     "test of hestOptAdd_2_Bool");
+  short h2[2];
+  hestOptAdd_2_Short(&opt, "h2", "short1 short2", h2, "42 24", "test of hestOptAdd_2_Short");
+  unsigned short uh2[2];
+  hestOptAdd_2_UShort(&opt, "uh2", "ushort1 ushort2", uh2, "42 24",
+                    "test of hestOptAdd_2_UShort");
   int i2[2];
   hestOptAdd_2_Int(&opt, "i2", "int1 int2", i2, "42 24", "test of hestOptAdd_2_Int");
   unsigned int ui2[2];
   hestOptAdd_2_UInt(&opt, "ui2", "uint1 uint2", ui2, "42 24",
                     "test of hestOptAdd_2_UInt");
-  long int li2[2];
-  hestOptAdd_2_Long(&opt, "li2", "lint1 lint2", li2, "42 24",
+  long int l2[2];
+  hestOptAdd_2_Long(&opt, "l2", "long1 long2", l2, "42 24",
                     "test of hestOptAdd_2_Long");
-  unsigned long int uli2[2];
-  hestOptAdd_2_ULong(&opt, "uli2", "ulint1 ulint2", uli2, "42 24",
+  unsigned long int ul2[2];
+  hestOptAdd_2_ULong(&opt, "ul2", "ulong1 ulong2", ul2, "42 24",
                      "test of hestOptAdd_2_ULong");
   size_t sz2[2];
   hestOptAdd_2_Size_t(&opt, "sz2", "size1 size2", sz2, "42 24",
@@ -201,17 +212,23 @@ main(int argc, const char **argv) {
   int b3[3];
   hestOptAdd_3_Bool(&opt, "b3", "bool1 bool2 bool3", b3, "true false true",
                     "test of hestOptAdd_3_Bool");
+  short h3[3];
+  hestOptAdd_3_Short(&opt, "h3", "short1 short2 short3", h3, "43 3 34",
+                   "test of hestOptAdd_3_Short");
+  unsigned short uh3[3];
+  hestOptAdd_3_UShort(&opt, "uh3", "ushort1 ushort2 ushort3", uh3, "43 3 34",
+                    "test of hestOptAdd_3_UShort");
   int i3[3];
   hestOptAdd_3_Int(&opt, "i3", "int1 int2 int3", i3, "43 3 34",
                    "test of hestOptAdd_3_Int");
   unsigned int ui3[3];
   hestOptAdd_3_UInt(&opt, "ui3", "uint1 uint2 uint3", ui3, "43 3 34",
                     "test of hestOptAdd_3_UInt");
-  long int li3[3];
-  hestOptAdd_3_Long(&opt, "li3", "lint1 lint2 lint3", li3, "43 4 34",
+  long int l3[3];
+  hestOptAdd_3_Long(&opt, "l3", "long1 long2 long3", l3, "43 4 34",
                     "test of hestOptAdd_3_Long");
-  unsigned long int uli3[3];
-  hestOptAdd_3_ULong(&opt, "uli3", "ulint1 ulint2 ulint3", uli3, "43 5 34",
+  unsigned long int ul3[3];
+  hestOptAdd_3_ULong(&opt, "ul3", "ulong1 ulong2 ulong3", ul3, "43 5 34",
                      "test of hestOptAdd_3_ULong");
   size_t sz3[3];
   hestOptAdd_3_Size_t(&opt, "sz3", "size1 size2 size3", sz3, "43 6 34",
@@ -247,11 +264,11 @@ main(int argc, const char **argv) {
   unsigned int ui4[4];
   hestOptAdd_4_UInt(&opt, "ui4", "uint1 uint2 uint3 uint4", ui4, "44 4 33 44",
                     "test of hestOptAdd_4_UInt");
-  long int li4[4];
-  hestOptAdd_4_Long(&opt, "li4", "lint1 lint2 lint3 lint4", li4, "44 4 33 44",
+  long int l4[4];
+  hestOptAdd_4_Long(&opt, "l4", "long1 long2 long3 long4", l4, "44 4 33 44",
                     "test of hestOptAdd_4_Long");
-  unsigned long int uli4[4];
-  hestOptAdd_4_ULong(&opt, "uli4", "ulint1 ulint2 ulint3 ulint4", uli4, "44 5 33 44",
+  unsigned long int ul4[4];
+  hestOptAdd_4_ULong(&opt, "ul4", "ulong1 ulong2 ulong3 ulong4", ul4, "44 5 33 44",
                      "test of hestOptAdd_4_ULong");
   size_t sz4[4];
   hestOptAdd_4_Size_t(&opt, "sz4", "size1 size2 size3 size4", sz4, "44 6 33 44",
@@ -289,11 +306,11 @@ main(int argc, const char **argv) {
   unsigned int ui5[5];
   hestOptAdd_N_UInt(&opt, "ui5", "uint1 uint2 uint3 uint4 uint5", 5, ui5,
                     "55 5 33 500 55", "test of hestOptAdd_N_UInt");
-  long int li5[5];
-  hestOptAdd_N_Long(&opt, "li5", "lint1 lint2 lint3 lint4 lint5", 5, li5,
+  long int l5[5];
+  hestOptAdd_N_Long(&opt, "l5", "long1 long2 long3 long4 long5", 5, l5,
                     "55 5 33 500 55", "test of hestOptAdd_N_Long");
-  unsigned long int uli5[5];
-  hestOptAdd_N_ULong(&opt, "uli5", "ulint1 ulint2 ulint3 ulint4 ulint5", 5, uli5,
+  unsigned long int ul5[5];
+  hestOptAdd_N_ULong(&opt, "ul5", "ulong1 ulong2 ulong3 ulong4 ulong5", 5, ul5,
                      "55 5 33 500 55", "test of hestOptAdd_N_ULong");
   size_t sz5[5];
   hestOptAdd_N_Size_t(&opt, "sz5", "size1 size2 size3 size5", 5, sz5, "55 6 33 500 55",
@@ -338,14 +355,14 @@ main(int argc, const char **argv) {
   unsigned int uivSaw;
   hestOptAdd_Nv_UInt(&opt, "uiv", "uint1", VMIN, -1, &uiv, "42 24",
                      "test of hestOptAdd_Nv_UInt", &uivSaw);
-  long int *liv;
-  unsigned int livSaw;
-  hestOptAdd_Nv_Long(&opt, "liv", "lint1", VMIN, -1, &liv, "42 24",
-                     "test of hestOptAdd_Nv_Long", &livSaw);
-  unsigned long int *uliv;
-  unsigned int ulivSaw;
-  hestOptAdd_Nv_ULong(&opt, "uliv", "ulint1", VMIN, -1, &uliv, "42 24",
-                      "test of hestOptAdd_Nv_ULong", &ulivSaw);
+  long int *lv;
+  unsigned int lvSaw;
+  hestOptAdd_Nv_Long(&opt, "lv", "long1", VMIN, -1, &lv, "42 24",
+                     "test of hestOptAdd_Nv_Long", &lvSaw);
+  unsigned long int *ulv;
+  unsigned int ulvSaw;
+  hestOptAdd_Nv_ULong(&opt, "ulv", "ulong1", VMIN, -1, &ulv, "42 24",
+                      "test of hestOptAdd_Nv_ULong", &ulvSaw);
   size_t *szv;
   unsigned int szvSaw;
   hestOptAdd_Nv_Size_t(&opt, "szv", "size1", VMIN, -1, &szv, "42 24",
@@ -378,6 +395,9 @@ main(int argc, const char **argv) {
   unsigned int qvSaw;
   hestOptAdd_Nv_Other(&opt, "qv", "quat1", VMIN, -1, &qv, "12.34  43.21",
                       "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
+
+#if 0
+#endif
   int eret;
   if ((eret = hestParse2(opt, argc - 1, argv + 1, NULL, hparm))) {
     // have already fprintf'd to stderr
@@ -414,10 +434,12 @@ main(int argc, const char **argv) {
   printf("flag = %d\n\n", flag);
 
   printf("b1v = %d\n", b1v);
+  printf("h1v = %d\n", h1v);
+  printf("uh1v = %u\n", uh1v);
   printf("i1v = %d\n", i1v);
   printf("ui1v = %u\n", ui1v);
-  printf("li1v = %ld\n", li1v);
-  printf("uli1v = %lu\n", uli1v);
+  printf("l1v = %ld\n", l1v);
+  printf("ul1v = %lu\n", ul1v);
   printf("sz1v = %zu\n", sz1v);
   printf("fl1v = %g\n", fl1v);
   printf("db1v = %g\n", db1v);
@@ -431,10 +453,12 @@ main(int argc, const char **argv) {
   printf("\n");
 
   printf("b1 = %d\n", b1);
+  printf("h1 = %d\n", h1);
+  printf("uh1 = %u\n", uh1);
   printf("i1 = %d\n", i1);
   printf("ui1 = %u\n", ui1);
-  printf("li1 = %ld\n", li1);
-  printf("uli1 = %lu\n", uli1);
+  printf("l1 = %ld\n", l1);
+  printf("ul1 = %lu\n", ul1);
   printf("sz1 = %zu\n", sz1);
   printf("fl1 = %g\n", fl1);
   printf("db1 = %g\n", db1);
@@ -446,10 +470,12 @@ main(int argc, const char **argv) {
   printf("\n");
 
   printf("b2 = %d %d\n", b2[0], b2[1]);
+  printf("h2 = %d %d\n", h2[0], h2[1]);
+  printf("uh2 = %u %u\n", uh2[0], uh2[1]);
   printf("i2 = %d %d\n", i2[0], i2[1]);
   printf("ui2 = %u %u\n", ui2[0], ui2[1]);
-  printf("li2 = %ld %ld\n", li2[0], li2[1]);
-  printf("uli2 = %lu %lu\n", uli2[0], uli2[1]);
+  printf("l2 = %ld %ld\n", l2[0], l2[1]);
+  printf("ul2 = %lu %lu\n", ul2[0], ul2[1]);
   printf("sz2 = %zu %zu\n", sz2[0], sz2[1]);
   printf("fl2 = %g %g\n", fl2[0], fl2[1]);
   printf("db2 = %g %g\n", db2[0], db2[1]);
@@ -461,10 +487,12 @@ main(int argc, const char **argv) {
   printf("q2 = %g(%s)  %g(%s)\n", q2[0]->val, q2[0]->str, q2[1]->val, q2[1]->str);
 
   printf("b3 = %d %d %d\n", b3[0], b3[1], b3[2]);
+  printf("h3 = %d %d %d\n", h3[0], h3[1], h3[2]);
+  printf("uh3 = %u %u %u\n", uh3[0], uh3[1], uh3[2]);
   printf("i3 = %d %d %d\n", i3[0], i3[1], i3[2]);
   printf("ui3 = %u %u %u\n", ui3[0], ui3[1], ui3[2]);
-  printf("li3 = %ld %ld %ld\n", li3[0], li3[1], li3[2]);
-  printf("uli3 = %lu %lu %lu\n", uli3[0], uli3[1], uli3[2]);
+  printf("l3 = %ld %ld %ld\n", l3[0], l3[1], l3[2]);
+  printf("ul3 = %lu %lu %lu\n", ul3[0], ul3[1], ul3[2]);
   printf("sz3 = %zu %zu %zu\n", sz3[0], sz3[1], sz3[2]);
   printf("fl3 = %g %g %g\n", fl3[0], fl3[1], fl3[2]);
   printf("db3 = %g %g %g\n", db3[0], db3[1], db3[2]);
@@ -479,8 +507,8 @@ main(int argc, const char **argv) {
   printf("b4 = %d %d %d %d\n", b4[0], b4[1], b4[2], b4[3]);
   printf("i4 = %d %d %d %d\n", i4[0], i4[1], i4[2], i4[3]);
   printf("ui4 = %u %u %u %u\n", ui4[0], ui4[1], ui4[2], ui4[3]);
-  printf("li4 = %ld %ld %ld %ld\n", li4[0], li4[1], li4[2], li4[3]);
-  printf("uli4 = %lu %lu %lu %lu\n", uli4[0], uli4[1], uli4[2], uli4[3]);
+  printf("l4 = %ld %ld %ld %ld\n", l4[0], l4[1], l4[2], l4[3]);
+  printf("ul4 = %lu %lu %lu %lu\n", ul4[0], ul4[1], ul4[2], ul4[3]);
   printf("sz4 = %zu %zu %zu %zu\n", sz4[0], sz4[1], sz4[2], sz4[3]);
   printf("fl4 = %g %g %g %g\n", fl4[0], fl4[1], fl4[2], fl4[3]);
   printf("db4 = %g %g %g %g\n", db4[0], db4[1], db4[2], db4[3]);
@@ -495,8 +523,8 @@ main(int argc, const char **argv) {
   printf("b5 = %d %d %d %d %d\n", b5[0], b5[1], b5[2], b5[3], b5[4]);
   printf("i5 = %d %d %d %d %d\n", i5[0], i5[1], i5[2], i5[3], i5[4]);
   printf("ui5 = %u %u %u %u %u\n", ui5[0], ui5[1], ui5[2], ui5[3], ui5[4]);
-  printf("li5 = %ld %ld %ld %ld %ld\n", li5[0], li5[1], li5[2], li5[3], li5[4]);
-  printf("uli5 = %lu %lu %lu %lu %lu\n", uli5[0], uli5[1], uli5[2], uli5[3], uli5[4]);
+  printf("l5 = %ld %ld %ld %ld %ld\n", l5[0], l5[1], l5[2], l5[3], l5[4]);
+  printf("ul5 = %lu %lu %lu %lu %lu\n", ul5[0], ul5[1], ul5[2], ul5[3], ul5[4]);
   printf("sz5 = %zu %zu %zu %zu %zu\n", sz5[0], sz5[1], sz5[2], sz5[3], sz5[4]);
   printf("fl5 = %g %g %g %g %g\n", fl5[0], fl5[1], fl5[2], fl5[3], fl5[4]);
   printf("db5 = %g %g %g %g %g\n", db5[0], db5[1], db5[2], db5[3], db5[4]);
@@ -525,14 +553,14 @@ main(int argc, const char **argv) {
     printf(" %u", uiv[ii]);
   }
   printf("\n");
-  printf("liv (%u) =", livSaw);
-  for (ii = 0; ii < livSaw; ii++) {
-    printf(" %ld", liv[ii]);
+  printf("lv (%u) =", lvSaw);
+  for (ii = 0; ii < lvSaw; ii++) {
+    printf(" %ld", lv[ii]);
   }
   printf("\n");
-  printf("uliv (%u) =", ulivSaw);
-  for (ii = 0; ii < ulivSaw; ii++) {
-    printf(" %lu", uliv[ii]);
+  printf("ulv (%u) =", ulvSaw);
+  for (ii = 0; ii < ulvSaw; ii++) {
+    printf(" %lu", ulv[ii]);
   }
   printf("\n");
   printf("szv (%u) =", szvSaw);
@@ -575,6 +603,8 @@ main(int argc, const char **argv) {
     printf("  %g(%s)", qv[ii]->val, qv[ii]->str);
   }
   printf("\n");
+#if 0
+#endif
 
   /* free the memory allocated by parsing ... */
   hestParseFree(opt);

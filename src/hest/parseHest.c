@@ -894,7 +894,6 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
              optNum - 1, optParms[op], ident, opt[op].kind, type, (unsigned int)size);
     }
     /* we may over-write these */
-    opt[op].alloc = 0;
     if (opt[op].sawP) {
       *(opt[op].sawP) = 0;
     }
@@ -933,7 +932,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           }
           if (opt[op].CB->destroy) {
             /* vP is the address of a void*, we manage the void * */
-            opt[op].alloc = 1;
+            /* opt[op].alloc = 1;  SORRY old code will leak */
             airMopAdd(pmop, (void **)vP, (airMopper)airSetNull, airMopOnError);
             airMopAdd(pmop, *((void **)vP), opt[op].CB->destroy, airMopOnError);
           }
@@ -949,7 +948,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           }
           /* vP is the address of a char* (a char **), but what we
              manage with airMop is the char * */
-          opt[op].alloc = 1;
+          /* opt[op].alloc = 1;  SORRY old code will leak */
           airMopMem(pmop, vP, airMopOnError);
           break;
         default:
@@ -1001,7 +1000,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           free(optParmsCopy);
           if (opt[op].CB->destroy) {
             /* vP is an array of void*s, we manage the individual void*s */
-            opt[op].alloc = 2;
+            /* opt[op].alloc = 2;  SORRY old code will leak */
             for (p = 0; p < (int)opt[op].min; p++) { /* HEY scrutinize casts */
               airMopAdd(pmop, ((void **)vP) + p, (airMopper)airSetNull, airMopOnError);
               airMopAdd(pmop, *(((void **)vP) + p), opt[op].CB->destroy, airMopOnError);
@@ -1018,7 +1017,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           }
           /* vP is an array of char*s, (a char**), and what we manage
              with airMop are the individual vP[p]. */
-          opt[op].alloc = 2;
+          /* opt[op].alloc = 2; SORRY old code will leak */
           for (p = 0; p < (int)opt[op].min; p++) { /* HEY scrutinize casts */
             airMopMem(pmop, &(((char **)vP)[p]), airMopOnError);
           }
@@ -1049,7 +1048,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
                     ident);
             return 1;
           }
-          opt[op].alloc = 0;
+          /* opt[op].alloc = 0;  dropped with 2025 rewrite */
           break;
         case airTypeString:
           /* this is a bizarre case: optional single string, with some kind of value
@@ -1067,11 +1066,11 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
                     ident);
             return 1;
           }
-          opt[op].alloc = 1;
+          /* opt[op].alloc = 1;  SORRY old code will leak */
           if (opt[op].flag && 1 == whichCase(opt, optDfltd, optParmNum, appr, op)) {
             /* we just parsed the default, but now we want to "invert" it */
             *((char **)vP) = (char *)airFree(*((char **)vP));
-            opt[op].alloc = 0;
+            /* opt[op].alloc = 0; this is so needlessly confusing */
           }
           /* vP is the address of a char* (a char**), and what we
              manage with airMop is the char * */
@@ -1105,7 +1104,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           }
           if (opt[op].CB->destroy) {
             /* vP is the address of a void*, we manage the void* */
-            opt[op].alloc = 1;
+            /* opt[op].alloc = 1;   SORRY old code will leak */
             airMopAdd(pmop, vP, (airMopper)airSetNull, airMopOnError);
             airMopAdd(pmop, *((void **)vP), opt[op].CB->destroy, airMopOnError);
           }
@@ -1117,7 +1116,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
                     ident);
             return 1;
           }
-          opt[op].alloc = 0;
+          /* opt[op].alloc = 0;   dropped with 2025 rewrite */
           /* HEY sorry about confusion about hestOpt->parmStr versus the value set
           here, due to this "inversion" */
           if (1 == whichCase(opt, optDfltd, optParmNum, appr, op)) {
@@ -1160,7 +1159,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           /* so far everything we've done is regardless of type */
           switch (type) {
           case airTypeEnum:
-            opt[op].alloc = 1;
+            /* opt[op].alloc = 1;   SORRY old code will leak */
             if (optParmNum[op]
                 != airParseStrE((int *)(*((void **)vP)), optParms[op], " ",
                                 optParmNum[op], opt[op].enm)) {
@@ -1173,7 +1172,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
           case airTypeOther:
             cP = (char *)(*((void **)vP));
             optParmsCopy = airStrdup(optParms[op]);
-            opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);
+            /* opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);  SORRY old code will leak */
             for (p = 0; p < (int)optParmNum[op]; p++) { /* HEY scrutinize casts */
               tok = airStrtok(!p ? optParmsCopy : NULL, " ", &last);
               /* (Note from 2023-06-24: "hammerhead" was hammerhead.ucsd.edu, an Intel
@@ -1218,7 +1217,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
             }
             break;
           case airTypeString:
-            opt[op].alloc = 3;
+            /* opt[op].alloc = 3;  SORRY old code will leak */
             if (optParmNum[op]
                 != airParseStrS((char **)(*((void **)vP)), optParms[op], " ",
                                 optParmNum[op] /*, hparm->greedySingleString */)) {
@@ -1237,7 +1236,7 @@ setValues(char **optParms, int *optDfltd, unsigned int *optParmNum, int *appr,
             (*((char ***)vP))[optParmNum[op]] = NULL;
             break;
           default:
-            opt[op].alloc = 1;
+            /* opt[op].alloc = 1;   SORRY old code will leak */
             if (optParmNum[op]
                 != _hestParseStr[type](*((void **)vP), optParms[op], " ",
                                        optParmNum[op])) {
@@ -1449,67 +1448,23 @@ parseEnd:
 **
 ** free()s whatever was allocated by hestParse()
 **
-** ignore-able quirk: returns NULL, to facilitate use with the airMop functions
+** ignore-able quirk: returns given pointer, to facilitate use with the airMop functions
 */
-void *
+hestOpt *
 hestParseFree(hestOpt *opt) {
+  if (opt) {
   uint optNum = opt->arrLen;
-  for (uint op = 0; op < optNum; op++) {
-    airArrayLenSet(opt[op].havec->hargArr, 0); // but not hestArgVecNix(opt[op].havec);
-    opt[op].parmStr = airFree(opt[op].parmStr);
-    /*
-    printf("!hestParseFree: op = %d/%d -> kind = %d; type = %d; alloc = %d\n",
-           op, optNum-1, opt[op].kind, opt[op].type, opt[op].alloc);
-    */
-    void **vP = (void **)opt[op].valueP;
-    void ***vAP = (void ***)opt[op].valueP;
-    char **str = (char **)opt[op].valueP;
-    char ***strP = (char ***)opt[op].valueP;
-    switch (opt[op].alloc) {
-    case 0:
-      /* nothing was allocated */
-      break;
-    case 1:
-      if (airTypeOther != opt[op].type) {
-        *vP = airFree(*vP);
-      } else {
-        /* alloc is one either because we parsed one thing, and we have a
-           destroy callback, or, because we parsed a dynamically-created array
-           of things, and we don't have a destroy callback */
-        if (opt[op].CB->destroy) {
-          *vP = opt[op].CB->destroy(*vP);
-        } else {
-          *vP = airFree(*vP);
-        }
-      }
-      break;
-    case 2:
-      if (airTypeString == opt[op].type) {
-        for (int i = 0; i < (int)opt[op].min; i++) { /* HEY scrutinize casts */
-          str[i] = (char *)airFree(str[i]);
-        }
-      } else {
-        for (int i = 0; i < (int)opt[op].min; i++) { /* HEY scrutinize casts */
-          vP[i] = opt[op].CB->destroy(vP[i]);
-        }
-      }
-      break;
-    case 3:
-      if (airTypeString == opt[op].type) {
-        for (uint ui = 0; ui < *(opt[op].sawP); ui++) {
-          (*strP)[ui] = (char *)airFree((*strP)[ui]);
-        }
-        *strP = (char **)airFree(*strP);
-      } else {
-        for (uint ui = 0; ui < *(opt[op].sawP); ui++) {
-          (*vAP)[ui] = opt[op].CB->destroy((*vAP)[ui]);
-        }
-        *vAP = (void **)airFree(*vAP);
-      }
-      break;
+  for (uint opi = 0; opi < optNum; opi++) {
+    airArrayLenSet(opt[opi].havec->hargArr, 0); // but not hestArgVecNix(opt[opi].havec);
+    opt[opi].parmStr = airFree(opt[opi].parmStr);
+    /* this gloriously replaces what used to be a lot of dense logic around
+       opt[opi].alloc, opt[opi].type, and opt[opi].CB->destroy */
+    if (opt[opi].parseMop) {
+      opt[opi].parseMop = airMopOkay(opt[opi].parseMop);
     }
   }
-  return NULL;
+  }
+  return opt;
 }
 
 /*

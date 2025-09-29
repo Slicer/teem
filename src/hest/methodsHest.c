@@ -72,9 +72,9 @@ _hestTypeSize[_HEST_TYPE_MAX+1] = {
 tokens, and to properly tokenize default strings and response files, we should stop using
 the airParseStrT functions that internally use airStrtok(): we have exactly one token to
 parse. These functions thus return non-zero in case of error, instead of returning the
-number of parsed values. See also comment about _hestP(arse)Pack in privateHest.h */
+number of parsed values. See also comment about _hestP(arse)Pair in privateHest.h */
 static int
-parseSingleB(void *_out, const char *str, _hestPPack *hpp) {
+parseSingleB(void *_out, const char *str, _hestPPair *hpp) {
   if (!(_out && str && hpp)) return 1;
   int *out = (int *)_out;
   *out = airEnumVal(airBool, str);
@@ -88,7 +88,7 @@ parseSingleB(void *_out, const char *str, _hestPPack *hpp) {
   return ret;
 }
 
-#define _PARSE_1_ARGS void *out, const char *str, _hestPPack *hpp
+#define _PARSE_1_ARGS void *out, const char *str, _hestPPair *hpp
 #define _PARSE_1_BODY(typstr, format)                                                   \
   if (!(out && str && hpp)) return 1;                                                   \
   int ret = (1 != airSingleSscanf(str, format, out));                                   \
@@ -111,7 +111,7 @@ static int parseSingleF (_PARSE_1_ARGS) { _PARSE_1_BODY("float",          "%f" )
 static int parseSingleD (_PARSE_1_ARGS) { _PARSE_1_BODY("double",         "%lf"); }
 // clang-format on
 static int
-parseSingleC(void *_out, const char *str, _hestPPack *hpp) {
+parseSingleC(void *_out, const char *str, _hestPPair *hpp) {
   if (!(_out && str && hpp)) return 1;
   size_t slen = strlen(str);
   int ret;
@@ -129,7 +129,7 @@ parseSingleC(void *_out, const char *str, _hestPPack *hpp) {
   return ret;
 }
 static int
-parseSingleS(void *_out, const char *str, _hestPPack *hpp) {
+parseSingleS(void *_out, const char *str, _hestPPair *hpp) {
   if (!(_out && str && hpp)) return 1;
   char **out = (char **)_out;
   *out = airStrdup(str);
@@ -137,53 +137,53 @@ parseSingleS(void *_out, const char *str, _hestPPack *hpp) {
   if (ret) {
     snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "airStrdup failed!");
   } else {
-    hpp->alloc = 1;
-    airMopMem(hpp->cmop, *out, airMopOnError);
+    if (!hpp->hopt->parseMop) hpp->hopt->parseMop = airMopNew();
+    airMopMem(hpp->hopt->parseMop, out, airMopAlways);
     hpp->err[0] = '\0';
   }
   return ret;
 }
 static int
-parseSingleE(void *_out, const char *str, _hestPPack *hpp) {
+parseSingleE(void *_out, const char *str, _hestPPair *hpp) {
   if (!(_out && str && hpp)) return 1;
   int *out = (int *)_out;
-  *out = airEnumVal(hpp->enm, str);
-  int ret = (airEnumUnknown(hpp->enm) == *out);
+  *out = airEnumVal(hpp->hopt->enm, str);
+  int ret = (airEnumUnknown(hpp->hopt->enm) == *out);
   if (ret) {
     snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "couldn't parse \"%s\" as %s", str,
-             hpp->enm->name);
+             hpp->hopt->enm->name);
   } else {
     hpp->err[0] = '\0';
   }
   return ret;
 }
 static int
-parseSingleO(void *out, const char *str, _hestPPack *hpp) {
+parseSingleO(void *out, const char *str, _hestPPair *hpp) {
   if (!(out && str && hpp)) return 1;
   char myerr[AIR_STRLEN_HUGE + 1];
-  int ret = hpp->CB->parse(out, str, myerr);
+  int ret = hpp->hopt->CB->parse(out, str, myerr);
   if (ret) {
     if (strlen(myerr)) {
       snprintf(hpp->err, AIR_STRLEN_HUGE + 1, "error parsing \"%s\" as %s:\n%s\n", str,
-               hpp->CB->type,
-               airStrtrunc(myerr, AIR_STRLEN_HUGE + 1,
-                           strlen(str) + strlen(hpp->CB->type) + 100));
+               hpp->hopt->CB->type,
+               airStrunc(myerr, AIR_STRLEN_HUGE + 1,
+                         strlen(str) + strlen(hpp->hopt->CB->type) + 100));
     } else {
       snprintf(hpp->err, AIR_STRLEN_HUGE + 1,
-               "error parsing \"%s\" as %s: returned %d\n", str, hpp->CB->type, ret);
+               "error parsing \"%s\" as %s: returned %d\n", str, hpp->hopt->CB->type, ret);
     }
   } else {
-    if (hpp->CB->destroy) {
+    if (hpp->hopt->CB->destroy) {
       /* out is the address of a void*, we manage the void* */
-      hpp->alloc = 1;
-      airMopAdd(hpp->cmop, (void **)out, (airMopper)airSetNull, airMopOnError);
-      airMopAdd(hpp->cmop, *((void **)out), hpp->CB->destroy, airMopOnError);
+      if (!hpp->hopt->parseMop) hpp->hopt->parseMop = airMopNew();
+      airMopAdd(hpp->hopt->parseMop, (void **)out, (airMopper)airSetNull, airMopAlways);
+      airMopAdd(hpp->hopt->parseMop, *((void **)out), hpp->hopt->CB->destroy, airMopAlways);
     }
   }
   return ret;
 }
 
-int (*const _hestParseSingle[_HEST_TYPE_MAX + 1])(void *, const char *, _hestPPack *) = {
+int (*const _hestParseSingle[_HEST_TYPE_MAX + 1])(void *, const char *, _hestPPair *) = {
   NULL,          //
   parseSingleB,  //
   parseSingleH,  //
@@ -438,26 +438,26 @@ minmaxKind(unsigned int min, int _max) {
 
 /* initializes all of a hestOpt, even arrAlloc and arrLen */
 static void
-optInit(hestOpt *opt) {
+optInit(hestOpt *hopt) {
 
-  opt->flag = NULL;
-  opt->name = NULL;
-  opt->type = airTypeUnknown; /* h== 0 */
-  opt->min = 0;
-  opt->max = 0;
-  opt->valueP = NULL;
-  opt->dflt = opt->info = NULL;
-  opt->sawP = NULL;
-  opt->enm = NULL;
-  opt->CB = NULL;
-  opt->sawP = NULL;
-  opt->kind = 0; /* means that this hestOpt has not been set */
-  opt->alloc = 0;
-  opt->havec = NULL;
-  opt->arrAlloc = opt->arrLen = 0;
-  opt->source = hestSourceUnknown;
-  opt->parmStr = NULL;
-  opt->helpWanted = AIR_FALSE;
+  hopt->flag = NULL;
+  hopt->name = NULL;
+  hopt->type = airTypeUnknown; /* h== 0 */
+  hopt->min = 0;
+  hopt->max = 0;
+  hopt->valueP = NULL;
+  hopt->dflt = hopt->info = NULL;
+  hopt->sawP = NULL;
+  hopt->enm = NULL;
+  hopt->CB = NULL;
+  hopt->sawP = NULL;
+  hopt->kind = 0; /* means that this hestOpt has not been set */
+  hopt->parseMop = NULL; // will create with airMopNew() only as needed
+  hopt->havec = NULL;
+  hopt->arrAlloc = hopt->arrLen = 0;
+  hopt->source = hestSourceUnknown;
+  hopt->parmStr = NULL;
+  hopt->helpWanted = AIR_FALSE;
 }
 
 /*
@@ -469,8 +469,8 @@ pointers to hestOpt structs. Pre-2023, this function did clever things to detect
 terminating hestOpt, but with the introduction of arrAlloc and arrLen that is moot.
 */
 unsigned int
-hestOptNum(const hestOpt *opt) {
-  return opt ? opt->arrLen : 0;
+hestOptNum(const hestOpt *hopt) {
+  return hopt ? hopt->arrLen : 0;
 }
 
 /* like airArrayNew: create an initial segment of the hestOpt array */
@@ -518,39 +518,39 @@ Note that this makes no attempt at error-checking; that is all in _hestOPCheck.
 *THIS* is the function that sets opt->kind.
 */
 void
-hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
+hestOptSingleSet(hestOpt *hopt, const char *flag, const char *name, int type,
                  unsigned int min, int max, void *valueP, const char *dflt,
                  const char *info, unsigned int *sawP, const airEnum *enm,
                  const hestCB *CB) {
 
-  if (!opt) return;
-  opt->flag = airStrdup(flag);
-  opt->name = airStrdup(name);
-  opt->type = type;
-  opt->min = min;
-  opt->max = max;
-  opt->valueP = valueP;
-  opt->dflt = airStrdup(dflt);
-  opt->info = airStrdup(info);
+  if (!hopt) return;
+  hopt->flag = airStrdup(flag);
+  hopt->name = airStrdup(name);
+  hopt->type = type;
+  hopt->min = min;
+  hopt->max = max;
+  hopt->valueP = valueP;
+  hopt->dflt = airStrdup(dflt);
+  hopt->info = airStrdup(info);
   // need to set kind now so can be used in later conditionals
-  opt->kind = minmaxKind(min, max);
+  hopt->kind = minmaxKind(min, max);
   // deal with (what used to be) var args
-  opt->sawP = (5 == opt->kind /* */
+  hopt->sawP = (5 == hopt->kind /* */
                  ? sawP
                  : NULL);
-  opt->enm = (airTypeEnum == type /* */
+  hopt->enm = (airTypeEnum == type /* */
                 ? enm
                 : NULL);
-  opt->CB = (airTypeOther == type /* */
+  hopt->CB = (airTypeOther == type /* */
                ? CB
                : NULL);
-  // alloc set by hestParse
-  opt->havec = hestArgVecNew();
+  // hopt->parseMop may be added to by hestParse and the parseSingleT functions it calls
+  hopt->havec = hestArgVecNew();
   // leave arrAlloc, arrLen untouched: managed by caller
   // yes, redundant with optInit()
-  opt->source = hestSourceUnknown;
-  opt->parmStr = NULL;
-  opt->helpWanted = AIR_FALSE;
+  hopt->source = hestSourceUnknown;
+  hopt->parmStr = NULL;
+  hopt->helpWanted = AIR_FALSE;
   return;
 }
 
@@ -568,22 +568,22 @@ option, or that without a flag (`flag` is NULL) we must have min > 0.  All of th
 done later, in _hestOPCheck.
 */
 unsigned int
-hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,
+hestOptAdd_nva(hestOpt **hoptP, const char *flag, const char *name, int type,
                unsigned int min, int max, void *valueP, const char *dflt,
                const char *info, unsigned int *sawP, const airEnum *enm,
                const hestCB *CB) {
   unsigned int retIdx;
 
   /* NULL address of opt array: can't proceed */
-  if (!optP) return UINT_MAX;
+  if (!hoptP) return UINT_MAX;
   /* initialize hestOpt array if necessary */
-  if (!(*optP)) {
-    optarrNew(optP);
+  if (!(*hoptP)) {
+    optarrNew(hoptP);
   }
   /* increment logical length of hestOpt array; return index of opt being set here */
-  retIdx = optarrIncr(optP);
+  retIdx = optarrIncr(hoptP);
   /* set all elements of the opt */
-  hestOptSingleSet(*optP + retIdx, flag, name, type, min, max, /* */
+  hestOptSingleSet(*hoptP + retIdx, flag, name, type, min, max, /* */
                    valueP, dflt, info,                         /* */
                    sawP, enm, CB);
   return retIdx;
@@ -606,7 +606,7 @@ hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,
  * parsed. Returns UINT_MAX in case of error.
  */
 unsigned int
-hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type,
+hestOptAdd(hestOpt **hoptP, const char *flag, const char *name, int type,
            unsigned int min, int max, void *valueP, const char *dflt, const char *info,
            ...) {
   unsigned int *sawP = NULL;
@@ -614,7 +614,7 @@ hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type,
   const hestCB *CB = NULL;
   va_list ap;
 
-  if (!optP) return UINT_MAX;
+  if (!hoptP) return UINT_MAX;
   /* deal with var args */
   if (5 == minmaxKind(min, max)) {
     va_start(ap, info);
@@ -634,37 +634,40 @@ hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type,
     CB = va_arg(ap, hestCB *);
     va_end(ap);
   }
-  return hestOptAdd_nva(optP, flag, name, type, min, max, /* */
+  return hestOptAdd_nva(hoptP, flag, name, type, min, max, /* */
                         valueP, dflt, info,               /* */
                         sawP, enm, CB);
 }
 
 static void
-_hestOptFree(hestOpt *opt) {
+_hestOptFree(hestOpt *hopt) {
 
-  opt->flag = (char *)airFree(opt->flag);
-  opt->name = (char *)airFree(opt->name);
-  opt->dflt = (char *)airFree(opt->dflt);
-  opt->info = (char *)airFree(opt->info);
-  opt->havec = hestArgVecNix(opt->havec);
+  hopt->flag = (char *)airFree(hopt->flag);
+  hopt->name = (char *)airFree(hopt->name);
+  hopt->dflt = (char *)airFree(hopt->dflt);
+  hopt->info = (char *)airFree(hopt->info);
+  if (hopt->parseMop) {
+    hopt->parseMop = airMopOkay(hopt->parseMop);
+  }
+  hopt->havec = hestArgVecNix(hopt->havec);
   return;
 }
 
 hestOpt *
-hestOptFree(hestOpt *opt) {
-  if (!opt) return NULL;
-  uint num = opt->arrLen;
+hestOptFree(hestOpt *hopt) {
+  if (!hopt) return NULL;
+  uint num = hopt->arrLen;
   for (uint opi = 0; opi < num; opi++) {
-    _hestOptFree(opt + opi);
+    _hestOptFree(hopt + opi);
   }
-  free(opt);
+  free(hopt);
   return NULL;
 }
 
 /* _hestOPCheck
 New biff-based container for all logic that originated in _hestOptCheck (which is the
 2025 rename of what had long been called _hestPanic): the validation of the given hestOpt
-array `opt` itself (but *not* anything about the command-line or its parsing), relative
+array `hopt` itself (but *not* anything about the command-line or its parsing), relative
 to the given (non-NULL) hestParm `hparm`.
 
 Pre-2025, hest did not depend on biff, and this instead took a 'char *err' that somehow
@@ -684,54 +687,54 @@ Prior to 2023 code revisit: this used to set the "kind" in all the opts, but now
 more appropriately done at the time the option is added.
 */
 int
-_hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
-  if (!(opt && hparm)) {
-    biffAddf(HEST, "%s%sgot NULL opt (%p) or hparm (%p)", _ME_, AIR_VOIDP(opt),
+_hestOPCheck(const hestOpt *hopt, const hestParm *hparm) {
+  if (!(hopt && hparm)) {
+    biffAddf(HEST, "%s%sgot NULL hopt (%p) or hparm (%p)", _ME_, AIR_VOIDP(hopt),
              AIR_VOIDP(hparm));
     return 1;
   }
-  uint optNum = opt->arrLen;
+  uint optNum = hopt->arrLen;
   uint ufvarNum = 0; // number of unflagged variadic-parameter options
   for (uint opi = 0; opi < optNum; opi++) {
-    if (!(AIR_IN_OP(airTypeUnknown, opt[opi].type, airTypeLast))) {
+    if (!(AIR_IN_OP(airTypeUnknown, hopt[opi].type, airTypeLast))) {
       biffAddf(HEST, "%s%sopt[%u].type (%d) not in valid range [%d,%d]", _ME_, opi,
-               opt[opi].type, airTypeUnknown + 1, airTypeLast - 1);
+               hopt[opi].type, airTypeUnknown + 1, airTypeLast - 1);
       return 1;
     }
     // `kind` set by hestOptSingleSet
-    if (-1 == opt[opi].kind) {
+    if (-1 == hopt[opi].kind) {
       biffAddf(HEST, "%s%sopt[%u]'s min (%d) and max (%d) incompatible", _ME_, opi,
-               opt[opi].min, opt[opi].max);
+               hopt[opi].min, hopt[opi].max);
       return 1;
     }
-    if (!(opt[opi].valueP)) {
+    if (!(hopt[opi].valueP)) {
       biffAddf(HEST, "%s%sopt[%u]'s valueP is NULL!", _ME_, opi);
       return 1;
     }
-    if (1 == opt[opi].kind) {
-      if (!opt[opi].flag) {
+    if (1 == hopt[opi].kind) {
+      if (!hopt[opi].flag) {
         biffAddf(HEST, "%s%sstand-alone flag opt[%u] must have a flag", _ME_, opi);
         return 1;
       }
-      if (opt[opi].dflt) {
+      if (hopt[opi].dflt) {
         biffAddf(HEST, "%s%sstand-alone flag (opt[%u] %s) should not have a default",
-                 _ME_, opi, opt[opi].flag);
+                 _ME_, opi, hopt[opi].flag);
         return 1;
       }
-      if (opt[opi].name) {
+      if (hopt[opi].name) {
         biffAddf(HEST, "%s%sstand-alone flag (opt[%u] %s) should not have a name", _ME_,
-                 opi, opt[opi].flag);
+                 opi, hopt[opi].flag);
         return 1;
       }
-    } else { // ------ end of if (1 == opt[opi].kind)
-      if (!opt[opi].name) {
+    } else { // ------ end of if (1 == hopt[opi].kind)
+      if (!hopt[opi].name) {
         biffAddf(HEST, "%s%sopt[%u] isn't stand-alone flag: must have \"name\"", _ME_,
                  opi);
         return 1;
       }
     }
-    if (opt[opi].flag) {
-      const char *flag = opt[opi].flag;
+    if (hopt[opi].flag) {
+      const char *flag = hopt[opi].flag;
       uint fslen = AIR_UINT(strlen(flag));
       if (fslen > AIR_STRLEN_SMALL / 2) {
         biffAddf(HEST, "%s%sstrlen(opt[%u].flag) %u is too big", _ME_, opi, fslen);
@@ -782,7 +785,7 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
           return (free(tbuff), 1);
         }
       } else {
-        if (!strlen(opt[opi].flag)) {
+        if (!strlen(hopt[opi].flag)) {
           biffAddf(HEST, "%s%sopt[%u].flag is zero length", _ME_, opi);
           return (free(tbuff), 1);
         }
@@ -795,106 +798,106 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                  _ME_, opi, flag);
         return (free(tbuff), 1);
       }
-    } else { // ------ end of if (opt[opi].flag)
-      // opt[opi] is unflagged
-      if (!opt[opi].min) {
+    } else { // ------ end of if (hopt[opi].flag)
+      // hopt[opi] is unflagged
+      if (!hopt[opi].min) {
         // this rules out all unflagged kind 1 and kind 4
         // and prevents unflagged kind 5 w/ min=0
         biffAddf(HEST, "%s%sunflagged opt[%u] (name %s) must have min >= 1, not 0", _ME_,
-                 opi, opt[opi].name ? opt[opi].name : "not set");
+                 opi, hopt[opi].name ? hopt[opi].name : "not set");
         return 1;
       }
     }
-    if (4 == opt[opi].kind) { // single variadic parameter
+    if (4 == hopt[opi].kind) { // single variadic parameter
       // immediately above have just ruled out unflagged kind 4
-      if (!opt[opi].dflt) {
+      if (!hopt[opi].dflt) {
         biffAddf(HEST,
                  "%s%sopt[%u] -%s is single variadic parameter, but "
                  "no default set",
-                 _ME_, opi, opt[opi].flag);
+                 _ME_, opi, hopt[opi].flag);
         return 1;
       }
-      if (!(strlen(opt[opi].dflt) && _hestPlainWord(opt[opi].dflt))) {
+      if (!(strlen(hopt[opi].dflt) && _hestPlainWord(hopt[opi].dflt))) {
         biffAddf(HEST,
                  "%s%sopt[%u] -%s is single variadic parameter, but "
                  "default \"%s\" needs to be non-empty single value",
-                 _ME_, opi, opt[opi].flag, opt[opi].dflt);
+                 _ME_, opi, hopt[opi].flag, hopt[opi].dflt);
         return 1;
       }
       /* pre 2025, these types were allowed for kind 4, but the semantics are just so
          weird and thus hard to test + debug. It no longer makes sense to support them */
-      if (airTypeChar == opt[opi].type || airTypeString == opt[opi].type
-          || airTypeEnum == opt[opi].type || airTypeOther == opt[opi].type) {
+      if (airTypeChar == hopt[opi].type || airTypeString == hopt[opi].type
+          || airTypeEnum == hopt[opi].type || airTypeOther == hopt[opi].type) {
         biffAddf(HEST,
                  "%s%sopt[%u] -%s is single variadic parameter, but sorry, "
                  "type %s no longer supported",
-                 _ME_, opi, opt[opi].flag, _hestTypeStr[opt[opi].type]);
+                 _ME_, opi, hopt[opi].flag, _hestTypeStr[hopt[opi].type]);
         return 1;
       }
     }
-    if (5 == opt[opi].kind && !(opt[opi].sawP)) {
+    if (5 == hopt[opi].kind && !(hopt[opi].sawP)) {
       biffAddf(HEST,
                "%s%sopt[%u] has multiple variadic parameters (min=%u,max=%d), "
                "but sawP is NULL",
-               _ME_, opi, opt[opi].min, opt[opi].max);
+               _ME_, opi, hopt[opi].min, hopt[opi].max);
       return 1;
     }
-    if (opt[opi].sawP && 5 != opt[opi].kind) {
+    if (hopt[opi].sawP && 5 != hopt[opi].kind) {
       biffAddf(HEST,
                "%s%sopt[%u] has non-NULL sawP but is not a (kind=5) "
                "multiple variadic parm option (min=%u,max=%d)",
-               _ME_, opi, opt[opi].min, opt[opi].max);
+               _ME_, opi, hopt[opi].min, hopt[opi].max);
       return 1;
     }
-    if (airTypeEnum == opt[opi].type && !(opt[opi].enm)) {
+    if (airTypeEnum == hopt[opi].type && !(hopt[opi].enm)) {
       biffAddf(HEST,
                "%s%sopt[%u] (%s) is type \"enum\", but no "
                "airEnum pointer given",
-               _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
+               _ME_, opi, hopt[opi].flag ? hopt[opi].flag : "unflagged");
       return 1;
     }
-    if (opt[opi].enm && airTypeEnum != opt[opi].type) {
+    if (hopt[opi].enm && airTypeEnum != hopt[opi].type) {
       biffAddf(HEST,
                "%s%sopt[%u] (%s) has non-NULL airEnum pointer, but is not airTypeEnum",
-               _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
+               _ME_, opi, hopt[opi].flag ? hopt[opi].flag : "unflagged");
       return 1;
     }
-    if (airTypeOther == opt[opi].type) {
-      if (!(opt[opi].CB)) {
+    if (airTypeOther == hopt[opi].type) {
+      if (!(hopt[opi].CB)) {
         biffAddf(HEST,
                  "%s%sopt[%u] (%s) is type \"other\", but no "
                  "callbacks given",
-                 _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
+                 _ME_, opi, hopt[opi].flag ? hopt[opi].flag : "unflagged");
         return 1;
       }
-      if (!(opt[opi].CB->size > 0)) {
+      if (!(hopt[opi].CB->size > 0)) {
         biffAddf(HEST, "%s%sopt[%u]'s \"size\" (%u) invalid", _ME_, opi,
-                 (uint)(opt[opi].CB->size));
+                 (uint)(hopt[opi].CB->size));
         return 1;
       }
-      if (!(opt[opi].CB->type)) {
+      if (!(hopt[opi].CB->type)) {
         biffAddf(HEST, "%s%sopt[%u]'s \"type\" is NULL", _ME_, opi);
         return 1;
       }
-      if (!(opt[opi].CB->parse)) {
+      if (!(hopt[opi].CB->parse)) {
         biffAddf(HEST, "%s%sopt[%u]'s \"parse\" callback NULL", _ME_, opi);
         return 1;
       }
-      if (opt[opi].CB->destroy && (sizeof(void *) != opt[opi].CB->size)) {
+      if (hopt[opi].CB->destroy && (sizeof(void *) != hopt[opi].CB->size)) {
         biffAddf(HEST,
                  "%s%sopt[%u] has a \"destroy\", but size %lu isn't "
                  "sizeof(void*)",
-                 _ME_, opi, (unsigned long)(opt[opi].CB->size));
+                 _ME_, opi, (unsigned long)(hopt[opi].CB->size));
         return 1;
       }
     }
-    if (opt[opi].CB && airTypeOther != opt[opi].type) {
+    if (hopt[opi].CB && airTypeOther != hopt[opi].type) {
       biffAddf(HEST, "%s%sopt[%u] (%s) has non-NULL callbacks, but is not airTypeOther",
-               _ME_, opi, opt[opi].flag ? opt[opi].flag : "unflagged");
+               _ME_, opi, hopt[opi].flag ? hopt[opi].flag : "unflagged");
       return 1;
     }
     // kind 4 = single variadic parm;  kind 5 = multiple variadic parm
-    ufvarNum += (opt[opi].kind > 3 && (!opt[opi].flag));
+    ufvarNum += (hopt[opi].kind > 3 && (!hopt[opi].flag));
   }
   if (ufvarNum > 1) {
     biffAddf(HEST, "%s%scan have at most 1 unflagged min<max options, not %u", _ME_,
@@ -904,25 +907,14 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
   return 0;
 }
 
-/* experiments in adding a nixer/free-er that exactly matches the airMopper type,
-   as part of trying to avoid all "undefined behavior" */
-void *
-hestParmFree_vp(void *_hparm) {
-  return AIR_VOIDP(hestParmFree((hestParm *)_hparm));
-}
-void *
-hestOptFree_vp(void *_opt) {
-  return AIR_VOIDP(hestOptFree((hestOpt *)_opt));
-}
-
 /*
- * hestOptCheck: check given hestOpt array `opt`, using the default hestParm.
+ * hestOptCheck: check given hestOpt array `hopt`, using the default hestParm.
  * Puts any errors into newly allocated (caller responsible to free) `*errP`.
  */
 int
-hestOptCheck(const hestOpt *opt, char **errP) {
+hestOptCheck(const hestOpt *hopt, char **errP) {
   hestParm *hparm = hestParmNew();
-  if (_hestOPCheck(opt, hparm)) {
+  if (_hestOPCheck(hopt, hparm)) {
     char *err = biffGetDone(HEST);
     if (errP) {
       /* they did give a pointer address; they'll free it */
@@ -942,14 +934,14 @@ hestOptCheck(const hestOpt *opt, char **errP) {
 }
 
 /*
- * hestOptParmCheck: check given hestOpt array `opt` in combination with the given
+ * hestOptParmCheck: check given hestOpt array `hopt` in combination with the given
  * hestParm `hparm`. Puts any errors into newly allocated (caller responsible to free)
  * `*errP`.
  * HEY copy-pasta
  */
 int
-hestOptParmCheck(const hestOpt *opt, const hestParm *hparm, char **errP) {
-  if (_hestOPCheck(opt, hparm)) {
+hestOptParmCheck(const hestOpt *hopt, const hestParm *hparm, char **errP) {
+  if (_hestOPCheck(hopt, hparm)) {
     char *err = biffGetDone(HEST);
     if (errP) {
       /* they did give a pointer address; they'll free it */

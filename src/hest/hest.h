@@ -212,7 +212,7 @@ typedef struct {
   up in the same struct as the input parameters above, but it also makes sense to keep
   all per-opt state in one place.  The const-correctness we might want of hestParse is
   thwarted by this internal state, but also by the important output fields, below. */
-  int kind, /* What kind of option is this, based on min and max:
+  int kind; /* What kind of option is this, based on min and max:
                0:                       (invalid; unset)
                1: min == max == 0       stand-alone flag; no parameters
                2: min == max == 1       single fixed parameter
@@ -221,15 +221,14 @@ typedef struct {
                5: min < max; max >= 2   multiple variadic parameters
               This is set by hest functions as part of building up an array of hestOpt,
               and informs the later action of hestOptFree */
-    alloc;  /* Information (set by hestParse) about how (if at all) memory was allocated
-               by hestParse(). Informs later action of hestParseFree():
-               0: no free()ing needed
-               1: free(*valueP), either because it is a single string, or because was a
-                  dynamically allocated array of non-strings
-               2: free((*valueP)[i]), because they are elements of a fixed-length
-                  array of strings
-               3: free((*valueP)[i]) and free(*valueP), because it is a dynamically
-                  allocated array of strings */
+  airArray *parseMop; /* If non-NULL: remembers what was allocated at or behind *valueP
+                         as a result of running hestParse(). Free'ing or destroy'ing
+                         callbacks added here (by _hestParseSingle[type]) with
+                         when=airMopAlways. With the 2025 rewrite, this replaces the
+                         previous `int alloc` field with special values 0,1,2,3, which
+                         had fussy semantics that complicated hestParseFree()'s work.
+                         Now hestParseFree just calls airMopDone on all these (non-NULL)
+                         per-option parseMops. */
   hestArgVec *havec; // the (non-flag) parm args attributed to this option
   /* Since hest's beginning in 2002, the basic container for a set of options was an
   array of hestOpt structs (not pointers to them, which rules out argv-style
@@ -258,8 +257,8 @@ typedef struct {
   whatever values were set in *valueP above. Internally, hest maintains an argc,argv-like
   representation of the info to parse, but here it is joined back together into a
   space-delimited single string. Note that in the case of single variadic parameter
-  options used without a parameter, the value stored will be "inverted" from the string
-  here. */
+  options used without a parameter, the value stored will be "inverted" (in the boolean
+  sense of V --> !V) from the value parsed from the string saved here. */
   char *parmStr;
   /* helpWanted indicates that hestParse() saw something (like "--help") in one of the
   given arguments that looks like a call for help, and that respectDashDashHelp is set in
@@ -360,9 +359,8 @@ HEST_EXPORT const airEnum *const hestSource;
 HEST_EXPORT int hestSourceUser(int src);
 HEST_EXPORT hestParm *hestParmNew(void);
 HEST_EXPORT hestParm *hestParmFree(hestParm *hparm);
-HEST_EXPORT void *hestParmFree_vp(void *hparm);
 HEST_EXPORT int hestParmColumnsIoctl(hestParm *hparm, unsigned int nonIoctlColumns);
-HEST_EXPORT void hestOptSingleSet(hestOpt *opt, const char *flag, const char *name,
+HEST_EXPORT void hestOptSingleSet(hestOpt *hopt, const char *flag, const char *name,
                                   int type, unsigned int min, int max, void *valueP,
                                   const char *dflt, const char *info, unsigned int *sawP,
                                   const airEnum *enm, const hestCB *CB);
@@ -380,30 +378,29 @@ HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
                                     ... /* unsigned int *sawP,
                                            const airEnum *enm,
                                            const hestCB *CB */);
-HEST_EXPORT unsigned int hestOptNum(const hestOpt *opt);
-HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
-HEST_EXPORT void *hestOptFree_vp(void *opt);
-HEST_EXPORT int hestOptCheck(const hestOpt *opt, char **errP);
-HEST_EXPORT int hestOptParmCheck(const hestOpt *opt, const hestParm *hparm, char **errP);
+HEST_EXPORT unsigned int hestOptNum(const hestOpt *hopt);
+HEST_EXPORT hestOpt *hestOptFree(hestOpt *hopt);
+HEST_EXPORT int hestOptCheck(const hestOpt *hopt, char **errP);
+HEST_EXPORT int hestOptParmCheck(const hestOpt *hopt, const hestParm *hparm, char **errP);
 
 // parseHest.c
-HEST_EXPORT int hestParse(hestOpt *opt, int argc, const char **argv, char **errP,
+HEST_EXPORT int hestParse(hestOpt *hopt, int argc, const char **argv, char **errP,
                           const hestParm *hparm);
-HEST_EXPORT void *hestParseFree(hestOpt *opt);
-HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, const char **argv,
+HEST_EXPORT hestOpt *hestParseFree(hestOpt *hopt);
+HEST_EXPORT void hestParseOrDie(hestOpt *hopt, int argc, const char **argv,
                                 hestParm *hparm, const char *me, const char *info,
                                 int doInfo, int doUsage, int doGlossary);
 
 // parsest.c
-HEST_EXPORT int hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
+HEST_EXPORT int hestParse2(hestOpt *hopt, int argc, const char **argv, char **errP,
                            const hestParm *hparm);
 
 // usage.c
 HEST_EXPORT void _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
                                unsigned int width, const char *_str, int bslash);
-HEST_EXPORT void hestUsage(FILE *file, const hestOpt *opt, const char *argv0,
+HEST_EXPORT void hestUsage(FILE *file, const hestOpt *hopt, const char *argv0,
                            const hestParm *hparm);
-HEST_EXPORT void hestGlossary(FILE *file, const hestOpt *opt, const hestParm *hparm);
+HEST_EXPORT void hestGlossary(FILE *file, const hestOpt *hopt, const hestParm *hparm);
 HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
                           const hestParm *hparm);
 

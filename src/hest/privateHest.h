@@ -72,31 +72,29 @@ typedef unsigned int uint;
 HEST_EXPORT const char _hestTypeStr[_HEST_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1];
 HEST_EXPORT const size_t _hestTypeSize[_HEST_TYPE_MAX + 1];
 HEST_EXPORT void (*const _hestInvertScalar[_HEST_TYPE_MAX + 1])(void *);
-/* the _hestPPack (hest parse pack) struct is a 2025 idea for addressing one of the most
+/* the _hestPPair (hest parse pair) struct is a 2025 idea for addressing one of the most
 annoying parts of hest's code: the special-casing of how values are parsed from strings,
 depending on type (scalar vs enum vs other-via-callbacks). Old code has long had nested
 switch statements: first for option kind, and then for option type. Fresh scrutiny of
 this code revealed how, now that there is no more airStrtok/airStrntok action because all
 individual args have been saved into per-option arg vectors, the parsing problem is just
 to get a single value, and, how to get a single value can be made entirely uniform across
-type; via the _hestParseSingle[] array. By putting the caller's mop in here too, that
-removes one layer of allocation tracking from hest's setting-values function. */
+type; via the _hestParseSingle[] array. All the info needed here is just the hestOpt
+(and `parseMop`, `enm`, and `CB` fields within it), and the `err` msg buffer that is
+used to describe any parsing error, not just via hestCB.  */
 typedef struct {
-  airArray *cmop;                // caller's mop to clean up things if airMopError
-  const airEnum *enm;            // for parsing an airTypeEnum value
-  const hestCB *CB;              // for parsing an airTypeOther
-  int alloc;                     // our single-arg parsing work allocated something
+  hestOpt *hopt;                 // what option is this for
   char err[AIR_STRLEN_HUGE + 1]; // error message can go for any type
-} _hestPPack;
+} _hestPPair;
 HEST_EXPORT int (*const _hestParseSingle[_HEST_TYPE_MAX + 1])(void *, const char *,
-                                                              _hestPPack *);
+                                                              _hestPPair *);
 // HEY these are sticking around just for the old implementation of hestParse
 HEST_EXPORT unsigned int (*const _hestParseStr[_HEST_TYPE_MAX + 1])(void *, const char *,
                                                                     const char *,
                                                                     unsigned int);
 extern const char *const _hestBiffKey;
 extern int _hestMax(int max);
-extern int _hestOPCheck(const hestOpt *opt, const hestParm *parm);
+extern int _hestOPCheck(const hestOpt *hopt, const hestParm *parm);
 
 // argvHest.c
 extern int _hestPlainWord(const char *s);
