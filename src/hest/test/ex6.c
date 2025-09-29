@@ -88,7 +88,6 @@ main(int argc, const char **argv) {
   hestParmColumnsIoctl(hparm, 80);
 
   opt = NULL;
-  /* going past C89 to have declarations here */
   int flag;
   hestOptAdd_Flag(&opt, "f,flag", &flag, "a flag created via hestOptAdd_Flag");
 
@@ -324,62 +323,65 @@ main(int argc, const char **argv) {
                      "15.55  55.51  66.77  88.99  100.2", "test of hestOptAdd_N_Other B",
                      &quatCB);
 
-  /* HEY also try 0, -1 */
+// HEY try both!
+// #define VMIN 0
+#define VMIN 1
   int *bv;
   unsigned int bvSaw;
-  hestOptAdd_Nv_Bool(&opt, "bv", "bool1", 1, -1, &bv, "true false",
+  hestOptAdd_Nv_Bool(&opt, "bv", "bool1", VMIN, -1, &bv, "true false",
                      "test of hestOptAdd_Nv_Bool", &bvSaw);
   int *iv;
   unsigned int ivSaw;
-  hestOptAdd_Nv_Int(&opt, "iv", "int1", 1, -1, &iv, "42 24", "test of hestOptAdd_Nv_Int",
-                    &ivSaw);
+  hestOptAdd_Nv_Int(&opt, "iv", "int1", VMIN, -1, &iv, "42 24",
+                    "test of hestOptAdd_Nv_Int", &ivSaw);
   unsigned int *uiv;
   unsigned int uivSaw;
-  hestOptAdd_Nv_UInt(&opt, "uiv", "uint1", 1, -1, &uiv, "42 24",
+  hestOptAdd_Nv_UInt(&opt, "uiv", "uint1", VMIN, -1, &uiv, "42 24",
                      "test of hestOptAdd_Nv_UInt", &uivSaw);
   long int *liv;
   unsigned int livSaw;
-  hestOptAdd_Nv_Long(&opt, "liv", "lint1", 1, -1, &liv, "42 24",
+  hestOptAdd_Nv_Long(&opt, "liv", "lint1", VMIN, -1, &liv, "42 24",
                      "test of hestOptAdd_Nv_Long", &livSaw);
   unsigned long int *uliv;
   unsigned int ulivSaw;
-  hestOptAdd_Nv_ULong(&opt, "uliv", "ulint1", 1, -1, &uliv, "42 24",
+  hestOptAdd_Nv_ULong(&opt, "uliv", "ulint1", VMIN, -1, &uliv, "42 24",
                       "test of hestOptAdd_Nv_ULong", &ulivSaw);
   size_t *szv;
   unsigned int szvSaw;
-  hestOptAdd_Nv_Size_t(&opt, "szv", "size1", 1, -1, &szv, "42 24",
+  hestOptAdd_Nv_Size_t(&opt, "szv", "size1", VMIN, -1, &szv, "42 24",
                        "test of hestOptAdd_Nv_Size_t", &szvSaw);
   float *flv;
   unsigned int flvSaw;
-  hestOptAdd_Nv_Float(&opt, "flv", "float1", 1, -1, &flv, "4.2 2.4",
+  hestOptAdd_Nv_Float(&opt, "flv", "float1", VMIN, -1, &flv, "4.2 2.4",
                       "test of hestOptAdd_Nv_Float", &flvSaw);
   double *dbv;
   unsigned int dbvSaw;
-  hestOptAdd_Nv_Double(&opt, "dbv", "double1", 1, -1, &dbv, "4.2 2.4",
+  hestOptAdd_Nv_Double(&opt, "dbv", "double1", VMIN, -1, &dbv, "4.2 2.4",
                        "test of hestOptAdd_Nv_Double", &dbvSaw);
   char *cv;
   unsigned int cvSaw;
-  hestOptAdd_Nv_Char(&opt, "cv", "char1", 1, -1, &cv, "x y",
+  hestOptAdd_Nv_Char(&opt, "cv", "char1", VMIN, -1, &cv, "x y",
                      "test of hestOptAdd_Nv_Char", &cvSaw);
   char **sv;
   unsigned int svSaw;
-  hestOptAdd_Nv_String(&opt, "sv", "str1", 1, -1, &sv, "bingo bob",
+  hestOptAdd_Nv_String(&opt, "sv", "str1", VMIN, -1, &sv, "bingo bob",
                        "test of hestOptAdd_Nv_String", &svSaw);
   int *ev;
   unsigned int evSaw;
-  hestOptAdd_Nv_Enum(&opt, "ev", "enum1", 1, -1, &ev, "little big",
+  hestOptAdd_Nv_Enum(&opt, "ev", "enum1", VMIN, -1, &ev, "little big",
                      "test of hestOptAdd_Nv_Enum", &evSaw, airEndian);
   double *pv;
   unsigned int pvSaw;
-  hestOptAdd_Nv_Other(&opt, "pv", "pos1", 1, -1, &pv, "1.5,5.25  2.9,9.2",
+  hestOptAdd_Nv_Other(&opt, "pv", "pos1", VMIN, -1, &pv, "1.5,5.25  2.9,9.2",
                       "test of hestOptAdd_Nv_Other A", &pvSaw, &posCB);
   Quat **qv;
   unsigned int qvSaw;
-  hestOptAdd_Nv_Other(&opt, "qv", "quat1", 1, -1, &qv, "12.34  43.21",
+  hestOptAdd_Nv_Other(&opt, "qv", "quat1", VMIN, -1, &qv, "12.34  43.21",
                       "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
-  if (hestParse2(opt, argc - 1, argv + 1, NULL, hparm)) {
+  int eret;
+  if ((eret = hestParse2(opt, argc - 1, argv + 1, NULL, hparm))) {
     // have already fprintf'd to stderr
-    hestUsage(stderr, opt, argv[0], hparm);
+    if (2 != eret) hestUsage(stderr, opt, argv[0], hparm);
     hestParmFree(hparm);
     hestOptFree(opt);
     exit(0);
@@ -395,7 +397,7 @@ main(int argc, const char **argv) {
                  AIR_TRUE);
   */
 
-  if (0) {
+  if (1) {
     unsigned int opi, numO;
     numO = hestOptNum(opt);
     for (opi = 0; opi < numO; opi++) {

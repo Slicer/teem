@@ -663,9 +663,9 @@ hestOptFree(hestOpt *opt) {
 
 /* _hestOPCheck
 New biff-based container for all logic that originated in _hestOptCheck (which is the
-2025 rename of _hestPanic): the validation of the given hestOpt array `opt` itself (but
-*not* anything about the command-line or its parsing), relative to the given (non-NULL)
-hestParm `hparm`.
+2025 rename of what had long been called _hestPanic): the validation of the given hestOpt
+array `opt` itself (but *not* anything about the command-line or its parsing), relative
+to the given (non-NULL) hestParm `hparm`.
 
 Pre-2025, hest did not depend on biff, and this instead took a 'char *err' that somehow
 magically had to be allocated for the size of any possible error message generated here.
@@ -795,22 +795,6 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                  _ME_, opi, flag);
         return (free(tbuff), 1);
       }
-      if (4 == opt[opi].kind) {
-        if (!opt[opi].dflt) {
-          biffAddf(HEST,
-                   "%s%sflagged single variadic parameter must "
-                   "specify a default",
-                   _ME_);
-          return 1;
-        }
-        if (!strlen(opt[opi].dflt)) {
-          biffAddf(HEST,
-                   "%s%sflagged single variadic parameter default "
-                   "must be non-zero length",
-                   _ME_);
-          return 1;
-        }
-      }
     } else { // ------ end of if (opt[opi].flag)
       // opt[opi] is unflagged
       if (!opt[opi].min) {
@@ -822,7 +806,7 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
       }
     }
     if (4 == opt[opi].kind) { // single variadic parameter
-      // immediately above have ruled out unflagged kind 4
+      // immediately above have just ruled out unflagged kind 4
       if (!opt[opi].dflt) {
         biffAddf(HEST,
                  "%s%sopt[%u] -%s is single variadic parameter, but "
@@ -830,8 +814,15 @@ _hestOPCheck(const hestOpt *opt, const hestParm *hparm) {
                  _ME_, opi, opt[opi].flag);
         return 1;
       }
-      /* pre 2025, these types were allowed kind 4, but the semantics are just so weird
-         and thus hard to test + debug, that it no longer makes sense to support them */
+      if (!(strlen(opt[opi].dflt) && _hestPlainWord(opt[opi].dflt))) {
+        biffAddf(HEST,
+                 "%s%sopt[%u] -%s is single variadic parameter, but "
+                 "default \"%s\" needs to be non-empty single value",
+                 _ME_, opi, opt[opi].flag, opt[opi].dflt);
+        return 1;
+      }
+      /* pre 2025, these types were allowed for kind 4, but the semantics are just so
+         weird and thus hard to test + debug. It no longer makes sense to support them */
       if (airTypeChar == opt[opi].type || airTypeString == opt[opi].type
           || airTypeEnum == opt[opi].type || airTypeOther == opt[opi].type) {
         biffAddf(HEST,

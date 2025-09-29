@@ -1262,8 +1262,11 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
     line. The inscrutability of the hest code (or really the self-reinforcing
     learned fear of working with the hest code) seems to have been the barrier.
     (2025 GLK notes that the fear was justified, given how long the re-write took ...) */
-    opt[opi].parmStr = hestArgVecSprint(opt[opi].havec, AIR_FALSE);
-    /* not: airStrdup(optParms[opi]); since 2025 havec adoption */
+    if (4 != opt[opi].kind) {
+      // single variadic options are weird, handled differently below
+      opt[opi].parmStr = hestArgVecSprint(opt[opi].havec, AIR_FALSE);
+    }
+    /* since 2025 havec adoption, not: airStrdup(optParms[opi]); */
     int type = opt[opi].type;
     size_t size = (airTypeEnum == type /* */
                      ? sizeof(int)
@@ -1341,6 +1344,8 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
       if (invert) {
         _hestInvertScalar[type](valueP);
       }
+      // special handling of parmStr for kind 4
+      opt[opi].parmStr = airStrdup(strsrc);
     } // end case 4 {
     break;
     case 2: // -------- one required parameter --------
@@ -1384,7 +1389,7 @@ optSetValues(hestOpt *opt, const hestParm *hparm, airArray *cmop) {
       }
       *(opt[opi].sawP) = opt[opi].havec->len;
       cvalueP = *((void **)valueP);
-      // RIP hammerhead.ucsd.edu and Intel Itanium
+      // (RIP hammerhead.ucsd.edu, Intel Itanium, and last days of grad school)
       for (uint argi = 0; argi < opt[opi].havec->len; argi++) {
         if (_hestParseSingle[type](cvalueP + size * argi,
                                    opt[opi].havec->harg[argi]->str, hpp)) {
@@ -1416,7 +1421,9 @@ error, an error message string describing it in detail is generated and
 
 The basic phases of parsing are:
 
-0) Error checking on given `opt` array
+0) Error checking on given `opt` array.  If this fails (i.e. because the previous
+calls to hestOptAdd were malformed), the return is 2, not the 1 returned from errors in
+any of the subsequent steps.
 
 1) Generate internal representation of command-line that includes expanding any
 response files; this all goes into the `hestArgVec *havec`.
@@ -1465,7 +1472,7 @@ hestParse2(hestOpt *opt, int argc, const char **argv, char **errP,
   if (_hestOPCheck(opt, HPARM)) {
     DO_ERR("problem with given hestOpt array");
     airMopError(mop);
-    return 1;
+    return 2;
   }
   if (HPARM->verbosity > 1) {
     printf("%s: _hestOPCheck passed\n", __func__);

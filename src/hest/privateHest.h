@@ -98,6 +98,9 @@ extern const char *const _hestBiffKey;
 extern int _hestMax(int max);
 extern int _hestOPCheck(const hestOpt *opt, const hestParm *parm);
 
+// argvHest.c
+extern int _hestPlainWord(const char *s);
+
 /* wacky hack to use with biffAddf(HEST), so that normal hest users, who haven't
    cranked up hestParm->verbosity to debug hest itself and don't want error messages
    prefixed by a lot of weird hest function names:

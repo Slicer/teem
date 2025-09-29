@@ -180,7 +180,7 @@ hestArgVecRemove(hestArgVec *havec, uint popIdx) {
 /* hestArgVecSprint goes is opposite of the shell-style tokenization of
 parsest.c/argstGo: generate a single human-friendly string that could be tokenized to
 recover the hestArgVec we started with.
-ChatGPT helped with prototyping plainWord and argAddQuotedString
+ChatGPT helped with prototyping _hestPlainWord and argAddQuotedString
 (and in this file, only those two functions)
 Here are instructive examples of the same kind of argv pretty-printing:
 https://github.com/git/git/blob/master/quote.c
@@ -188,9 +188,9 @@ and here https://www.opencoverage.net/coreutils/index_html/source_213.html
 with its (more baroque) quotearg_buffer_restyled() function
 */
 
-// plainWord(str) is true if nothing in str needs quoting or escaping
-static int
-plainWord(const char *s) {
+// _hestPlainWord(str) is true if nothing in str needs quoting or escaping
+int
+_hestPlainWord(const char *s) {
   if (*s == '\0') {
     // wut - we got the empty string, yes needs quoting
     return 0;
@@ -258,7 +258,7 @@ hestArgVecSprint(const hestArgVec *havec, int showIdx) {
       hestArgAddChar(retArg, ':');
     }
     const char *astr = havec->harg[ai]->str;
-    if (plainWord(astr)) {
+    if (_hestPlainWord(astr)) {
       hestArgAddString(retArg, astr);
     } else {
       argAddQuotedString(retArg, astr);
