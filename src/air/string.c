@@ -70,7 +70,7 @@ to ensure that its strlen does not exceed bsize-1-drop.  But main purpose is
 to hide compile-time info about static buffer sizes to avoid warnings about:
 snprintf ...'%s' directive output may be truncated writing up to ... */
 char *
-airStrtrunc(char *str, size_t bsize, size_t drop) {
+airStrunc(char *str, size_t bsize, size_t drop) {
   if (str) {
     if (1 + drop < bsize) {
       str[bsize - (1 + drop)] = '\0';

@@ -514,7 +514,7 @@ AIR_EXPORT unsigned int airParseStrE(int *out, const char *s, const char *ct,
 AIR_EXPORT char *airStrdup(const char *s);
 AIR_EXPORT size_t airStrlen(const char *s);
 /* ---- BEGIN non-NrrdIO */
-AIR_EXPORT char *airStrtrunc(char *s, size_t bsize, size_t drop);
+AIR_EXPORT char *airStrunc(char *s, size_t bsize, size_t drop);
 AIR_EXPORT int airStrcmp(const char *s1, const char *s2);
 /* ---- END non-NrrdIO */
 AIR_EXPORT char *airStrtok(char *s, const char *ct, char **last);
@@ -649,9 +649,9 @@ AIR_EXPORT void airMopSub(airArray *arr, void *ptr, airMopper mop);
 AIR_EXPORT void airMopMem(airArray *arr, void *_ptrP, int when);
 AIR_EXPORT void airMopUnMem(airArray *arr, void *_ptrP);
 AIR_EXPORT void airMopPrint(airArray *arr, const void *_str, int when);
-AIR_EXPORT void airMopDone(airArray *arr, int error);
-AIR_EXPORT void airMopError(airArray *arr);
-AIR_EXPORT void airMopOkay(airArray *arr);
+AIR_EXPORT airArray *airMopDone(airArray *arr, int error);
+AIR_EXPORT airArray *airMopError(airArray *arr);
+AIR_EXPORT airArray *airMopOkay(airArray *arr);
 AIR_EXPORT void airMopDebug(airArray *arr);
 /* ---- BEGIN non-NrrdIO */
 AIR_EXPORT void airMopSingleDone(airArray *arr, void *ptr, int error);
