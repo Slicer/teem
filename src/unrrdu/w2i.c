@@ -56,7 +56,7 @@ unrrdu_w2iMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "number of intervals into which position has been quantized");
   hestOptAdd_1_Double(&opt, NULL, "world", &pos, NULL,
                       "the input world position, to be converted to index");
-  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE_OR_PARSE(_unrrdu_w2iInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 

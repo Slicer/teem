@@ -83,7 +83,7 @@ unrrdu_cksumMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                     "endianness");
   hestOptAdd_Nv_String(&opt, NULL, "nin1", 1, -1, &inS, "-",
                        "input nrrd(s). By default tries to read from stdin", &ninLen);
-  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE_OR_PARSE(_unrrdu_cksumInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);

@@ -372,7 +372,7 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "Single output filename; use \"-\" for stdout");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE_OR_PARSE(_unrrdu_uncmtInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 

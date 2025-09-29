@@ -77,7 +77,7 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me, hestParm *hparm)
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   nio = nrrdIoStateNew();
   airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
 

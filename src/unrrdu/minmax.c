@@ -110,7 +110,7 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) 
     "only if there were non-existent values. If there are multiple inputs, "
     "the input filename is printed first on the per-input single line.");
   hestOptAdd_Nv_String(&opt, NULL, "nin1", 1, -1, &inS, "-", "input nrrd(s)", &ninLen);
-  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE_OR_PARSE(_unrrdu_minmaxInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);

@@ -50,7 +50,7 @@ unrrdu_sselectMain(int argc, const char **argv, const char *me, hestParm *hparm)
                       "Use \"x\" to say that no output is desired.");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE_OR_PARSE(_unrrdu_sselectInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);

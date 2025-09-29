@@ -237,7 +237,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "this option allows you to explicitly name the data file, "
                       "instead of (by default, not using this option) having it be "
                       "the same filename base as the header file.");
-  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   // Gone in TeemV2: airStrtokQuoting = AIR_TRUE;
   /* hparm->verbosity = 3; / * HEY JUST FOR DEBUGGING */
